@@ -1,0 +1,146 @@
+# CLAUDE.md (Global)
+# ~/coding/CLAUDE.md
+
+This file applies to all repositories under ~/coding. Project-specific CLAUDE.md files
+(in individual repo roots) capture per-project architecture and patterns. This file
+captures universal working preferences and process edicts that apply everywhere.
+
+---
+
+## Who I Am
+
+- Experienced software engineer; 30+ years in test automation, RF/lab instrument
+  automation, and Python development
+- Comfortable in the terminal; primary environment is iTerm2 + VS Code + Claude Code CLI
+- I prefer to understand what's happening, not just have it done for me — explain
+  non-obvious decisions briefly inline
+- I am not a daily JavaScript developer; flag JS patterns that differ from Python idioms
+
+---
+
+## Communication Style
+
+- Be direct and concise. Don't pad responses.
+- If something I've asked for is unclear or has a better approach, say so before proceeding
+- Flag risks or tradeoffs proactively, but don't catastrophize
+- Prefer prose explanations over bullet-point walls
+- When presenting code, use code blocks for all operators, literals, and shell commands
+  so they render as plain text rather than being interpreted by rich text renderers
+
+---
+
+## Git Workflow
+
+These rules apply to all repos unless a project CLAUDE.md explicitly overrides them.
+
+### Branching
+- `main` is always deployable / stable
+- All work happens on feature branches: `feature/<short-description>`
+- Bug fixes: `fix/<short-description>`
+- Experimental / exploratory: `experiment/<short-description>`
+
+### Commits
+- Do not ever use "git add -A" or "git add ."; rather, specifically add files by name
+  to avoid snarfing up unexpected files in the repo
+- Commit early and often — small, focused commits preferred over large ones
+- Commit message format: imperative mood, present tense
+  - Good: `Add CEFR level selector to config panel`
+  - Bad: `Added stuff`, `WIP`, `fix`
+- Never commit directly to `main`
+- Always run tests before committing (see TDD section below)
+
+### Standard flow for a feature
+```bash
+git checkout -b feature/<name>
+# ... work, test, iterate ...
+git add -p                    # stage hunks interactively, not whole files blindly
+git commit -m "<message>"
+git push origin feature/<name>
+# open PR / merge to main when ready
+```
+
+### Before merging to main
+- All tests pass
+- No debug artifacts (console.log spam, commented-out code blocks, TODO bombs)
+- DECISIONS.md updated if any architectural choices were made
+
+---
+
+## Test-Driven Development (TDD)
+
+- Write the test before the implementation, not after
+- Red → Green → Refactor cycle is the expected loop
+- Tests live in a `tests/` directory at the repo root unless the project has an
+  established convention already
+- Test file naming: `test_<module>.py` (Python) or `<module>.test.js` (JavaScript)
+- Every non-trivial function should have at least one test
+- Edge cases and failure modes are first-class test citizens — not afterthoughts
+- Claude Code should run the test suite after every implementation change and
+  report results before declaring a task done
+
+### Python testing
+- Use `pytest` as the default test runner
+- Use `pytest-cov` for coverage reporting when coverage is relevant
+- Fixtures over setup/teardown methods
+
+### JavaScript testing
+- [? — preferred JS test runner: Vitest / Jest / Playwright / other?]
+- For browser-only projects with no build system, note this constraint upfront
+  since standard test runners may need a shim or alternative approach
+
+---
+
+## Code Style
+
+### General
+- Clarity over cleverness — write code your future self will understand at 2am
+- Functions do one thing
+- Name things accurately; avoid abbreviations except universally understood ones
+- No magic numbers — name your constants
+
+### Python
+- Follow PEP 8
+- Type hints on all function signatures
+- Docstrings on public functions (Google style)
+- `black` for formatting if configured; otherwise consistent 4-space indentation;
+   120-char width
+
+### JavaScript
+- Prefer `const` over `let`; avoid `var`
+- Arrow functions for callbacks; named functions for anything with logic
+- No framework assumed globally — check project CLAUDE.md for per-project stack
+
+---
+
+## File & Repo Hygiene
+
+- `.gitignore` should be the first commit in any new repo
+- Never commit API keys, secrets, or credentials — not even temporarily
+- `README.md` required at repo root; keep it current
+- `docs/` directory for design documents (BRIEF.md, SPEC.md, DECISIONS.md),
+  following the template used in ~/coding/krashen
+- Delete dead code rather than commenting it out; git history is the undo buffer
+
+---
+
+## Project Documentation Conventions
+
+All active projects maintain three documents in `docs/`:
+
+- `BRIEF.md` — stable: what, why, for whom, hard constraints
+- `SPEC.md` — living: feature-by-feature design
+- `DECISIONS.md` — append-only: key architectural choices with rationale
+
+Update DECISIONS.md any time a non-obvious architectural or design decision is made.
+These docs are also attached to the corresponding Claude Project in claude.ai for
+browser-based design conversations.
+
+---
+
+## What Claude Code Should Always Do
+
+- Read existing code before writing new code — don't assume structure
+- Run the test suite after changes; don't declare done until tests pass
+- Ask before deleting or significantly restructuring existing files
+- Prefer small, verifiable steps over large one-shot rewrites
+- If a task touches more than ~3 files, propose a plan first and wait for approval
