@@ -80,6 +80,22 @@ export function appendHistory(entry) {
   write(KEYS.history, history);
 }
 
+export function deleteHistoryEntry(id) {
+  write(KEYS.history, getHistory().filter(e => e.id !== id));
+}
+
+export function clearHistory() {
+  write(KEYS.history, []);
+}
+
+export function mergeHistory(entries) {
+  const existing = getHistory();
+  const existingIds = new Set(existing.map(e => e.id));
+  const incoming = entries.filter(e => !existingIds.has(e.id));
+  write(KEYS.history, [...existing, ...incoming]);
+  return { imported: incoming.length, skipped: entries.length - incoming.length };
+}
+
 export function getVocab() {
   return read(KEYS.vocab, DEFAULT_VOCAB);
 }

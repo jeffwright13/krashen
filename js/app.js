@@ -2,7 +2,23 @@ import { validateConfig, DEFAULT_CONFIG } from './config.js';
 import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt } from './prompt.js';
 import { generateContent, testApiKey } from './llm.js';
 import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings, appendHistory } from './storage.js';
+import { getHistory, deleteHistoryEntry, clearHistory } from './history.js';
+import { exportPieceAsMarkdown, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
+import { parseLibraryJSON } from './import.js';
+import { mergeHistory } from './storage.js';
 import { toggleLoading, renderContent, renderError } from './display.js';
+
+let currentEntry = null;
+
+function triggerDownload(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 function readConfig() {
   const sentenceRaw = document.getElementById('sentence-length').value;
@@ -56,8 +72,12 @@ async function handleGenerate(e) {
     const wordCount = content.trim().split(/\s+/).length;
     const date      = new Date().toLocaleDateString();
 
+    const firstLine = content.slice(0, content.indexOf('\n') === -1 ? content.length : content.indexOf('\n'));
+    const title     = firstLine.startsWith('## ') ? firstLine.slice(3).trim() : null;
+    currentEntry = { id: Date.now(), date, config, content, wordCount, topic: config.topic, title };
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
-    appendHistory({ id: Date.now(), date, config, content, wordCount });
+    appendHistory(currentEntry);
+    document.getElementById('export-piece-btn').hidden = false;
   } catch (err) {
     renderError(err.message ?? 'An unexpected error occurred.');
   }
@@ -256,6 +276,168 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
 document.addEventListener('selectionchange', () => {
   if (!defineEnabled) return;
   if (!window.getSelection()?.toString().trim()) hideDefinePopup();
+});
+
+// ── Font size ─────────────────────────────────────────────────────────────────
+
+const FONT_SIZES = ['small', 'medium', 'large'];
+
+function applyFontSize(size) {
+  const display = document.getElementById('content-display');
+  FONT_SIZES.forEach(s => display.classList.toggle(`font-${s}`, s === size));
+  document.querySelectorAll('.font-size-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.size === size);
+  });
+  const settings = getSettings();
+  settings.ui.fontSize = size;
+  setSettings(settings);
+}
+
+document.querySelectorAll('.font-size-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyFontSize(btn.dataset.size));
+});
+
+applyFontSize(getSettings().ui.fontSize || 'medium');
+
+// ── Fullscreen ────────────────────────────────────────────────────────────────
+
+const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+fullscreenBtn.addEventListener('click', () => {
+  const app = document.getElementById('app');
+  const on  = app.classList.toggle('fullscreen');
+  fullscreenBtn.textContent = on ? '✕ Collapse' : '⤢';
+  fullscreenBtn.title       = on ? 'Restore panels' : 'Expand reading panel';
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('app').classList.contains('fullscreen')) {
+    document.getElementById('app').classList.remove('fullscreen');
+    fullscreenBtn.textContent = '⤢';
+    fullscreenBtn.title       = 'Expand reading panel';
+  }
+});
+
+// ── History modal ─────────────────────────────────────────────────────────────
+
+function renderHistoryList() {
+  const list    = document.getElementById('history-list');
+  const empty   = document.getElementById('history-empty');
+  const entries = getHistory().slice().reverse();
+
+  list.querySelectorAll('.history-item').forEach(el => el.remove());
+
+  if (entries.length === 0) {
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  entries.forEach(entry => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.setAttribute('role', 'listitem');
+
+    const cefr   = entry.config?.cefrLevel ?? '';
+    const detail = [cefr, `~${entry.wordCount} words`, entry.date].filter(Boolean).join(' · ');
+
+    item.innerHTML = `
+      <div class="history-item-meta">
+        <span class="history-item-topic">${entry.title ?? entry.topic ?? '(no topic)'}</span>
+        <span class="history-item-details">${detail}</span>
+      </div>
+      <div class="history-item-actions">
+        <button class="outline secondary load-btn">Load</button>
+        <button class="outline secondary delete-btn">Delete</button>
+      </div>`;
+
+    item.querySelector('.load-btn').addEventListener('click', () => {
+      currentEntry = entry;
+      renderContent(entry.content, {
+        cefrLevel: entry.config?.cefrLevel ?? '',
+        wordCount: entry.wordCount,
+        topic:     entry.topic ?? '',
+        date:      entry.date,
+      });
+      document.getElementById('export-piece-btn').hidden = false;
+      document.getElementById('history-modal').close();
+    });
+
+    item.querySelector('.delete-btn').addEventListener('click', () => {
+      if (!confirm(`Delete "${entry.topic ?? 'this entry'}"?`)) return;
+      deleteHistoryEntry(entry.id);
+      renderHistoryList();
+    });
+
+    list.appendChild(item);
+  });
+}
+
+function openHistory() {
+  document.getElementById('import-status').hidden = true;
+  renderHistoryList();
+  document.getElementById('history-modal').showModal();
+}
+
+document.getElementById('history-btn').addEventListener('click', openHistory);
+document.getElementById('close-history').addEventListener('click', () => {
+  document.getElementById('history-modal').close();
+});
+document.getElementById('history-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.close();
+});
+
+document.getElementById('clear-history-btn').addEventListener('click', () => {
+  if (!confirm('Clear all history? This cannot be undone.')) return;
+  clearHistory();
+  renderHistoryList();
+});
+
+// ── Export ────────────────────────────────────────────────────────────────────
+
+document.getElementById('export-piece-btn').addEventListener('click', () => {
+  if (!currentEntry) return;
+  const slug = (currentEntry.topic ?? 'piece').replace(/[^a-z0-9]+/gi, '-').slice(0, 40).toLowerCase();
+  triggerDownload(`krashen-${slug}.md`, exportPieceAsMarkdown(currentEntry), 'text/markdown');
+});
+
+document.getElementById('export-json-btn').addEventListener('click', () => {
+  triggerDownload('krashen-library.json', exportLibraryAsJSON(getHistory()), 'application/json');
+});
+
+document.getElementById('export-md-library-btn').addEventListener('click', () => {
+  triggerDownload('krashen-library.md', exportLibraryAsMarkdown(getHistory()), 'text/markdown');
+});
+
+// ── Import ────────────────────────────────────────────────────────────────────
+
+const importFile   = document.getElementById('import-file');
+const importStatus = document.getElementById('import-status');
+
+document.getElementById('import-btn').addEventListener('click', () => importFile.click());
+
+importFile.addEventListener('change', () => {
+  const file = importFile.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const entries = parseLibraryJSON(e.target.result);
+      const { imported, skipped } = mergeHistory(entries);
+      importStatus.textContent = `Imported ${imported} piece${imported !== 1 ? 's' : ''}`
+        + (skipped > 0 ? ` (${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped)` : '') + '.';
+      importStatus.className = 'import-status ok';
+      importStatus.hidden    = false;
+      renderHistoryList();
+    } catch (err) {
+      importStatus.textContent = `Import failed: ${err.message}`;
+      importStatus.className   = 'import-status fail';
+      importStatus.hidden      = false;
+    }
+    importFile.value = '';
+  };
+  reader.readAsText(file);
 });
 
 // ── Main event wiring ─────────────────────────────────────────────────────────

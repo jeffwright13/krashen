@@ -193,8 +193,6 @@
 
         <div class="form-actions">
           <button type="submit" id="generate-btn">Generate</button>
-          <button type="button" id="listen-btn" disabled
-            title="TTS playback coming in v2">Listen (v2)</button>
         </div>
 
       </form>
@@ -205,8 +203,19 @@
     <div id="reading-panel">
 
       <div id="reading-toolbar">
+        <div class="font-size-control" role="group" aria-label="Font size">
+          <button class="font-size-btn outline secondary" data-size="small"  title="Small text">S</button>
+          <button class="font-size-btn outline secondary" data-size="medium" title="Medium text">M</button>
+          <button class="font-size-btn outline secondary" data-size="large"  title="Large text">L</button>
+        </div>
+        <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="define-btn" class="outline secondary" aria-pressed="false"
           title="Select a word or phrase to see its translation">Define</button>
+        <button id="export-piece-btn" class="outline secondary" hidden
+          title="Export this piece as Markdown">Export ↓</button>
+        <span class="toolbar-sep" aria-hidden="true"></span>
+        <button id="fullscreen-btn" class="outline secondary" title="Expand reading panel">⤢</button>
+        <button id="history-btn" class="outline secondary">History</button>
       </div>
 
       <div id="content-metadata" hidden>
@@ -232,6 +241,36 @@
 
     </div>
   </div>
+
+  <dialog id="history-modal" aria-labelledby="history-title">
+    <article>
+      <header>
+        <h2 id="history-title">History</h2>
+        <button id="close-history" class="outline secondary" aria-label="Close">Close</button>
+      </header>
+
+      <div class="history-toolbar">
+        <div class="history-export-group">
+          <span class="history-toolbar-label">Export library:</span>
+          <button id="export-json-btn" class="outline secondary">JSON</button>
+          <button id="export-md-library-btn" class="outline secondary">Markdown</button>
+        </div>
+        <div class="history-import-group">
+          <button id="import-btn" class="outline secondary">Import JSON</button>
+          <input type="file" id="import-file" accept=".json" hidden>
+        </div>
+      </div>
+      <p id="import-status" class="import-status" hidden></p>
+
+      <div id="history-list" role="list">
+        <p class="history-empty" id="history-empty">No history yet. Generate some content first.</p>
+      </div>
+
+      <footer>
+        <button id="clear-history-btn" class="outline secondary">Clear All History</button>
+      </footer>
+    </article>
+  </dialog>
 
   <div id="define-popup" hidden role="status" aria-live="polite">
     <span id="define-word" class="define-word"></span>

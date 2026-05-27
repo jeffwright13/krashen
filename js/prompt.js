@@ -93,6 +93,8 @@ export function buildUserPrompt(config) {
     lines.push(`Must exclude these words/phrases: ${config.excludeWords}`);
   }
 
+  lines.unshift('Begin your response with a title on its own line in this exact format: ## Your Title Here');
+
   return lines.join('\n');
 }
 

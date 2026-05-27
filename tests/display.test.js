@@ -196,6 +196,35 @@ describe('renderContent — metadata', () => {
   });
 });
 
+describe('renderContent — title', () => {
+  const meta = { cefrLevel: 'A2', wordCount: 50, topic: 'test', date: '5/27/2026' };
+
+  it('renders a ## title line as <h1 class="content-title">', () => {
+    renderContent('## El bosque mágico\n\nEl perro corrió.', meta);
+    const h1 = document.getElementById('content-display').querySelector('h1');
+    expect(h1).not.toBeNull();
+    expect(h1.classList.contains('content-title')).toBe(true);
+    expect(h1.textContent).toBe('El bosque mágico');
+  });
+
+  it('renders body paragraphs after the title', () => {
+    renderContent('## Un título\n\nPárrafo uno.\n\nPárrafo dos.', meta);
+    expect(document.getElementById('content-display').querySelectorAll('p')).toHaveLength(2);
+  });
+
+  it('does not render an <h1> when no ## title is present', () => {
+    renderContent('El perro corrió.', meta);
+    expect(document.getElementById('content-display').querySelector('h1')).toBeNull();
+  });
+
+  it('escapes HTML in the title', () => {
+    renderContent('## <script>xss</script>\n\nBody.', meta);
+    const h1 = document.getElementById('content-display').querySelector('h1');
+    expect(h1.textContent).toBe('<script>xss</script>');
+    expect(document.getElementById('content-display').innerHTML).not.toContain('<script>');
+  });
+});
+
 describe('renderContent — state cleanup', () => {
   const text = 'Hola.';
   const meta = { cefrLevel: 'A2', wordCount: 1, topic: 'test', date: '5/26/2026' };

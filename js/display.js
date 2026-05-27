@@ -27,8 +27,18 @@ export function renderContent(text, { cefrLevel, wordCount, topic, date }) {
   toggleLoading(false);
   document.getElementById('error-display').hidden = true;
 
+  const firstNewline = text.indexOf('\n');
+  const firstLine    = firstNewline === -1 ? text : text.slice(0, firstNewline);
+  let title = null;
+  let body  = text;
+  if (firstLine.startsWith('## ')) {
+    title = firstLine.slice(3).trim();
+    body  = text.slice(firstNewline + 1).replace(/^\n+/, '');
+  }
+
+  const titleHtml = title ? `<h1 class="content-title">${escapeHtml(title)}</h1>` : '';
   const display   = document.getElementById('content-display');
-  display.innerHTML = text
+  display.innerHTML = titleHtml + body
     .split(/\n{2,}/)
     .filter(p => p.trim())
     .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
