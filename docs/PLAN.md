@@ -15,8 +15,8 @@ No vocab tracking UI.
 
 - Config form: all learner profile + linguistic + content parameters from SPEC.md §1
 - Language selector (defaults to Spanish; any LLM-supported language accepted)
-- Prompt assembly: config → Claude/OpenAI system + user prompt
-- LLM call: Claude API primary, OpenAI API secondary (user-selectable)
+- Prompt assembly: config → LLM system + user prompt
+- LLM call: Claude API primary, OpenAI secondary, Google (Gemini) tertiary (all user-selectable)
 - Reading panel: rendered output with metadata (CEFR, word count, topic, date)
 - Settings modal: API key entry (per provider), stored in localStorage
 - Two-panel layout: config left, reading output right
@@ -45,7 +45,7 @@ krashen/
 │   ├── storage.js      # localStorage abstraction (krashen_settings, krashen_history, krashen_vocab)
 │   ├── config.js       # Config schema, DEFAULT_CONFIG, validateConfig()
 │   ├── prompt.js       # buildSystemPrompt(config), buildUserPrompt(config)
-│   ├── llm.js          # generateContent(prompts, provider, apiKey) → Promise<string>
+│   ├── llm.js          # generateContent(prompts, provider, apiKey) → Promise<string>; providers: claude, openai, google
 │   ├── tts.js          # Stub: isAvailable()→false, synthesize()→rejected Promise
 │   ├── display.js      # DOM: renderContent(), renderError(), toggleLoading()
 │   └── app.js          # Event wiring and orchestration
@@ -66,7 +66,7 @@ krashen/
 ```js
 // krashen_settings
 {
-  apiKeys: { claude: "", openai: "" },
+  apiKeys: { claude: "", openai: "", google: "" },
   defaultProfile: { ...DEFAULT_CONFIG fields },
   ui: { fontSize: "medium", theme: "light" }
 }
@@ -95,7 +95,7 @@ Tests are written before implementation. Order follows dependency depth
    TTS/SRS params; handles optional fields gracefully
 3. **`storage.test.js`** — get/set API keys, get/set default profile, history append,
    schema migration (missing keys get defaults); `localStorage` mocked in Node
-4. **`llm.test.js`** — correct endpoint + headers for Claude vs OpenAI; request body
+4. **`llm.test.js`** — correct endpoint + headers for Claude vs OpenAI vs Google; request body
    contains assembled prompts; non-2xx response throws with message; `fetch` mocked
 
 Implementation follows each test file (red → green → refactor), then moves to DOM

@@ -35,3 +35,7 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 ## 2026-05-26 — Vanilla JS for v1, framework door left open
 **Decision:** No JS framework in v1. Plain HTML/CSS/JS.  
 **Rationale:** Keeps the project lightweight and dependency-free. If complexity grows (state management, component reuse), a lightweight framework (e.g. Alpine.js or Preact) can be introduced without a full rewrite if the JS is kept modular.
+
+## 2026-05-26 — Three LLM providers: Claude (primary), OpenAI (secondary), Google Gemini (tertiary)
+**Decision:** Support Claude, OpenAI, and Google Gemini as user-selectable LLM providers. Claude is the default. All three are abstracted behind the same `generateContent()` interface in `llm.js`.  
+**Rationale:** Existing userbase already expects Google Gemini support. Abstracting providers behind a single interface means adding a fourth provider later requires only a new internal handler, not changes to callers.
