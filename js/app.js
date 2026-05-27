@@ -84,6 +84,14 @@ fetch('./package.json')
   })
   .catch(() => {});
 
+const providerSelect = document.getElementById('provider');
+const providerHint   = document.getElementById('provider-hint');
+function updateProviderHint() {
+  providerHint.hidden = providerSelect.value !== 'claude';
+}
+providerSelect.addEventListener('change', updateProviderHint);
+updateProviderHint();
+
 document.getElementById('config-form').addEventListener('submit', handleGenerate);
 document.getElementById('settings-btn').addEventListener('click', openSettings);
 document.getElementById('save-settings').addEventListener('click', saveSettings);

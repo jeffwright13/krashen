@@ -44,10 +44,13 @@
         <fieldset class="form-group">
           <legend>Provider</legend>
           <select id="provider">
-            <option value="claude" selected>Claude (Anthropic)</option>
-            <option value="openai">OpenAI</option>
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="openai" selected>OpenAI</option>
             <option value="google">Google Gemini</option>
           </select>
+          <small id="provider-hint" hidden>
+            Claude's API blocks browser requests (CORS). Works only via a local proxy.
+          </small>
         </fieldset>
 
         <fieldset class="form-group">
