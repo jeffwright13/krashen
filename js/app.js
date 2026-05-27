@@ -1,5 +1,5 @@
 import { validateConfig, DEFAULT_CONFIG } from './config.js';
-import { buildSystemPrompt, buildUserPrompt } from './prompt.js';
+import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt } from './prompt.js';
 import { generateContent, testApiKey } from './llm.js';
 import { getApiKey, setApiKey, getModel, setModel, appendHistory } from './storage.js';
 import { toggleLoading, renderContent, renderError } from './display.js';
@@ -135,6 +135,70 @@ document.querySelectorAll('.key-toggle-btn').forEach(btn => {
 
 document.querySelectorAll('.key-test-btn').forEach(btn => {
   btn.addEventListener('click', () => handleTestKey(btn.dataset.provider));
+});
+
+// ── Define feature ───────────────────────────────────────────────────────────
+
+let defineEnabled = false;
+const defineBtn   = document.getElementById('define-btn');
+const definePopup = document.getElementById('define-popup');
+const defineWord  = document.getElementById('define-word');
+const defineResult = document.getElementById('define-result');
+
+function showDefinePopup(x, y, word) {
+  defineWord.textContent   = word;
+  defineResult.textContent = '…';
+  definePopup.hidden = false;
+  const popW = 280;
+  definePopup.style.left = `${Math.min(x + 8, window.innerWidth - popW - 8)}px`;
+  definePopup.style.top  = `${y + 16}px`;
+}
+
+function hideDefinePopup() {
+  definePopup.hidden = true;
+}
+
+defineBtn.addEventListener('click', () => {
+  defineEnabled = !defineEnabled;
+  defineBtn.setAttribute('aria-pressed', String(defineEnabled));
+});
+
+document.getElementById('content-display').addEventListener('mouseup', async () => {
+  if (!defineEnabled) return;
+  const sel  = window.getSelection();
+  const text = sel?.toString().trim();
+  if (!text) { hideDefinePopup(); return; }
+
+  const range   = sel.getRangeAt(0);
+  const context = range.commonAncestorContainer.parentElement?.textContent ?? '';
+  const rect    = range.getBoundingClientRect();
+
+  const provider      = document.getElementById('provider').value;
+  const apiKey        = getApiKey(provider);
+  const model         = getModel(provider) || undefined;
+  const targetLang    = document.getElementById('target-language').value.trim();
+  const nativeLang    = document.getElementById('native-language').value.trim();
+
+  if (!apiKey) {
+    showDefinePopup(rect.right, rect.bottom, text);
+    defineResult.textContent = 'No API key set';
+    return;
+  }
+
+  showDefinePopup(rect.right, rect.bottom, text);
+
+  try {
+    const prompts    = buildDefinePrompt(text, context, targetLang, nativeLang);
+    const translation = await generateContent(prompts, provider, apiKey, model);
+    defineResult.textContent = translation.trim();
+  } catch (err) {
+    defineResult.textContent = err.message ?? 'Error';
+  }
+});
+
+document.addEventListener('selectionchange', () => {
+  if (!defineEnabled) return;
+  if (!window.getSelection()?.toString().trim()) hideDefinePopup();
 });
 
 // ── Main event wiring ─────────────────────────────────────────────────────────

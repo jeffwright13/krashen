@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSystemPrompt, buildUserPrompt } from '../js/prompt.js';
+import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt } from '../js/prompt.js';
 import { DEFAULT_CONFIG } from '../js/config.js';
 
 const base = () => ({
@@ -110,5 +110,32 @@ describe('buildUserPrompt', () => {
   it('Article format omits narrative person', () => {
     const config = { ...base(), outputFormat: 'Article' };
     expect(buildUserPrompt(config)).not.toMatch(/narrative person|third.person|3rd/i);
+  });
+});
+
+describe('buildDefinePrompt', () => {
+  it('includes the selected word in the user prompt', () => {
+    const { user } = buildDefinePrompt('corrió', 'El perro corrió.', 'Spanish', 'English');
+    expect(user).toContain('corrió');
+  });
+
+  it('includes the target language in the system prompt', () => {
+    const { system } = buildDefinePrompt('perro', '', 'Spanish', 'English');
+    expect(system).toContain('Spanish');
+  });
+
+  it('includes the native language in the system prompt', () => {
+    const { system } = buildDefinePrompt('perro', '', 'Spanish', 'English');
+    expect(system).toContain('English');
+  });
+
+  it('includes context when provided and different from selection', () => {
+    const { user } = buildDefinePrompt('corrió', 'El perro corrió rápido.', 'Spanish', 'English');
+    expect(user).toContain('El perro corrió rápido.');
+  });
+
+  it('omits context when not provided', () => {
+    const { user } = buildDefinePrompt('perro', '', 'Spanish', 'English');
+    expect(user).not.toContain('context');
   });
 });

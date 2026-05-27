@@ -95,3 +95,13 @@ export function buildUserPrompt(config) {
 
   return lines.join('\n');
 }
+
+export function buildDefinePrompt(selection, context, targetLanguage, nativeLanguage) {
+  const hasContext = context && context.trim() && context.trim() !== selection.trim();
+  return {
+    system: `Translate ${targetLanguage} to ${nativeLanguage}. Reply with the translation only — no explanations, no added punctuation.`,
+    user: hasContext
+      ? `"${selection}" (context: "${context.trim()}")`
+      : `"${selection}"`,
+  };
+}
