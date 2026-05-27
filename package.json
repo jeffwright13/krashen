@@ -1,0 +1,14 @@
+{
+  "name": "krashen",
+  "version": "0.1.0",
+  "description": "Browser-based comprehensible input tool for language learning",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0",
+    "vitest": "^2.0.0"
+  }
+}
