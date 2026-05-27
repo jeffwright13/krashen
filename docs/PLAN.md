@@ -104,12 +104,13 @@ verified in-browser.
 
 ### Done criteria
 
-- [ ] All unit tests pass (`npx vitest run`)
+- [x] All unit tests pass (`npx vitest run`) — 89 tests across 5 files
 - [ ] User can enter an API key, configure a request, generate content, and read it
-- [ ] No API keys or secrets in the repo
-- [ ] Deployed and accessible on GitHub Pages
-- [ ] DECISIONS.md updated with any choices made during implementation
-- [ ] No `console.log` debug artifacts in committed code
+- [x] No API keys or secrets in the repo
+- [x] GitHub Actions deploy workflow created (`.github/workflows/deploy.yml`)
+- [ ] Deployed and accessible on GitHub Pages (enable in repo Settings → Pages → GitHub Actions)
+- [x] DECISIONS.md updated with any choices made during implementation
+- [x] No `console.log` debug artifacts in committed code
 
 ---
 
