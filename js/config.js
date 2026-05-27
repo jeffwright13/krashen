@@ -1,4 +1,4 @@
-export const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+export const CEFR_LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 export const WORD_CAPS = [550, 1000, 2000, 3000, 5000, 7500];
 export const DIALECTS = ['Mexican', 'Rioplatense', 'Castilian', 'Central American', 'Neutral'];
 export const PROVIDERS = ['claude', 'openai', 'google'];
