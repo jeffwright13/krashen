@@ -1,6 +1,6 @@
 const CLAUDE_MODEL  = 'claude-opus-4-5';
 const OPENAI_MODEL  = 'gpt-4o';
-const GOOGLE_MODEL  = 'gemini-1.5-pro';
+const GOOGLE_MODEL  = 'gemini-2.0-flash';
 
 async function callClaude(prompts, apiKey) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
