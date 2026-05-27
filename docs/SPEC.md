@@ -38,7 +38,16 @@ The core of Krashen is a structured prompt template that a user fills out to spe
 | Topic | Free text | e.g. "a dog and a boy exploring a forest" |
 | Output length | Number (words) or select: Short ~300 / Medium ~700 / Long ~1200 / Custom | |
 | Narrative person | 1st / 2nd / 3rd | 2nd person (tú) can feel more immersive |
-| Output format | Single story, Dialogue only, Q&A, Crosstalk script | |
+| Output format | Single story, Dialogue only, Q&A, Crosstalk script | See format descriptions below |
+
+#### Output format descriptions
+
+| Format | Description |
+|---|---|
+| **Single story** | Continuous prose narrative (default). Third or first person. Best for reading flow and immersion. |
+| **Dialogue only** | A conversation between two or more characters, no narrative prose. Good for learning natural speech patterns and turn-taking. |
+| **Q&A** | Question-and-answer pairs, like an interview or FAQ. Useful for practicing interrogative structures and short-answer comprehension. |
+| **Crosstalk script** | A labelled two-speaker script (Speaker A / Speaker B), formatted like a play or screenplay. Designed to be read aloud by two people together. |
 
 ### 1.4 TTS-Specific Parameters _(scaffolded now, activated later)_
 
