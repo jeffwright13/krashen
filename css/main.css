@@ -32,9 +32,21 @@ html, body {
   border-bottom: 1px solid var(--pico-muted-border-color);
 }
 
+.app-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
 .app-title {
   font-size: 1.1rem;
   letter-spacing: 0.02em;
+}
+
+.app-version {
+  font-size: 0.7rem;
+  color: var(--pico-muted-color);
+  font-weight: normal;
 }
 
 .settings-btn-sm {
