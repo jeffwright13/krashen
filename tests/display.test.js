@@ -1,0 +1,220 @@
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach } from 'vitest';
+import { toggleLoading, renderError, renderContent } from '../js/display.js';
+
+const FIXTURE = `
+  <button id="generate-btn"></button>
+  <div id="loading-indicator" hidden></div>
+  <div id="error-display" hidden><p id="error-message"></p></div>
+  <div id="content-metadata" hidden>
+    <span id="meta-cefr"></span>
+    <span id="meta-words"></span>
+    <span id="meta-topic"></span>
+    <span id="meta-date"></span>
+  </div>
+  <div id="content-display"></div>
+`;
+
+beforeEach(() => {
+  document.body.innerHTML = FIXTURE;
+});
+
+// ── toggleLoading ──────────────────────────────────────────────────────────────
+
+describe('toggleLoading(true)', () => {
+  it('disables the generate button', () => {
+    toggleLoading(true);
+    expect(document.getElementById('generate-btn').disabled).toBe(true);
+  });
+
+  it('sets aria-busy="true" on the generate button', () => {
+    toggleLoading(true);
+    expect(document.getElementById('generate-btn').getAttribute('aria-busy')).toBe('true');
+  });
+
+  it('shows the loading indicator', () => {
+    toggleLoading(true);
+    expect(document.getElementById('loading-indicator').hidden).toBe(false);
+  });
+
+  it('hides the error display', () => {
+    document.getElementById('error-display').hidden = false;
+    toggleLoading(true);
+    expect(document.getElementById('error-display').hidden).toBe(true);
+  });
+
+  it('hides the content metadata', () => {
+    document.getElementById('content-metadata').hidden = false;
+    toggleLoading(true);
+    expect(document.getElementById('content-metadata').hidden).toBe(true);
+  });
+});
+
+describe('toggleLoading(false)', () => {
+  beforeEach(() => toggleLoading(true));
+
+  it('re-enables the generate button', () => {
+    toggleLoading(false);
+    expect(document.getElementById('generate-btn').disabled).toBe(false);
+  });
+
+  it('sets aria-busy="false" on the generate button', () => {
+    toggleLoading(false);
+    expect(document.getElementById('generate-btn').getAttribute('aria-busy')).toBe('false');
+  });
+
+  it('hides the loading indicator', () => {
+    toggleLoading(false);
+    expect(document.getElementById('loading-indicator').hidden).toBe(true);
+  });
+
+  it('does not hide an already-visible error display', () => {
+    toggleLoading(false);
+    document.getElementById('error-display').hidden = false;
+    toggleLoading(false);
+    expect(document.getElementById('error-display').hidden).toBe(false);
+  });
+});
+
+// ── renderError ────────────────────────────────────────────────────────────────
+
+describe('renderError', () => {
+  it('sets the error message text', () => {
+    renderError('Something went wrong');
+    expect(document.getElementById('error-message').textContent).toBe('Something went wrong');
+  });
+
+  it('shows the error display', () => {
+    renderError('oops');
+    expect(document.getElementById('error-display').hidden).toBe(false);
+  });
+
+  it('hides the loading indicator', () => {
+    toggleLoading(true);
+    renderError('oops');
+    expect(document.getElementById('loading-indicator').hidden).toBe(true);
+  });
+
+  it('re-enables the generate button', () => {
+    toggleLoading(true);
+    renderError('oops');
+    expect(document.getElementById('generate-btn').disabled).toBe(false);
+  });
+
+  it('overwrites a previous error message', () => {
+    renderError('first error');
+    renderError('second error');
+    expect(document.getElementById('error-message').textContent).toBe('second error');
+  });
+});
+
+// ── renderContent ──────────────────────────────────────────────────────────────
+
+describe('renderContent — paragraph rendering', () => {
+  const meta = { cefrLevel: 'A2', wordCount: 312, topic: 'a dog', date: '5/26/2026' };
+
+  it('renders a single paragraph as one <p>', () => {
+    renderContent('Hola mundo.', meta);
+    expect(document.getElementById('content-display').querySelectorAll('p')).toHaveLength(1);
+  });
+
+  it('splits double newlines into separate <p> elements', () => {
+    renderContent('First.\n\nSecond.', meta);
+    const ps = document.getElementById('content-display').querySelectorAll('p');
+    expect(ps).toHaveLength(2);
+    expect(ps[0].textContent).toBe('First.');
+    expect(ps[1].textContent).toBe('Second.');
+  });
+
+  it('converts single newlines within a paragraph to <br>', () => {
+    renderContent('Line one.\nLine two.', meta);
+    expect(document.getElementById('content-display').querySelector('br')).not.toBeNull();
+  });
+
+  it('filters out blank paragraphs', () => {
+    renderContent('First.\n\n\n\nSecond.', meta);
+    expect(document.getElementById('content-display').querySelectorAll('p')).toHaveLength(2);
+  });
+
+  it('replaces previous content on a second call', () => {
+    renderContent('First render.', meta);
+    renderContent('Second render.', meta);
+    const ps = document.getElementById('content-display').querySelectorAll('p');
+    expect(ps).toHaveLength(1);
+    expect(ps[0].textContent).toBe('Second render.');
+  });
+});
+
+describe('renderContent — HTML escaping', () => {
+  const meta = { cefrLevel: 'B1', wordCount: 50, topic: 'test', date: '5/26/2026' };
+
+  it('escapes < and > so script tags are inert', () => {
+    renderContent('<script>alert(1)</script>', meta);
+    const html = document.getElementById('content-display').innerHTML;
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&lt;script&gt;');
+  });
+
+  it('escapes & as &amp;', () => {
+    renderContent('fish & chips', meta);
+    expect(document.getElementById('content-display').innerHTML).toContain('&amp;');
+  });
+
+  it('preserves the visible text despite escaping', () => {
+    renderContent('a < b', meta);
+    expect(document.getElementById('content-display').querySelector('p').textContent).toBe('a < b');
+  });
+});
+
+describe('renderContent — metadata', () => {
+  const text = 'El perro corrió por el bosque.';
+  const meta = { cefrLevel: 'A2', wordCount: 312, topic: 'a dog', date: '5/26/2026' };
+
+  it('sets CEFR level', () => {
+    renderContent(text, meta);
+    expect(document.getElementById('meta-cefr').textContent).toBe('A2');
+  });
+
+  it('sets word count with ~ prefix', () => {
+    renderContent(text, meta);
+    expect(document.getElementById('meta-words').textContent).toBe('~312 words');
+  });
+
+  it('sets topic', () => {
+    renderContent(text, meta);
+    expect(document.getElementById('meta-topic').textContent).toBe('a dog');
+  });
+
+  it('sets date', () => {
+    renderContent(text, meta);
+    expect(document.getElementById('meta-date').textContent).toBe('5/26/2026');
+  });
+
+  it('shows content metadata', () => {
+    renderContent(text, meta);
+    expect(document.getElementById('content-metadata').hidden).toBe(false);
+  });
+});
+
+describe('renderContent — state cleanup', () => {
+  const text = 'Hola.';
+  const meta = { cefrLevel: 'A2', wordCount: 1, topic: 'test', date: '5/26/2026' };
+
+  it('hides the error display', () => {
+    document.getElementById('error-display').hidden = false;
+    renderContent(text, meta);
+    expect(document.getElementById('error-display').hidden).toBe(true);
+  });
+
+  it('hides the loading indicator', () => {
+    toggleLoading(true);
+    renderContent(text, meta);
+    expect(document.getElementById('loading-indicator').hidden).toBe(true);
+  });
+
+  it('re-enables the generate button', () => {
+    toggleLoading(true);
+    renderContent(text, meta);
+    expect(document.getElementById('generate-btn').disabled).toBe(false);
+  });
+});
