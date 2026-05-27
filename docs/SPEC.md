@@ -45,6 +45,7 @@ The core of Krashen is a structured prompt template that a user fills out to spe
 | Format | Description |
 |---|---|
 | **Single story** | Continuous prose narrative (default). Third or first person. Best for reading flow and immersion. |
+| **Article** | Expository, informational prose — no narrative characters or story arc. Educational register. Best for nonfiction topics ("All about big cats", "How volcanoes work"). Narrative person is not applied. |
 | **Dialogue only** | A conversation between two or more characters, no narrative prose. Good for learning natural speech patterns and turn-taking. |
 | **Q&A** | Question-and-answer pairs, like an interview or FAQ. Useful for practicing interrogative structures and short-answer comprehension. |
 | **Crosstalk script** | A labelled two-speaker script (Speaker A / Speaker B), formatted like a play or screenplay. Designed to be read aloud by two people together. |

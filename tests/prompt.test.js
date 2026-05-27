@@ -101,4 +101,14 @@ describe('buildUserPrompt', () => {
     const prompt = buildUserPrompt(config);
     expect(prompt).not.toMatch(/must include|must exclude|avoid using/i);
   });
+
+  it('Article format includes expository format note', () => {
+    const config = { ...base(), outputFormat: 'Article' };
+    expect(buildUserPrompt(config)).toMatch(/expository|informational|educational/i);
+  });
+
+  it('Article format omits narrative person', () => {
+    const config = { ...base(), outputFormat: 'Article' };
+    expect(buildUserPrompt(config)).not.toMatch(/narrative person|third.person|3rd/i);
+  });
 });
