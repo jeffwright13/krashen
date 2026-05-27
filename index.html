@@ -179,6 +179,11 @@
 
     <div id="reading-panel">
 
+      <div id="reading-toolbar">
+        <button id="define-btn" class="outline secondary" aria-pressed="false"
+          title="Select a word or phrase to see its translation">Define</button>
+      </div>
+
       <div id="content-metadata" hidden>
         <span id="meta-cefr"></span>
         <span id="meta-words"></span>
@@ -201,6 +206,12 @@
       </div>
 
     </div>
+  </div>
+
+  <div id="define-popup" hidden role="status" aria-live="polite">
+    <span id="define-word" class="define-word"></span>
+    <span class="define-sep"> → </span>
+    <span id="define-result" class="define-result"></span>
   </div>
 
   <script type="module" src="js/app.js"></script>
