@@ -17,12 +17,46 @@
         <button id="close-settings" class="outline secondary" aria-label="Close">Close</button>
       </header>
       <p class="settings-hint">Keys are stored in your browser only and sent to the selected provider.</p>
-      <label for="api-key-claude">Claude (Anthropic)</label>
-      <input type="password" id="api-key-claude" placeholder="sk-ant-..." autocomplete="off">
-      <label for="api-key-openai">OpenAI</label>
-      <input type="password" id="api-key-openai" placeholder="sk-..." autocomplete="off">
-      <label for="api-key-google">Google Gemini</label>
-      <input type="password" id="api-key-google" placeholder="AIza..." autocomplete="off">
+
+      <div class="provider-section">
+        <p class="provider-label">Claude (Anthropic)</p>
+        <label for="api-key-claude">API Key</label>
+        <div class="key-row">
+          <input type="password" id="api-key-claude" placeholder="sk-ant-..." autocomplete="off">
+          <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-claude">Show</button>
+          <button type="button" class="outline secondary key-test-btn" data-provider="claude">Test</button>
+        </div>
+        <small class="test-status" id="test-status-claude" hidden></small>
+        <label for="model-claude">Model</label>
+        <input type="text" id="model-claude" placeholder="claude-opus-4-5">
+      </div>
+
+      <div class="provider-section">
+        <p class="provider-label">OpenAI</p>
+        <label for="api-key-openai">API Key</label>
+        <div class="key-row">
+          <input type="password" id="api-key-openai" placeholder="sk-..." autocomplete="off">
+          <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-openai">Show</button>
+          <button type="button" class="outline secondary key-test-btn" data-provider="openai">Test</button>
+        </div>
+        <small class="test-status" id="test-status-openai" hidden></small>
+        <label for="model-openai">Model</label>
+        <input type="text" id="model-openai" placeholder="gpt-4o">
+      </div>
+
+      <div class="provider-section">
+        <p class="provider-label">Google Gemini</p>
+        <label for="api-key-google">API Key</label>
+        <div class="key-row">
+          <input type="password" id="api-key-google" placeholder="AIza..." autocomplete="off">
+          <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-google">Show</button>
+          <button type="button" class="outline secondary key-test-btn" data-provider="google">Test</button>
+        </div>
+        <small class="test-status" id="test-status-google" hidden></small>
+        <label for="model-google">Model</label>
+        <input type="text" id="model-google" placeholder="gemini-2.5-flash">
+      </div>
+
       <footer>
         <button id="save-settings">Save</button>
       </footer>
