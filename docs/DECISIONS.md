@@ -39,3 +39,11 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 ## 2026-05-26 — Three LLM providers: Claude (primary), OpenAI (secondary), Google Gemini (tertiary)
 **Decision:** Support Claude, OpenAI, and Google Gemini as user-selectable LLM providers. Claude is the default. All three are abstracted behind the same `generateContent()` interface in `llm.js`.  
 **Rationale:** Existing userbase already expects Google Gemini support. Abstracting providers behind a single interface means adding a fourth provider later requires only a new internal handler, not changes to callers.
+
+## 2026-05-26 — storage.js defaults are deep-copied on every read
+**Decision:** `getSettings()` reconstructs a fresh object via recursive `deepMerge` rather than spreading `DEFAULT_SETTINGS`. No caller ever receives a reference into the module-level default.  
+**Rationale:** A shallow spread caused `setApiKey()` to mutate `DEFAULT_SETTINGS.apiKeys` directly, so stored values persisted across test runs even after `localStorage.clear()`. Deep-copying on read eliminates the shared-reference hazard. Any future change to `getSettings()` must preserve this invariant or the bug silently returns.
+
+## 2026-05-26 — LLM model constants pinned in llm.js; expected to be updated each version
+**Decision:** `llm.js` hardcodes `claude-opus-4-5`, `gpt-4o`, and `gemini-1.5-pro` as module-level constants.  
+**Rationale:** Pinning prevents silent drift to unknown model behaviour on provider-side changes. The constants are intentionally visible at the top of the file so they are easy to update. Review and bump these with each meaningful version of Krashen, or when a provider deprecates the pinned model.
