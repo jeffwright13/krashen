@@ -24,7 +24,7 @@ npm run serve
 
 Then open [http://localhost:3000](http://localhost:3000) in a browser.
 
-On first launch, click **Settings** (top-right of the config panel) and enter an API key
+On first launch, click **API Keys** (top-right of the config panel) and enter an API key
 for your chosen provider. Then fill in the content form and press **Generate**.
 
 > Note: the app uses ES modules loaded directly by the browser. You must serve it over
@@ -35,13 +35,24 @@ for your chosen provider. Then fill in the content form and press **Generate**.
 ## API keys
 
 Keys are stored in `localStorage` and sent only to the selected provider. They are never
-logged or transmitted elsewhere.
+logged or transmitted elsewhere. This is verified by `tests/security.test.js`, which
+asserts that:
+
+- `setApiKey` and `getApiKey` never call `fetch`
+- Each key is routed only to its own provider's endpoint (one `fetch` call, correct URL)
+- Each key appears in the correct field (header for Claude/OpenAI, URL for Google) and
+  never in the request body
+- No cross-provider leakage: calling one provider does not transmit another provider's key
 
 | Provider | Where to get a key |
 |---|---|
 | Claude (Anthropic) | [console.anthropic.com](https://console.anthropic.com) |
 | OpenAI | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
 | Google Gemini | [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
+
+> **Note:** The Claude API does not support browser-based CORS requests. Selecting Claude
+> will display a warning in the UI. OpenAI and Google Gemini work in-browser without
+> a proxy.
 
 ---
 
@@ -52,8 +63,16 @@ npm test              # run all tests once
 npm run test:watch    # re-run on file changes
 ```
 
-The suite covers `config`, `prompt`, `storage`, `llm`, and `display`. The orchestration
-layer (`app.js`) is verified by manual in-browser testing.
+| Test file | What it covers |
+|---|---|
+| `config.test.js` | `DEFAULT_CONFIG` constants, `validateConfig` |
+| `prompt.test.js` | `buildSystemPrompt`, `buildUserPrompt` |
+| `storage.test.js` | localStorage read/write, settings deep-merge, history |
+| `llm.test.js` | Correct endpoint, headers, and response parsing per provider |
+| `display.test.js` | DOM rendering, loading state, error display |
+| `security.test.js` | API key storage and transmission guarantees (see API keys section) |
+
+The orchestration layer (`app.js`) is verified by manual in-browser testing.
 
 ---
 
