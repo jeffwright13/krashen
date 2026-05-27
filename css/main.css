@@ -49,6 +49,19 @@ html, body {
   font-weight: normal;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-select {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.5rem;
+  margin: 0;
+  width: auto;
+}
+
 .settings-btn-sm {
   font-size: 0.8rem;
   padding: 0.3rem 0.7rem;

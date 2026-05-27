@@ -1,7 +1,7 @@
 import { validateConfig, DEFAULT_CONFIG } from './config.js';
 import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt } from './prompt.js';
 import { generateContent, testApiKey } from './llm.js';
-import { getApiKey, setApiKey, getModel, setModel, appendHistory } from './storage.js';
+import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings, appendHistory } from './storage.js';
 import { toggleLoading, renderContent, renderError } from './display.js';
 
 function readConfig() {
@@ -109,6 +109,34 @@ async function handleTestKey(provider) {
     }, 4000);
   }
 }
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+function applyTheme(theme) {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.setAttribute(
+    'data-theme',
+    theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme
+  );
+}
+
+(function initTheme() {
+  const saved  = getSettings().ui.theme || 'system';
+  const select = document.getElementById('theme-select');
+  select.value = saved;
+
+  select.addEventListener('change', (e) => {
+    const theme    = e.target.value;
+    const settings = getSettings();
+    settings.ui.theme = theme;
+    setSettings(settings);
+    applyTheme(theme);
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (document.getElementById('theme-select').value === 'system') applyTheme('system');
+  });
+})();
 
 // ── Provider hint ─────────────────────────────────────────────────────────────
 
