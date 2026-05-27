@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Krashen</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+  <dialog id="settings-modal" aria-labelledby="settings-title">
+    <article>
+      <header>
+        <h2 id="settings-title">API Settings</h2>
+        <button id="close-settings" class="outline secondary" aria-label="Close">Close</button>
+      </header>
+      <p class="settings-hint">Keys are stored in your browser only and sent to the selected provider.</p>
+      <label for="api-key-claude">Claude (Anthropic)</label>
+      <input type="password" id="api-key-claude" placeholder="sk-ant-..." autocomplete="off">
+      <label for="api-key-openai">OpenAI</label>
+      <input type="password" id="api-key-openai" placeholder="sk-..." autocomplete="off">
+      <label for="api-key-google">Google Gemini</label>
+      <input type="password" id="api-key-google" placeholder="AIza..." autocomplete="off">
+      <footer>
+        <button id="save-settings">Save</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <div id="app">
+
+    <aside id="config-panel">
+      <div id="panel-header">
+        <strong class="app-title">Krashen</strong>
+        <button id="settings-btn" class="outline secondary settings-btn-sm">Settings</button>
+      </div>
+
+      <form id="config-form" novalidate>
+
+        <fieldset class="form-group">
+          <legend>Provider</legend>
+          <select id="provider">
+            <option value="claude" selected>Claude (Anthropic)</option>
+            <option value="openai">OpenAI</option>
+            <option value="google">Google Gemini</option>
+          </select>
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Learner Profile</legend>
+          <label for="target-language">Target language</label>
+          <input type="text" id="target-language" value="Spanish">
+          <label for="cefr-level">CEFR level</label>
+          <select id="cefr-level">
+            <option>A1</option>
+            <option selected>A2</option>
+            <option>B1</option>
+            <option>B2</option>
+            <option>C1</option>
+            <option>C2</option>
+          </select>
+          <label for="word-cap">Vocabulary cap</label>
+          <select id="word-cap">
+            <option value="550">Top 550 words</option>
+            <option value="1000" selected>Top 1,000 words</option>
+            <option value="2000">Top 2,000 words</option>
+            <option value="3000">Top 3,000 words</option>
+            <option value="5000">Top 5,000 words</option>
+            <option value="7500">Top 7,500 words</option>
+          </select>
+          <label for="target-dialect">Dialect</label>
+          <select id="target-dialect">
+            <option>Mexican</option>
+            <option>Rioplatense</option>
+            <option>Castilian</option>
+            <option value="Central American">Central American</option>
+            <option value="Neutral" selected>Neutral</option>
+          </select>
+          <label for="native-language">Native language</label>
+          <input type="text" id="native-language" value="English">
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Linguistic Focus</legend>
+          <label for="tense-focus">Grammar / tense focus</label>
+          <input type="text" id="tense-focus" placeholder="e.g. pret&#233;rito, imperfecto">
+          <label for="connector-density">Connector density</label>
+          <select id="connector-density">
+            <option>Low</option>
+            <option selected>Normal</option>
+            <option>High</option>
+          </select>
+          <label for="sentence-length">Max sentence length (words)</label>
+          <input type="number" id="sentence-length" placeholder="e.g. 15" min="1" max="100">
+          <label for="include-words">Vocabulary to include</label>
+          <input type="text" id="include-words" placeholder="comma-separated">
+          <label for="exclude-words">Vocabulary to exclude</label>
+          <input type="text" id="exclude-words" placeholder="comma-separated">
+        </fieldset>
+
+        <fieldset class="form-group">
+          <legend>Content</legend>
+          <label for="topic">Topic <span class="required" aria-hidden="true">*</span></label>
+          <textarea id="topic" rows="3"
+            placeholder="e.g. a dog and a boy explore a forest"></textarea>
+          <label for="output-format">Format</label>
+          <select id="output-format">
+            <option value="Single story" selected>Single story</option>
+            <option value="Dialogue only">Dialogue only</option>
+            <option value="Q&amp;A">Q&amp;A</option>
+            <option value="Crosstalk script">Crosstalk script</option>
+          </select>
+          <label for="output-length">Length</label>
+          <select id="output-length">
+            <option value="Short">Short (~300 words)</option>
+            <option value="Medium" selected>Medium (~700 words)</option>
+            <option value="Long">Long (~1,200 words)</option>
+          </select>
+          <label for="narrative-person">Narrative person</label>
+          <select id="narrative-person">
+            <option value="1st">1st person</option>
+            <option value="2nd">2nd person (t&#250;)</option>
+            <option value="3rd" selected>3rd person</option>
+          </select>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="submit" id="generate-btn">Generate</button>
+          <button type="button" id="listen-btn" disabled
+            title="TTS playback coming in v2">Listen (v2)</button>
+        </div>
+
+      </form>
+    </aside>
+
+    <div id="reading-panel">
+
+      <div id="content-metadata" hidden>
+        <span id="meta-cefr"></span>
+        <span id="meta-words"></span>
+        <span id="meta-topic"></span>
+        <span id="meta-date"></span>
+      </div>
+
+      <div id="loading-indicator" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Generating content&hellip;</span>
+      </div>
+
+      <div id="error-display" hidden role="alert">
+        <p id="error-message"></p>
+      </div>
+
+      <div id="content-display" aria-live="polite">
+        <p class="placeholder-text">Configure your content request and press
+          <strong>Generate</strong>.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
