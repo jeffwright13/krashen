@@ -26,10 +26,20 @@
   <dialog id="settings-modal" aria-labelledby="settings-title">
     <article>
       <header>
-        <h2 id="settings-title">API Settings</h2>
+        <h2 id="settings-title">Settings</h2>
         <button id="close-settings" class="outline secondary" aria-label="Close">Close</button>
       </header>
-      <p class="settings-hint">Keys are stored in your browser only and sent to the selected provider.</p>
+
+      <div class="settings-theme-row">
+        <label for="modal-theme">Theme</label>
+        <select id="modal-theme">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+
+      <p class="settings-hint">API keys are stored in your browser only and sent to the selected provider.</p>
 
       <div class="provider-section">
         <p class="provider-label">Claude (Anthropic)</p>
@@ -84,14 +94,7 @@
           <strong class="app-title">Krashen</strong>
           <span id="app-version" class="app-version">v?.?.?</span>
         </div>
-        <div class="header-controls">
-          <select id="theme-select" class="theme-select" aria-label="Theme">
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-          <button id="settings-btn" class="outline secondary settings-btn-sm">API Keys</button>
-        </div>
+        <button id="settings-btn" class="outline secondary settings-btn-sm">Settings</button>
       </div>
 
       <form id="config-form" novalidate>
@@ -196,6 +199,8 @@
 
       </form>
     </aside>
+
+    <div id="resizer" role="separator" aria-orientation="vertical" aria-label="Resize panels"></div>
 
     <div id="reading-panel">
 
