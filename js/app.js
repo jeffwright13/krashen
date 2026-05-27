@@ -39,7 +39,7 @@ async function handleGenerate(e) {
 
   const apiKey = getApiKey(config.provider);
   if (!apiKey) {
-    renderError(`No API key set for ${config.provider}. Open API Keys to add one.`);
+    renderError(`No API key set for ${config.provider}. Open Settings to add one.`);
     return;
   }
 
@@ -68,6 +68,7 @@ function openSettings() {
     document.getElementById(`api-key-${provider}`).value = getApiKey(provider);
     document.getElementById(`model-${provider}`).value   = getModel(provider);
   });
+  document.getElementById('modal-theme').value = getSettings().ui.theme || 'system';
   document.getElementById('settings-modal').showModal();
 }
 
@@ -77,6 +78,10 @@ function saveSettings() {
     const model = document.getElementById(`model-${provider}`).value.trim();
     if (model) setModel(provider, model);
   });
+  const settings = getSettings();
+  settings.ui.theme = document.getElementById('modal-theme').value;
+  setSettings(settings);
+  applyTheme(settings.ui.theme);
   document.getElementById('settings-modal').close();
 }
 
@@ -120,21 +125,45 @@ function applyTheme(theme) {
   );
 }
 
-(function initTheme() {
-  const saved  = getSettings().ui.theme || 'system';
-  const select = document.getElementById('theme-select');
-  select.value = saved;
+applyTheme(getSettings().ui.theme || 'system');
 
-  select.addEventListener('change', (e) => {
-    const theme    = e.target.value;
-    const settings = getSettings();
-    settings.ui.theme = theme;
-    setSettings(settings);
-    applyTheme(theme);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if ((getSettings().ui.theme || 'system') === 'system') applyTheme('system');
+});
+
+// ── Resizer ───────────────────────────────────────────────────────────────────
+
+(function initResizer() {
+  const resizer   = document.getElementById('resizer');
+  const MIN_WIDTH = 240;
+  const MAX_WIDTH = 640;
+
+  const saved = localStorage.getItem('krashen_config_width');
+  if (saved) document.documentElement.style.setProperty('--config-width', saved + 'px');
+
+  let dragging = false;
+
+  resizer.addEventListener('mousedown', (e) => {
+    dragging = true;
+    resizer.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
   });
 
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (document.getElementById('theme-select').value === 'system') applyTheme('system');
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const appRect  = document.getElementById('app').getBoundingClientRect();
+    const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX - appRect.left));
+    document.documentElement.style.setProperty('--config-width', newWidth + 'px');
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.userSelect = '';
+    const w = getComputedStyle(document.documentElement).getPropertyValue('--config-width').trim();
+    localStorage.setItem('krashen_config_width', parseInt(w));
   });
 })();
 
