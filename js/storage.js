@@ -6,6 +6,7 @@ const KEYS = {
 
 const DEFAULT_SETTINGS = {
   apiKeys: { claude: '', openai: '', google: '' },
+  models:  { claude: 'claude-opus-4-5', openai: 'gpt-4o', google: 'gemini-2.5-flash' },
   defaultProfile: {},
   ui: { fontSize: 'medium', theme: 'light' },
 };
@@ -56,6 +57,16 @@ export function getApiKey(provider) {
 export function setApiKey(provider, key) {
   const settings = getSettings();
   settings.apiKeys[provider] = key;
+  setSettings(settings);
+}
+
+export function getModel(provider) {
+  return getSettings().models[provider] ?? '';
+}
+
+export function setModel(provider, model) {
+  const settings = getSettings();
+  settings.models[provider] = model;
   setSettings(settings);
 }
 

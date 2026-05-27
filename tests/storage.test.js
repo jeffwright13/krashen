@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   getApiKey, setApiKey,
+  getModel, setModel,
   getSettings, setSettings,
   getHistory, appendHistory,
   getVocab,
@@ -86,6 +87,33 @@ describe('history', () => {
     expect(history).toHaveLength(2);
     expect(history[0].id).toBe(1);
     expect(history[1].id).toBe(2);
+  });
+});
+
+describe('models', () => {
+  it('returns default model for claude', () => {
+    expect(getModel('claude')).toBe('claude-opus-4-5');
+  });
+
+  it('returns default model for openai', () => {
+    expect(getModel('openai')).toBe('gpt-4o');
+  });
+
+  it('returns default model for google', () => {
+    expect(getModel('google')).toBe('gemini-2.5-flash');
+  });
+
+  it('stores and retrieves a custom model', () => {
+    setModel('openai', 'gpt-4o-mini');
+    expect(getModel('openai')).toBe('gpt-4o-mini');
+  });
+
+  it('stores models per provider independently', () => {
+    setModel('claude', 'claude-haiku-4-5');
+    setModel('google', 'gemini-2.5-pro');
+    expect(getModel('claude')).toBe('claude-haiku-4-5');
+    expect(getModel('google')).toBe('gemini-2.5-pro');
+    expect(getModel('openai')).toBe('gpt-4o');
   });
 });
 

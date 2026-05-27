@@ -1,8 +1,8 @@
-const CLAUDE_MODEL  = 'claude-opus-4-5';
-const OPENAI_MODEL  = 'gpt-4o';
-const GOOGLE_MODEL  = 'gemini-2.5-flash';
+const CLAUDE_MODEL = 'claude-opus-4-5';
+const OPENAI_MODEL = 'gpt-4o';
+const GOOGLE_MODEL = 'gemini-2.5-flash';
 
-async function callClaude(prompts, apiKey) {
+async function callClaude(prompts, apiKey, model) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -11,7 +11,7 @@ async function callClaude(prompts, apiKey) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: CLAUDE_MODEL,
+      model,
       max_tokens: 2048,
       system: prompts.system,
       messages: [{ role: 'user', content: prompts.user }],
@@ -25,7 +25,7 @@ async function callClaude(prompts, apiKey) {
   return data.content[0].text;
 }
 
-async function callOpenAI(prompts, apiKey) {
+async function callOpenAI(prompts, apiKey, model) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -33,7 +33,7 @@ async function callOpenAI(prompts, apiKey) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      model: OPENAI_MODEL,
+      model,
       messages: [
         { role: 'system', content: prompts.system },
         { role: 'user',   content: prompts.user },
@@ -48,9 +48,9 @@ async function callOpenAI(prompts, apiKey) {
   return data.choices[0].message.content;
 }
 
-async function callGoogle(prompts, apiKey) {
+async function callGoogle(prompts, apiKey, model) {
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/${GOOGLE_MODEL}:generateContent?key=${apiKey}`;
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -67,11 +67,37 @@ async function callGoogle(prompts, apiKey) {
   return data.candidates[0].content.parts[0].text;
 }
 
-export async function generateContent(prompts, provider, apiKey) {
+export async function generateContent(prompts, provider, apiKey, model) {
   switch (provider) {
-    case 'claude': return callClaude(prompts, apiKey);
-    case 'openai': return callOpenAI(prompts, apiKey);
-    case 'google': return callGoogle(prompts, apiKey);
+    case 'claude': return callClaude(prompts, apiKey, model ?? CLAUDE_MODEL);
+    case 'openai': return callOpenAI(prompts, apiKey, model ?? OPENAI_MODEL);
+    case 'google': return callGoogle(prompts, apiKey, model ?? GOOGLE_MODEL);
+    default: throw new Error(`Unknown provider: "${provider}"`);
+  }
+}
+
+export async function testApiKey(provider, apiKey) {
+  if (!apiKey) throw new Error('No API key entered');
+  switch (provider) {
+    case 'claude': {
+      const r = await fetch('https://api.anthropic.com/v1/models', {
+        headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e?.error?.message ?? `Error ${r.status}`); }
+      break;
+    }
+    case 'openai': {
+      const r = await fetch('https://api.openai.com/v1/models', {
+        headers: { 'Authorization': `Bearer ${apiKey}` },
+      });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e?.error?.message ?? `Error ${r.status}`); }
+      break;
+    }
+    case 'google': {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e?.error?.message ?? `Error ${r.status}`); }
+      break;
+    }
     default: throw new Error(`Unknown provider: "${provider}"`);
   }
 }
