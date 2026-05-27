@@ -51,3 +51,7 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 ## 2026-05-27 — Google model updated from gemini-1.5-pro to gemini-2.0-flash
 **Decision:** Bumped `GOOGLE_MODEL` to `gemini-2.0-flash` in v1.0.2.  
 **Rationale:** `gemini-1.5-pro` was deprecated and removed from the v1beta API, causing a model-not-found error at runtime. `gemini-2.0-flash` is the current stable replacement.
+
+## 2026-05-27 — Google model updated from gemini-2.0-flash to gemini-2.5-flash
+**Decision:** Bumped `GOOGLE_MODEL` to `gemini-2.5-flash` in v1.0.5.  
+**Rationale:** `gemini-2.0-flash` became unavailable to new users. `gemini-2.5-flash` is Google's current recommended model.
