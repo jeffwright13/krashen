@@ -76,6 +76,14 @@ function saveSettings() {
   document.getElementById('settings-modal').close();
 }
 
+fetch('./package.json')
+  .then(r => r.json())
+  .then(pkg => {
+    const el = document.getElementById('app-version');
+    if (el && pkg.version) el.textContent = `v${pkg.version}`;
+  })
+  .catch(() => {});
+
 document.getElementById('config-form').addEventListener('submit', handleGenerate);
 document.getElementById('settings-btn').addEventListener('click', openSettings);
 document.getElementById('save-settings').addEventListener('click', saveSettings);
