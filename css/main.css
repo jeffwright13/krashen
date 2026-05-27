@@ -1,0 +1,199 @@
+/* ── Layout ─────────────────────────────────────────────── */
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Config panel ────────────────────────────────────────── */
+
+#config-panel {
+  overflow-y: auto;
+  padding: 1rem 1.25rem 2rem;
+  border-right: 1px solid var(--pico-muted-border-color);
+  background: var(--pico-card-sectionning-background-color);
+}
+
+#panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.app-title {
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.settings-btn-sm {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.7rem;
+}
+
+/* Compact form fields */
+#config-form label {
+  margin-bottom: 0.15rem;
+  font-size: 0.85rem;
+}
+
+#config-form input,
+#config-form select,
+#config-form textarea {
+  margin-bottom: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+}
+
+.form-group legend {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pico-muted-color);
+  padding: 0 0.3rem;
+}
+
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.form-actions button {
+  width: 100%;
+  margin: 0;
+}
+
+#listen-btn {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.required {
+  color: var(--pico-del-color);
+}
+
+/* ── Reading panel ───────────────────────────────────────── */
+
+#reading-panel {
+  overflow-y: auto;
+  padding: 2rem 3.5rem;
+}
+
+#content-display {
+  max-width: 70ch;
+  font-size: 1.15rem;
+  line-height: 1.85;
+  user-select: text;
+}
+
+#content-display p {
+  margin-bottom: 1.1em;
+}
+
+.placeholder-text {
+  color: var(--pico-muted-color);
+  font-size: 1rem;
+}
+
+/* Metadata bar */
+#content-metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  font-size: 0.78rem;
+  color: var(--pico-muted-color);
+  margin-bottom: 1.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  max-width: 70ch;
+}
+
+#meta-cefr::before   { content: 'Level: ';     font-weight: 600; }
+#meta-words::before  { content: 'Length: ';    font-weight: 600; }
+#meta-topic::before  { content: 'Topic: ';     font-weight: 600; }
+#meta-date::before   { content: 'Generated: '; font-weight: 600; }
+
+/* Error display */
+#error-display {
+  max-width: 70ch;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--pico-border-radius);
+  border: 1px solid var(--pico-del-color);
+  background: color-mix(in srgb, var(--pico-del-color) 8%, transparent);
+  color: var(--pico-del-color);
+}
+
+#error-display p { margin: 0; }
+
+/* Loading indicator */
+#loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--pico-muted-color);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  max-width: 70ch;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--pico-muted-border-color);
+  border-top-color: var(--pico-primary);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Settings modal ──────────────────────────────────────── */
+
+#settings-modal article {
+  max-width: 480px;
+}
+
+#settings-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#settings-modal header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.settings-hint {
+  font-size: 0.82rem;
+  color: var(--pico-muted-color);
+  margin-bottom: 1rem;
+}
+
+#settings-modal label { font-size: 0.85rem; }
