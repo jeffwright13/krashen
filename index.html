@@ -7,6 +7,19 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
   <link rel="stylesheet" href="css/main.css">
+  <script>
+    (function () {
+      try {
+        const s = JSON.parse(localStorage.getItem('krashen_settings') || '{}');
+        const t = s?.ui?.theme || 'system';
+        document.documentElement.setAttribute('data-theme',
+          t === 'system'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : t
+        );
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -71,7 +84,14 @@
           <strong class="app-title">Krashen</strong>
           <span id="app-version" class="app-version">v?.?.?</span>
         </div>
-        <button id="settings-btn" class="outline secondary settings-btn-sm">API Keys</button>
+        <div class="header-controls">
+          <select id="theme-select" class="theme-select" aria-label="Theme">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+          <button id="settings-btn" class="outline secondary settings-btn-sm">API Keys</button>
+        </div>
       </div>
 
       <form id="config-form" novalidate>

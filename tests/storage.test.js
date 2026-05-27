@@ -42,7 +42,7 @@ describe('settings', () => {
   });
 
   it('returns default theme when nothing is stored', () => {
-    expect(getSettings().ui.theme).toBe('light');
+    expect(getSettings().ui.theme).toBe('system');
   });
 
   it('returns empty API keys when nothing is stored', () => {
