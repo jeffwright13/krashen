@@ -60,6 +60,10 @@ export function buildSystemPrompt(config) {
   return parts.join('\n\n');
 }
 
+const FORMAT_NOTES = {
+  'Article': 'Expository, informational prose. No narrative characters or story arc. Educational register.',
+};
+
 export function buildUserPrompt(config) {
   const wordCount = typeof config.outputLength === 'number'
     ? config.outputLength
@@ -71,8 +75,15 @@ export function buildUserPrompt(config) {
     `Topic: ${config.topic}`,
     `Format: ${config.outputFormat}`,
     `Approximate length: ${wordCount} words`,
-    `Narrative person: ${personLabel} (${config.narrativePerson})`,
   ];
+
+  if (config.outputFormat !== 'Article') {
+    lines.push(`Narrative person: ${personLabel} (${config.narrativePerson})`);
+  }
+
+  if (FORMAT_NOTES[config.outputFormat]) {
+    lines.push(`Format note: ${FORMAT_NOTES[config.outputFormat]}`);
+  }
 
   if (config.includeWords && config.includeWords.trim()) {
     lines.push(`Must include these words/phrases (woven in naturally): ${config.includeWords}`);
