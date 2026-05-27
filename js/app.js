@@ -131,6 +131,13 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
   if ((getSettings().ui.theme || 'system') === 'system') applyTheme('system');
 });
 
+document.getElementById('modal-theme').addEventListener('change', (e) => {
+  const settings = getSettings();
+  settings.ui.theme = e.target.value;
+  setSettings(settings);
+  applyTheme(e.target.value);
+});
+
 // ── Resizer ───────────────────────────────────────────────────────────────────
 
 (function initResizer() {
