@@ -88,7 +88,13 @@ function openSettings() {
     document.getElementById(`api-key-${provider}`).value = getApiKey(provider);
     document.getElementById(`model-${provider}`).value   = getModel(provider);
   });
-  document.getElementById('modal-theme').value = getSettings().ui.theme || 'system';
+  const uiSettings = getSettings().ui;
+  document.getElementById('modal-theme').value          = uiSettings.theme || 'system';
+  const enabledEl = document.getElementById('modal-maxwidth-enabled');
+  const valueEl   = document.getElementById('modal-maxwidth-value');
+  enabledEl.checked  = uiSettings.maxWidth !== false;
+  valueEl.value      = uiSettings.maxWidthValue ?? 70;
+  valueEl.disabled   = !enabledEl.checked;
   document.getElementById('settings-modal').showModal();
 }
 
@@ -99,9 +105,12 @@ function saveSettings() {
     if (model) setModel(provider, model);
   });
   const settings = getSettings();
-  settings.ui.theme = document.getElementById('modal-theme').value;
+  settings.ui.theme         = document.getElementById('modal-theme').value;
+  settings.ui.maxWidth      = document.getElementById('modal-maxwidth-enabled').checked;
+  settings.ui.maxWidthValue = parseInt(document.getElementById('modal-maxwidth-value').value, 10) || 70;
   setSettings(settings);
   applyTheme(settings.ui.theme);
+  applyMaxWidth(settings.ui.maxWidth, settings.ui.maxWidthValue);
   document.getElementById('settings-modal').close();
 }
 
@@ -135,7 +144,7 @@ async function handleTestKey(provider) {
   }
 }
 
-// ── Theme ─────────────────────────────────────────────────────────────────────
+// ── Theme & layout ────────────────────────────────────────────────────────────
 
 function applyTheme(theme) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -145,10 +154,23 @@ function applyTheme(theme) {
   );
 }
 
-applyTheme(getSettings().ui.theme || 'system');
+function applyMaxWidth(enabled, value) {
+  document.documentElement.style.setProperty(
+    '--content-max-width',
+    enabled ? `${value}ch` : 'none'
+  );
+}
+
+const _ui = getSettings().ui;
+applyTheme(_ui.theme || 'system');
+applyMaxWidth(_ui.maxWidth !== false, _ui.maxWidthValue ?? 70);
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   if ((getSettings().ui.theme || 'system') === 'system') applyTheme('system');
+});
+
+document.getElementById('modal-maxwidth-enabled').addEventListener('change', e => {
+  document.getElementById('modal-maxwidth-value').disabled = !e.target.checked;
 });
 
 document.getElementById('modal-theme').addEventListener('change', (e) => {
