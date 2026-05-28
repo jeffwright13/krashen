@@ -55,3 +55,19 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 ## 2026-05-27 — Google model updated from gemini-2.0-flash to gemini-2.5-flash
 **Decision:** Bumped `GOOGLE_MODEL` to `gemini-2.5-flash` in v1.0.5.  
 **Rationale:** `gemini-2.0-flash` became unavailable to new users. `gemini-2.5-flash` is Google's current recommended model.
+
+## 2026-05-28 — TTS removed from roadmap entirely
+**Decision:** TTS has been removed from the v2 scope and from the long-term roadmap. The scaffolded `tts.js` stub and related SPEC entries remain in place but are inactive.  
+**Rationale:** AI-generated TTS is a poor substitute for native-speaker comprehensible-input audio (Dreaming Spanish, Pimsleur, etc. do this better). Implementation complexity is high, provider fragmentation is a maintenance burden, and the core value of Krashen is in graded *reading* material. Adding TTS would widen scope without deepening the niche.
+
+## 2026-05-28 — Generated content opens with a ## title line
+**Decision:** The LLM is instructed to begin every response with a title in the format `## Title Here`. `display.js` extracts this line, renders it as `<h1 class="content-title">`, and the rest of the content is rendered as body paragraphs. The title is also stored on the history entry.  
+**Rationale:** Untitled content is hard to navigate in the History modal. A structured prefix is more reliable than asking the LLM to embed a title somewhere in the prose.
+
+## 2026-05-28 — Column width is user-configurable, not hardcoded
+**Decision:** `--content-max-width` is a CSS custom property set at runtime from `settings.ui.maxWidth` / `settings.ui.maxWidthValue`. Default is 70 ch, but the user can change or disable it in Settings.  
+**Rationale:** The right comfortable reading width varies by screen size, font, and user preference. A hardcoded `70ch` was correct for one user's monitor and wrong for others.
+
+## 2026-05-28 — gemini-2.0-flash briefly adopted then reverted to gemini-2.5-flash
+**Decision:** During v2, the default Google model was temporarily changed to `gemini-2.0-flash` (v2.0.4) and then reverted to `gemini-2.5-flash` (v2.0.5).  
+**Rationale:** Free-tier quota for `gemini-2.0-flash` is zero in some regions/accounts, producing an immediate hard error. `gemini-2.5-flash` has confirmed free-tier quota available and is kept as the default. If a user hits demand throttling on `gemini-2.5-flash`, `gemini-2.0-flash` remains a viable fallback in Settings.

@@ -261,16 +261,26 @@ in-browser.
 
 ### Done criteria
 
-- [ ] All unit tests pass (`npx vitest run`)
-- [ ] History panel lists past pieces; clicking one loads it into reading panel
-- [ ] Delete entry and clear history work (with confirmation)
-- [ ] Export single piece as Markdown: downloaded file passes manual inspection
-- [ ] Export library as JSON: file round-trips through import with correct counts
-- [ ] Export library as Markdown: file opens cleanly in a text editor
-- [ ] Import: merges correctly; duplicate entries skipped; invalid files show error
-- [ ] Font size control works in reading panel
-- [ ] Fullscreen toggle hides/restores config panel
-- [ ] No `console.log` artifacts; DECISIONS.md updated
+- [x] All unit tests pass (`npx vitest run`) — 155 tests across 9 files
+- [x] History panel lists past pieces; clicking one loads it into reading panel
+- [x] Delete entry and clear history work (with confirmation)
+- [x] Export single piece as Markdown: downloaded file passes manual inspection
+- [x] Export library as JSON: file round-trips through import with correct counts
+- [x] Export library as Markdown: file opens cleanly in a text editor
+- [x] Import: merges correctly; duplicate entries skipped; invalid files show error
+- [x] Font size control works in reading panel
+- [x] Fullscreen toggle hides/restores config panel
+- [x] No `console.log` artifacts; DECISIONS.md updated
+
+### Features pulled forward from "out of scope"
+
+Several items were implemented during the v2 cycle as incremental improvements beyond
+the original scope:
+
+- **Content titles** — LLM prompted to open with a `## Title` line; rendered as `<h1>` in the reading panel and recorded on history entries
+- **User-configurable column width** — Settings modal: toggle max-width on/off; set custom `ch` value (default 70)
+- **History filter** — Live text filter in the History modal; narrows list by title or topic as you type
+- **History bulk select / bulk delete** — Per-item checkboxes with Select All (including indeterminate state); Delete Selected removes all checked entries in one confirmation
 
 ---
 

@@ -12,7 +12,7 @@ The core of Krashen is a structured prompt template that a user fills out to spe
 
 | Parameter | Options / Format | Notes |
 |---|---|---|
-| CEFR level | A1, A2, B1, B2, C1, C2 | Primary difficulty control |
+| CEFR level | A0, A1, A2, B1, B2, C1, C2 | Primary difficulty control; A0 is a Krashen extension for absolute beginners below A1 |
 | Common word cap | 550 / 1000 / 2000 / 3000 / 5000 / 7500 | "Stick to the N most common Spanish words" |
 | Target dialect | Mexican, Rioplatense, Castilian, Central American, Neutral | Affects vocabulary, voseo/tuteo, regional expressions |
 | Native language | Text field (default: English) | Used to flag false cognates and interference patterns |
@@ -36,7 +36,7 @@ The core of Krashen is a structured prompt template that a user fills out to spe
 | Fiction / nonfiction | Select | |
 | General area | Science/math, Technology, History, Culture, Arts/Music, Nature, Daily life, Other | |
 | Topic | Free text | e.g. "a dog and a boy exploring a forest" |
-| Output length | Number (words) or select: Short ~300 / Medium ~700 / Long ~1200 / Custom | |
+| Output length | Free-text number field (default 700); accepts any value 50–3000 | |
 | Narrative person | 1st / 2nd / 3rd | 2nd person (tú) can feel more immersive |
 | Output format | Single story, Dialogue only, Q&A, Crosstalk script | See format descriptions below |
 
@@ -50,11 +50,16 @@ The core of Krashen is a structured prompt template that a user fills out to spe
 | **Q&A** | Question-and-answer pairs, like an interview or FAQ. Useful for practicing interrogative structures and short-answer comprehension. |
 | **Crosstalk script** | A labelled two-speaker script (Speaker A / Speaker B), formatted like a play or screenplay. Designed to be read aloud by two people together. |
 
-### 1.4 TTS-Specific Parameters _(scaffolded now, activated later)_
+### 1.4 TTS-Specific Parameters _(removed from roadmap — see DECISIONS.md)_
+
+TTS was scaffolded in v1 and planned for v2 but has been dropped. AI-generated speech
+is a poor substitute for native-speaker CI audio, and the implementation complexity is
+not justified by the value added. The parameters below are retained here for reference
+only; they are not exposed in the UI and will not be implemented.
 
 | Parameter | Options / Format | Notes |
 |---|---|---|
-| Voice | Nova / Shimmer / Onyx/ etc.| Choice is TTS-engine-specific (see apg-weband hablabot for ideas) |
+| Voice | Nova / Shimmer / Onyx/ etc.| Choice is TTS-engine-specific |
 | Desired pace | Slow / Natural / Fast | Passed to TTS provider; also affects prompt (slow = shorter sentences) |
 | Pause marking | On/Off | When on, prompt instructs LLM to use punctuation to mark natural pauses |
 | Avoid TTS-tricky words | On/Off | Prompt instructs LLM to avoid words TTS engines commonly mispronounce |
@@ -91,6 +96,10 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 - Content should be selectable (to support future click-to-translate without a rewrite)
 - Paragraph structure preserved from LLM output
 - Metadata shown: CEFR level, approximate word count, topic, date generated
+- LLM response opens with a `## Title` line; rendered as a heading above the body
+- Font size control: Small / Medium / Large applied to the reading panel
+- Fullscreen mode: collapses the config panel to give full viewport to reading; Esc to restore
+- Column width: user-configurable max-width (default 70 ch); can be disabled for full-width layout
 
 ---
 
@@ -103,12 +112,11 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 
 ---
 
-## 5. TTS Playback _(scaffolded in v1, implemented later)_
+## 5. TTS Playback _(removed from roadmap)_
 
-- "Listen" button present but disabled in v1, or hidden behind a feature flag
-- When implemented: calls TTS provider with generated text, plays audio inline
-- Architecture: TTS provider abstracted behind an interface so OpenAI TTS, ElevenLabs, or Web Speech API can be swapped
-- Future: sentence-level highlighting / read-along sync
+TTS was scaffolded in v1 and planned for v2 but has been dropped from the roadmap.
+See DECISIONS.md for rationale. The `tts.js` stub remains in the codebase but is
+inactive and not wired to any UI.
 
 ---
 
