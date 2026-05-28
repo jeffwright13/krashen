@@ -269,6 +269,7 @@ function hideDefinePopup() {
 defineBtn.addEventListener('click', () => {
   defineEnabled = !defineEnabled;
   defineBtn.setAttribute('aria-pressed', String(defineEnabled));
+  if (!defineEnabled) hideDefinePopup();
 });
 
 document.getElementById('content-display').addEventListener('mouseup', async () => {
