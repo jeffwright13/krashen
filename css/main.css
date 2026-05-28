@@ -263,11 +263,14 @@ html, body {
   border: none !important;
   border-radius: 0 !important;
   margin: 0 !important;
-  padding: 0.22rem 0.38rem !important;
+  padding: 0 !important;
+  width: 1.75rem !important;
+  min-width: 0 !important;
+  height: 1.75rem !important;
   font-size: 0.72rem !important;
-  line-height: 1.5;
+  line-height: 1.75rem !important;
+  text-align: center;
   background: transparent;
-  min-width: 0;
 }
 
 .font-size-btn + .font-size-btn {
