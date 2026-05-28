@@ -38,7 +38,7 @@ function readConfig() {
     excludeWords:          document.getElementById('exclude-words').value.trim(),
     topic:                 document.getElementById('topic').value.trim(),
     outputFormat:          document.getElementById('output-format').value,
-    outputLength:          document.getElementById('output-length').value,
+    outputLength:          parseInt(document.getElementById('output-length').value, 10) || 700,
     narrativePerson:       document.getElementById('narrative-person').value,
   };
 }
