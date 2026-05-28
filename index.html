@@ -160,13 +160,8 @@
             <option value="Crosstalk script" title="Labelled two-speaker script (Speaker A / B) — designed to be read aloud by two people">Crosstalk script</option>
           </select>
           <label for="output-length">Length (words)</label>
-          <input type="number" id="output-length" list="output-length-presets"
-            value="700" min="50" max="3000" step="50">
-          <datalist id="output-length-presets">
-            <option value="300">Short</option>
-            <option value="700">Medium</option>
-            <option value="1200">Long</option>
-          </datalist>
+          <input type="text" id="output-length" value="700"
+            placeholder="e.g. 700 (50–3000)">
           <label for="narrative-person">Narrative person</label>
           <select id="narrative-person">
             <option value="1st">1st person</option>
@@ -205,11 +200,11 @@
     <div id="reading-panel">
 
       <div id="reading-toolbar">
-        <div class="font-size-control" role="group" aria-label="Font size">
-          <button class="font-size-btn outline secondary" data-size="small"  title="Small text">S</button>
-          <button class="font-size-btn outline secondary" data-size="medium" title="Medium text">M</button>
-          <button class="font-size-btn outline secondary" data-size="large"  title="Large text">L</button>
-        </div>
+        <select id="font-size-select" aria-label="Font size" title="Reading font size">
+          <option value="small">Small</option>
+          <option value="medium" selected>Medium</option>
+          <option value="large">Large</option>
+        </select>
         <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="define-btn" class="outline secondary" aria-pressed="false"
           title="Select a word or phrase to see its translation">Define</button>
