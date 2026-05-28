@@ -111,6 +111,10 @@ describe('buildUserPrompt', () => {
     const config = { ...base(), outputFormat: 'Article' };
     expect(buildUserPrompt(config)).not.toMatch(/narrative person|third.person|3rd/i);
   });
+
+  it('instructs the LLM to begin with a ## title line', () => {
+    expect(buildUserPrompt(base())).toMatch(/##\s|title/i);
+  });
 });
 
 describe('buildDefinePrompt', () => {
