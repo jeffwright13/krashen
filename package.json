@@ -1,6 +1,6 @@
 {
   "name": "krashen",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Browser-based comprehensible input tool for language learning",
   "type": "module",
   "scripts": {
