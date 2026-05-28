@@ -100,7 +100,7 @@ describe('models', () => {
   });
 
   it('returns default model for google', () => {
-    expect(getModel('google')).toBe('gemini-2.5-flash');
+    expect(getModel('google')).toBe('gemini-2.0-flash');
   });
 
   it('stores and retrieves a custom model', () => {

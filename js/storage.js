@@ -6,7 +6,7 @@ const KEYS = {
 
 const DEFAULT_SETTINGS = {
   apiKeys: { claude: '', openai: '', google: '' },
-  models:  { claude: 'claude-opus-4-5', openai: 'gpt-4o', google: 'gemini-2.5-flash' },
+  models:  { claude: 'claude-opus-4-5', openai: 'gpt-4o', google: 'gemini-2.0-flash' },
   defaultProfile: {},
   ui: { fontSize: 'medium', theme: 'system', maxWidth: true, maxWidthValue: 70 },
 };
