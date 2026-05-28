@@ -373,14 +373,23 @@ document.addEventListener('keydown', e => {
 // ── History modal ─────────────────────────────────────────────────────────────
 
 function renderHistoryList() {
-  const list    = document.getElementById('history-list');
-  const empty   = document.getElementById('history-empty');
-  const entries = getHistory().slice().reverse();
+  const list      = document.getElementById('history-list');
+  const empty     = document.getElementById('history-empty');
+  const filterVal = document.getElementById('history-filter').value.toLowerCase().trim();
+
+  let entries = getHistory().slice().reverse();
+  if (filterVal) {
+    entries = entries.filter(e =>
+      (e.title ?? '').toLowerCase().includes(filterVal) ||
+      (e.topic ?? '').toLowerCase().includes(filterVal)
+    );
+  }
 
   list.querySelectorAll('.history-item').forEach(el => el.remove());
 
   if (entries.length === 0) {
     empty.hidden = false;
+    updateBulkControls();
     return;
   }
   empty.hidden = true;
@@ -394,14 +403,21 @@ function renderHistoryList() {
     const detail = [cefr, `~${entry.wordCount} words`, entry.date].filter(Boolean).join(' · ');
 
     item.innerHTML = `
+      <label class="history-item-check" aria-label="Select">
+        <input type="checkbox" class="history-checkbox" data-id="${entry.id}">
+      </label>
       <div class="history-item-meta">
-        <span class="history-item-topic">${entry.title ?? entry.topic ?? '(no topic)'}</span>
-        <span class="history-item-details">${detail}</span>
+        <span class="history-item-topic"></span>
+        <span class="history-item-details"></span>
       </div>
       <div class="history-item-actions">
         <button class="outline secondary load-btn">Load</button>
         <button class="outline secondary delete-btn">Delete</button>
       </div>`;
+
+    item.querySelector('.history-item-topic').textContent   = entry.title ?? entry.topic ?? '(no topic)';
+    item.querySelector('.history-item-details').textContent = detail;
+    item.querySelector('.history-checkbox').addEventListener('change', updateBulkControls);
 
     item.querySelector('.load-btn').addEventListener('click', () => {
       currentEntry = entry;
@@ -423,10 +439,28 @@ function renderHistoryList() {
 
     list.appendChild(item);
   });
+
+  updateBulkControls();
+}
+
+function updateBulkControls() {
+  const checkboxes   = [...document.querySelectorAll('#history-list .history-checkbox')];
+  const checkedCount = checkboxes.filter(c => c.checked).length;
+  const selectAll    = document.getElementById('history-select-all');
+  const deleteBtn    = document.getElementById('delete-selected-btn');
+  const selectText   = document.getElementById('history-select-all-text');
+
+  selectAll.checked       = checkboxes.length > 0 && checkedCount === checkboxes.length;
+  selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+  deleteBtn.disabled      = checkedCount === 0;
+  selectText.textContent  = checkboxes.length > 0
+    ? `Select all (${checkboxes.length})`
+    : 'Select all';
 }
 
 function openHistory() {
   document.getElementById('import-status').hidden = true;
+  document.getElementById('history-filter').value = '';
   renderHistoryList();
   document.getElementById('history-modal').showModal();
 }
@@ -437,6 +471,24 @@ document.getElementById('close-history').addEventListener('click', () => {
 });
 document.getElementById('history-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) e.currentTarget.close();
+});
+
+document.getElementById('history-filter').addEventListener('input', renderHistoryList);
+
+document.getElementById('history-select-all').addEventListener('change', e => {
+  document.querySelectorAll('#history-list .history-checkbox').forEach(cb => {
+    cb.checked = e.target.checked;
+  });
+  updateBulkControls();
+});
+
+document.getElementById('delete-selected-btn').addEventListener('click', () => {
+  const ids = [...document.querySelectorAll('#history-list .history-checkbox:checked')]
+    .map(cb => Number(cb.dataset.id));
+  if (!ids.length) return;
+  if (!confirm(`Delete ${ids.length} selected item${ids.length !== 1 ? 's' : ''}?`)) return;
+  ids.forEach(id => deleteHistoryEntry(id));
+  renderHistoryList();
 });
 
 document.getElementById('clear-history-btn').addEventListener('click', () => {

@@ -276,6 +276,17 @@
       </div>
       <p id="import-status" class="import-status" hidden></p>
 
+      <div class="history-controls">
+        <input type="search" id="history-filter" placeholder="Filter by title or topic…" autocomplete="off">
+        <div class="history-bulk">
+          <label class="history-select-all-label">
+            <input type="checkbox" id="history-select-all">
+            <span id="history-select-all-text">Select all</span>
+          </label>
+          <button id="delete-selected-btn" class="outline secondary" disabled>Delete selected</button>
+        </div>
+      </div>
+
       <div id="history-list" role="list">
         <p class="history-empty" id="history-empty">No history yet. Generate some content first.</p>
       </div>

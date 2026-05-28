@@ -498,6 +498,70 @@ html, body {
 .import-status.ok   { color: var(--pico-ins-color); }
 .import-status.fail { color: var(--pico-del-color); }
 
+.history-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  flex-shrink: 0;
+}
+
+#history-filter {
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  height: auto;
+}
+
+.history-bulk {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.history-select-all-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  margin: 0;
+  color: var(--pico-muted-color);
+}
+
+.history-select-all-label input[type="checkbox"] {
+  margin: 0;
+  width: auto;
+}
+
+#delete-selected-btn {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  margin: 0;
+  color: var(--pico-del-color);
+  border-color: var(--pico-del-color);
+}
+
+#delete-selected-btn:disabled {
+  opacity: 0.4;
+}
+
+.history-item-check {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+  cursor: pointer;
+}
+
+.history-item-check input[type="checkbox"] {
+  margin: 0;
+  width: auto;
+}
+
 #history-list {
   overflow-y: auto;
   flex: 1;
