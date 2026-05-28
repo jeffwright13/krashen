@@ -38,7 +38,7 @@ function readConfig() {
     excludeWords:          document.getElementById('exclude-words').value.trim(),
     topic:                 document.getElementById('topic').value.trim(),
     outputFormat:          document.getElementById('output-format').value,
-    outputLength:          document.getElementById('output-length').value,
+    outputLength:          parseInt(document.getElementById('output-length').value, 10) || 700,
     narrativePerson:       document.getElementById('narrative-person').value,
   };
 }
@@ -316,16 +316,14 @@ const FONT_SIZES = ['small', 'medium', 'large'];
 function applyFontSize(size) {
   const display = document.getElementById('content-display');
   FONT_SIZES.forEach(s => display.classList.toggle(`font-${s}`, s === size));
-  document.querySelectorAll('.font-size-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.size === size);
-  });
+  document.getElementById('font-size-select').value = size;
   const settings = getSettings();
   settings.ui.fontSize = size;
   setSettings(settings);
 }
 
-document.querySelectorAll('.font-size-btn').forEach(btn => {
-  btn.addEventListener('click', () => applyFontSize(btn.dataset.size));
+document.getElementById('font-size-select').addEventListener('change', e => {
+  applyFontSize(e.target.value);
 });
 
 applyFontSize(getSettings().ui.fontSize || 'medium');

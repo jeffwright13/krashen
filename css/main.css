@@ -108,10 +108,16 @@ html, body {
 }
 
 .form-actions {
+  position: sticky;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  padding: 0.6rem 0 0.25rem;
+  background: var(--pico-card-sectionning-background-color);
+  border-top: 1px solid var(--pico-muted-border-color);
+  z-index: 5;
 }
 
 .form-actions button {
@@ -243,33 +249,16 @@ html, body {
   border-color: var(--pico-primary);
 }
 
-/* Font size segmented control */
+/* Font size select */
 
-.font-size-control {
-  display: flex;
-  border: 1px solid var(--pico-muted-border-color);
-  border-radius: var(--pico-border-radius);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.font-size-btn {
-  border: none !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
-  padding: 0.22rem 0.55rem !important;
-  font-size: 0.72rem !important;
+#font-size-select {
+  width: auto;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.78rem;
+  margin: 0;
+  height: auto;
   line-height: 1.5;
-  background: transparent;
-}
-
-.font-size-btn + .font-size-btn {
-  border-left: 1px solid var(--pico-muted-border-color) !important;
-}
-
-.font-size-btn.active {
-  background: var(--pico-primary) !important;
-  color: var(--pico-primary-inverse) !important;
+  cursor: pointer;
 }
 
 /* Fullscreen mode */

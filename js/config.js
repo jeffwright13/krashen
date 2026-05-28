@@ -19,7 +19,7 @@ export const DEFAULT_CONFIG = {
   fiction: true,
   generalArea: 'Daily life',
   topic: '',
-  outputLength: 'Medium',
+  outputLength: 700,
   narrativePerson: '3rd',
   outputFormat: 'Single story',
   ttsVoice: null,
