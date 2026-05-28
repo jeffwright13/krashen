@@ -151,6 +151,13 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
   if ((getSettings().ui.theme || 'system') === 'system') applyTheme('system');
 });
 
+document.getElementById('modal-theme').addEventListener('change', (e) => {
+  const settings = getSettings();
+  settings.ui.theme = e.target.value;
+  setSettings(settings);
+  applyTheme(e.target.value);
+});
+
 // ── Resizer ───────────────────────────────────────────────────────────────────
 
 (function initResizer() {
@@ -212,6 +219,30 @@ document.querySelectorAll('.key-toggle-btn').forEach(btn => {
 
 document.querySelectorAll('.key-test-btn').forEach(btn => {
   btn.addEventListener('click', () => handleTestKey(btn.dataset.provider));
+});
+
+// ── Select All / Copy ─────────────────────────────────────────────────────────
+
+document.getElementById('select-all-btn').addEventListener('click', () => {
+  const el    = document.getElementById('content-display');
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+});
+
+document.getElementById('copy-btn').addEventListener('click', async () => {
+  const el   = document.getElementById('content-display');
+  const text = el.innerText.trim();
+  try {
+    await navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+  } catch {
+    // clipboard unavailable (non-https or permission denied)
+  }
 });
 
 // ── Define feature ───────────────────────────────────────────────────────────

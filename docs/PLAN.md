@@ -104,13 +104,31 @@ verified in-browser.
 
 ### Done criteria
 
-- [x] All unit tests pass (`npx vitest run`) — 89 tests across 5 files
+- [x] All unit tests pass (`npx vitest run`) — 112 tests across 6 files
 - [x] User can enter an API key, configure a request, generate content, and read it
 - [x] No API keys or secrets in the repo
 - [x] GitHub Actions deploy workflow created (`.github/workflows/deploy.yml`)
-- [x] Deployed and accessible on GitHub Pages (enable in repo Settings → Pages → GitHub Actions)
+- [x] Deployed and accessible on GitHub Pages
 - [x] DECISIONS.md updated with any choices made during implementation
 - [x] No `console.log` debug artifacts in committed code
+
+### Features pulled forward from "out of scope"
+
+Several items listed as out-of-scope were implemented during the v1 cycle and shipped
+as v1.x patch/minor releases rather than waiting for a separate milestone:
+
+- **Click-to-translate (Define)** — toggleable LLM-powered word/phrase lookup popup
+- **Theme switcher** — light / dark / system modes with FOUC-free inline script
+- **Resizable panel divider** — draggable config/reading split with localStorage persistence
+- **User-configurable model names** — per-provider model override in Settings modal
+- **Show/hide API key toggle** — password field reveal per provider
+- **Test API key button** — lightweight key validity check per provider
+- **A0 CEFR level** — absolute-beginner tier below the official A1 floor
+- **Article output format** — expository/nonfiction prose alongside story formats
+- **Select All / Copy buttons** — reading-panel-scoped selection and clipboard copy
+
+These are considered part of the shipped v1 feature set. v2 scope (TTS) and v3 scope
+(vocabulary tracking) remain as originally planned.
 
 ---
 
