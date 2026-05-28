@@ -126,9 +126,22 @@ describe('renderContent — paragraph rendering', () => {
     expect(ps[1].textContent).toBe('Second.');
   });
 
-  it('converts single newlines within a paragraph to <br>', () => {
+  it('collapses single newlines within a paragraph to a space', () => {
     renderContent('Line one.\nLine two.', meta);
-    expect(document.getElementById('content-display').querySelector('br')).not.toBeNull();
+    const p = document.getElementById('content-display').querySelector('p');
+    expect(p.textContent).toBe('Line one. Line two.');
+    expect(document.getElementById('content-display').querySelector('br')).toBeNull();
+  });
+
+  it('normalizes \\r\\n line endings', () => {
+    renderContent('First.\r\n\r\nSecond.', meta);
+    expect(document.getElementById('content-display').querySelectorAll('p')).toHaveLength(2);
+  });
+
+  it('strips stray \\r within a paragraph', () => {
+    renderContent('Word one.\r\nWord two.', meta);
+    const p = document.getElementById('content-display').querySelector('p');
+    expect(p.textContent).not.toContain('\r');
   });
 
   it('filters out blank paragraphs', () => {
