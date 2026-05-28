@@ -415,7 +415,10 @@ function renderHistoryList() {
         <button class="outline secondary delete-btn">Delete</button>
       </div>`;
 
-    item.querySelector('.history-item-topic').textContent   = entry.title ?? entry.topic ?? '(no topic)';
+    const topicLabel = entry.title ?? entry.topic ?? '(no topic)';
+    const topicEl    = item.querySelector('.history-item-topic');
+    topicEl.textContent = topicLabel;
+    topicEl.title       = topicLabel;
     item.querySelector('.history-item-details').textContent = detail;
     item.querySelector('.history-checkbox').addEventListener('change', updateBulkControls);
 
