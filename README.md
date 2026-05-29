@@ -22,7 +22,8 @@ npm install
 npm run serve
 ```
 
-Then open [http://localhost:3000](http://localhost:3000) in a browser.
+Then open the URL printed in the terminal (`serve` defaults to port 3000 but
+auto-selects another if 3000 is in use).
 
 On first launch, click **API Keys** (top-right of the config panel) and enter an API key
 for your chosen provider. Then fill in the content form and press **Generate**.
