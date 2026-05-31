@@ -301,6 +301,7 @@ const defineWord  = document.getElementById('define-word');
 const defineResult = document.getElementById('define-result');
 
 function showDefinePopup(x, y, word) {
+  definePopup.querySelector('.define-save-btn')?.remove();
   defineWord.textContent   = word;
   defineResult.textContent = '…';
   definePopup.hidden = false;

@@ -257,6 +257,7 @@ html, body {
 
 #font-size-select {
   width: auto;
+  min-width: 3.5rem;
   padding: 0.2rem 1.5rem 0.2rem 0.4rem;
   font-size: 0.78rem;
   margin: 0;

@@ -15,7 +15,7 @@ Initially: a single personal user (the developer). Architecture should anticipat
 3. LLM returns graded Spanish content
 4. User reads the content in the browser
 5. (Future) User listens to a TTS-generated audio version
-6. (Future) Vocabulary and progress data are tracked across sessions
+6. Vocabulary is tracked across sessions; known words and re-expose candidates are fed back into the next generation prompt (i+1 loop)
 
 ## Constraints (Hard)
 

@@ -64,13 +64,16 @@ only; they are not exposed in the UI and will not be implemented.
 | Pause marking | On/Off | When on, prompt instructs LLM to use punctuation to mark natural pauses |
 | Avoid TTS-tricky words | On/Off | Prompt instructs LLM to avoid words TTS engines commonly mispronounce |
 
-### 1.5 Progression / SRS Parameters _(scaffolded now, activated later)_
+### 1.5 Progression / SRS Parameters
 
 | Parameter | Options / Format | Notes |
 |---|---|---|
-| Session number | Auto-tracked integer | Content can drift slightly harder over time |
-| Re-expose words | Text field (comma-separated) | Words from prior sessions to weave in again |
-| Words seen (vocab list) | Managed by app | Used for i+1 constraint: "use these known words; introduce ≤5 new ones" |
+| SRS enabled | Toggle (per profile) | When off, vocab is still tracked but no i+1 block is injected into the prompt |
+| Autosave lookups | Toggle (per profile) | When on, Define lookups are saved automatically; when off, a "Save to vocab" button appears |
+| Known word threshold | Select 1–4 (default 2) | Mastery level at which a word is considered known and fed to the "use naturally" list |
+| New words per session | Select 3/5/8/10 (default 5) | Cap on new vocabulary the LLM is asked to introduce |
+| Re-expose count | Select 5/8/12 (default 8) | How many still-acquiring words to include in the re-expose list |
+| Re-expose max mastery | Select 1–4 (default 3) | Upper mastery bound for the re-expose list |
 
 ---
 
@@ -120,11 +123,46 @@ inactive and not wired to any UI.
 
 ---
 
-## 6. Vocabulary Tracking _(deferred, architecture only)_
+## 6. Vocabulary Tracking
 
-- Each generated piece potentially feeds a seen-words list stored in localStorage
-- Future uses: i+1 prompt constraint, Anki export, inline quiz, progress dashboard
-- Data model should be defined before v1 ships, even if the UI isn't built yet
+Implemented in v3. Each profile maintains an independent vocabulary store in localStorage (`krashen_{profileId}_vocab`).
+
+### 6.1 Data model (per term)
+
+| Field | Type | Notes |
+|---|---|---|
+| term | string | Lowercased, trimmed |
+| translations | string[] | Captures variation across lookups |
+| firstSeen / lastSeen | timestamp | |
+| seenCount | number | Incremented when the word appears in generated content |
+| lookupCount | number | Incremented when the user explicitly uses Define |
+| lastLookup | timestamp | |
+| contexts | string[] | Up to 3 most recent surrounding paragraph texts |
+| mastery | 0–5 | Derived and cached on every write (see below) |
+
+### 6.2 Mastery levels
+
+| Level | Condition |
+|---|---|
+| 0 | Never seen |
+| 1 | seenCount > 0, lookupCount = 0 |
+| 2 | lookupCount = 1 |
+| 3 | lookupCount ≥ 2 |
+| 4 | lookupCount ≥ 1 and seenCount > lookupCount (re-encountered naturally after looking up) |
+| 5 | seenCount ≥ 3 and lookupCount = 0 (acquired through reading alone) |
+
+Levels are evaluated highest-first; level 4 and 5 take precedence over lower levels when conditions overlap.
+
+### 6.3 i+1 prompt integration
+
+When SRS is enabled for the active profile, `buildSystemPrompt()` injects a vocabulary constraints block containing: known terms (mastery ≥ threshold, capped at 50), re-expose terms (mastery 1–maxMastery, most recently seen first, capped at reExposeCount), and a new-words-per-session ceiling.
+
+### 6.4 Future work
+
+- Lemmatization: plurals and conjugations currently stored as separate entries (see project notes)
+- Topic-aware re-expose: words from unrelated domains should be excludable per generation
+- Per-word delete / per-generation deactivation
+- Profile import/export
 
 ---
 
