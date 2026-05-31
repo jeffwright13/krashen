@@ -215,13 +215,7 @@ html, body {
 }
 
 .tab-section {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--pico-muted-border-color);
-}
-
-.tab-section:last-child {
-  border-bottom: none;
+  margin-bottom: 0.75rem;
 }
 
 .tab-section-label {
@@ -544,15 +538,11 @@ html, body {
 }
 
 .provider-section {
-  margin-bottom: 1.25rem;
-  padding-bottom: 1.1rem;
-  border-bottom: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 0.75rem;
 }
 
 .provider-section:last-of-type {
-  border-bottom: none;
   margin-bottom: 0;
-  padding-bottom: 0;
 }
 
 .provider-label {
