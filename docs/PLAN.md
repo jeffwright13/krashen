@@ -429,6 +429,13 @@ _Work in progress. Items below are confirmed scope; implementation order TBD._
 - Design the schema to be stable under future changes before writing any code.
 - Import: warn on name collision; offer merge vs. replace.
 
+**Words-read counter**
+- Per-profile cumulative total of words exposed to, incremented after each generation.
+- Purely an exposure metric — no level-to-words mapping (that territory belongs to
+  commercial CI sites; avoid overlap). The user interprets their own progress.
+- Display alongside the active profile indicator. Storage: add `wordsRead` to the
+  profile object, or accumulate from history entries at read time.
+
 ### Open questions (resolve before implementation)
 
 - What is the right granularity for topic-domain tagging on vocab entries?
