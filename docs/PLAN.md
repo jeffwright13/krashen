@@ -384,10 +384,11 @@ The following were identified during v3 and deferred to v4. See v4 section below
 
 ---
 
-## v4 — Vocab Refinement and UI Re-org
+## v3.1 — Vocab Refinement and UI Re-org
 
 **Goal:** Address the structural debt that accumulated in v3, clean up the information
 architecture of the full UI, and make the vocabulary system more precise and controllable.
+No breaking changes; all items are additive enhancements or internal reorganisation.
 
 _Work in progress. Items below are confirmed scope; implementation order TBD._
 
