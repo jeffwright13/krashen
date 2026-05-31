@@ -257,7 +257,7 @@ html, body {
 
 #font-size-select {
   width: auto;
-  padding: 0.2rem 0.4rem;
+  padding: 0.2rem 1.5rem 0.2rem 0.4rem;
   font-size: 0.78rem;
   margin: 0;
   height: auto;
@@ -748,7 +748,7 @@ html, body {
 .srs-grid select {
   margin: 0;
   font-size: 0.82rem;
-  padding: 0.2rem 0.4rem;
+  padding: 0.2rem 1.5rem 0.2rem 0.4rem;
   height: auto;
   width: auto;
 }
