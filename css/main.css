@@ -153,6 +153,15 @@ html, body {
   margin: 0;
 }
 
+.chip-import-status {
+  font-size: 0.75rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+}
+
+.chip-import-status.ok   { color: var(--pico-ins-color, #27ae60); }
+.chip-import-status.fail { color: var(--pico-del-color, #c0392b); }
+
 /* ── Tab bar ─────────────────────────────────────────────── */
 
 #tab-bar {

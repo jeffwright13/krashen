@@ -56,6 +56,14 @@
             <button type="button" id="cancel-new-profile"
               class="outline secondary">Cancel</button>
           </div>
+          <div class="chip-profile-row">
+            <button type="button" id="export-profile-btn"
+              class="outline secondary" disabled>Export</button>
+            <button type="button" id="import-profile-btn"
+              class="outline secondary">Import</button>
+            <input type="file" id="import-profile-input" accept=".json" hidden>
+          </div>
+          <p id="import-profile-status" class="chip-import-status" hidden></p>
         </div>
       </div>
 
