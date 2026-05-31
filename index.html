@@ -30,21 +30,6 @@
         <button id="close-settings" class="outline secondary" aria-label="Close">Close</button>
       </header>
 
-      <!-- Profile section -->
-      <div class="settings-section">
-        <p class="settings-section-label">Profile</p>
-        <div class="profile-row">
-          <select id="profile-select" aria-label="Active profile"></select>
-          <button type="button" id="new-profile-btn" class="outline secondary">New</button>
-          <button type="button" id="delete-profile-btn" class="outline secondary danger-btn" disabled>Delete</button>
-        </div>
-        <div id="new-profile-form" class="new-profile-form" hidden>
-          <input type="text" id="new-profile-name" placeholder="Profile name" autocomplete="off">
-          <button type="button" id="confirm-new-profile" class="outline secondary">Create</button>
-          <button type="button" id="cancel-new-profile" class="outline secondary">Cancel</button>
-        </div>
-      </div>
-
       <!-- SRS / i+1 section -->
       <div class="settings-section">
         <p class="settings-section-label">SRS / i+1</p>
@@ -176,6 +161,32 @@
           <span id="app-version" class="app-version">v?.?.?</span>
         </div>
         <button id="settings-btn" class="outline secondary settings-btn-sm">Settings</button>
+      </div>
+
+      <!-- Profile chip — always visible -->
+      <div id="profile-chip">
+        <div id="profile-chip-summary">
+          <span id="chip-profile-name">No profile</span>
+          <span id="chip-words-read" class="chip-words-read"></span>
+          <button type="button" id="chip-toggle-btn"
+            aria-expanded="false" aria-controls="profile-chip-panel">▾</button>
+        </div>
+        <div id="profile-chip-panel" hidden>
+          <div class="chip-profile-row">
+            <select id="profile-select" aria-label="Active profile"></select>
+            <button type="button" id="new-profile-btn" class="outline secondary">New</button>
+            <button type="button" id="delete-profile-btn"
+              class="outline secondary danger-btn" disabled>Delete</button>
+          </div>
+          <div id="new-profile-form" class="new-profile-form" hidden>
+            <input type="text" id="new-profile-name"
+              placeholder="Profile name" autocomplete="off">
+            <button type="button" id="confirm-new-profile"
+              class="outline secondary">Create</button>
+            <button type="button" id="cancel-new-profile"
+              class="outline secondary">Cancel</button>
+          </div>
+        </div>
       </div>
 
       <form id="config-form" novalidate>

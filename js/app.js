@@ -101,6 +101,11 @@ async function handleGenerate(e) {
       )];
       window.KrashenVocab.recordSeen(words);
     }
+
+    if (activeProfile) {
+      window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);
+      window.KrashenUI?.refreshChip();
+    }
   } catch (err) {
     renderError(err.message ?? 'An unexpected error occurred.');
   }

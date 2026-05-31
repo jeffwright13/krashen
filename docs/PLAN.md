@@ -384,63 +384,191 @@ The following were identified during v3 and deferred to v4. See v4 section below
 
 ---
 
-## v3.1 — Vocab Refinement and UI Re-org
+## v3.1 — UI Re-org and Words-Read Counter
 
-**Goal:** Address the structural debt that accumulated in v3, clean up the information
-architecture of the full UI, and make the vocabulary system more precise and controllable.
-No breaking changes; all items are additive enhancements or internal reorganisation.
+**Goal:** Replace the overloaded Settings modal with a tabbed left panel that gives
+every configuration group a clear, permanent home. Add a persistent profile chip
+that shows the active profile and cumulative words-read counter without any clicks.
+All settings switch to save-on-change; the Save button is eliminated.
 
-_Work in progress. Items below are confirmed scope; implementation order TBD._
+No breaking changes. Vocab normalization, per-word controls, and profile import/export
+remain deferred (see §Open items below).
 
-### Confirmed scope
+### Chosen architecture
 
-**Vocab quality**
-- Lemmatization / normalization: plurals and conjugated forms should map to a single
-  base entry. Options to evaluate: client-side Spanish stemmer, LLM-assisted normalization
-  at lookup time, or a fuzzy-merge pass on write. Defer design until v3 has real usage data.
-- Topic-aware re-expose: words from a reef story shouldn't appear in a jungle prompt.
-  First step: per-word delete and per-generation deactivation (manual curation). Automated
-  topic-matching (embeddings or LLM) is a later enhancement.
-- Per-word controls in the vocab list: delete an entry permanently; exclude from the
-  re-expose list for the next generation only (checkbox or toggle in a pre-generate step).
+**Option 1 (tabbed sidebar) + profile chip from Option 3**, selected after a design
+evaluation session. Rationale: the persistent left panel is a feature for a generation-
+focused workflow; tabs solve the dumping-ground problem without changing the mental
+model; the profile chip solves active-profile visibility elegantly. Built with mobile-
+migration-friendly practices throughout (see Constraints below).
 
-**UI re-org**
-- The Settings modal mixes too many concerns. Full hierarchy redesign required.
-- Proposed direction: replace the flat config form in the left panel with large collapsible
-  sections, e.g. API Settings / Profile / Vocab / Content / Linguistic Focus.
-- Vocab section loads dynamically from the active profile.
-- Active profile name visible at top level at all times (e.g. in the panel header),
-  updating reactively on profile switch.
-- Reading panel toolbar may also need revisiting as feature count grows.
-- Draft an information architecture and get approval before writing any code.
+### Left panel structure (after re-org)
 
-**Settings persistence**
-- Audit every stored value and assign it definitively to per-profile or global.
-  Document the outcome in DECISIONS.md. (Unclear items: default form values, generated
-  history scoping, provider selection.)
-- Evaluate switching from explicit Save button to save-on-change throughout the Settings
-  modal. Theme already works this way; the Save button provides no real escape hatch.
-  Check edge cases (free-text model name fields) before committing.
+```
+┌─────────────────────────────┐
+│ Krashen  v3.1   [◉ Alice  1,240 words ▾] │  ← profile chip, always visible
+├──────────────────────────────┤
+│ Generate │ Vocab │ Tuning │ Settings │     ← tab bar
+├──────────────────────────────┤
+│                              │
+│  [active tab panel]          │  ← scrollable
+│                              │
+├──────────────────────────────┤
+│  [ Generate ]                │  ← sticky, always visible
+└──────────────────────────────┘
+```
 
-**Profile import/export**
-- Bundle: profile metadata + SRS settings + vocab store. Possibly also history entries
-  tagged to the profile.
-- Format: JSON (consistent with existing history export).
-- Design the schema to be stable under future changes before writing any code.
-- Import: warn on name collision; offer merge vs. replace.
+**Generate tab** (default): Provider selector + all content and linguistic focus
+parameters (Groups E + F). This is the existing config form, lightly restyled.
 
-**Words-read counter**
-- Per-profile cumulative total of words exposed to, incremented after each generation.
-- Purely an exposure metric — no level-to-words mapping (that territory belongs to
-  commercial CI sites; avoid overlap). The user interprets their own progress.
-- Display alongside the active profile indicator. Storage: add `wordsRead` to the
-  profile object, or accumulate from history entries at read time.
+**Vocab tab**: Mastery breakdown, scrollable term list sorted by lastSeen, Clear
+vocab button (Group D). Renders fresh each time the tab is activated.
 
-### Open questions (resolve before implementation)
+**Tuning tab**: All SRS / i+1 parameters for the active profile (Group C).
+Save-on-change.
 
-- What is the right granularity for topic-domain tagging on vocab entries?
-- Should generated history be scoped per profile or remain global?
-- What does a "pre-generate vocab review" step look like UX-wise without adding friction
-  to the main generation flow?
+**Settings tab**: API keys + model overrides for all three providers; Theme and
+column-width UI preferences (Groups A + G). Save-on-change (blur for text
+fields, change for selects and checkboxes).
+
+**Profile chip** (above tabs, always visible):
+- Shows active profile name + cumulative words-read counter
+- Click/tap to expand: profile switch dropdown, New / Delete / (future: Import /
+  Export) buttons
+- Collapses on outside click or profile switch
+
+**Settings modal**: Eliminated. History modal is unchanged (it's a different UX
+pattern and works well as a dialog).
+
+**Settings button** in panel header: Removed (tabs replace it).
+
+**Font size control**: Stays in the reading toolbar — more convenient for readers
+than burying it in a Settings tab.
+
+### Words-read counter
+
+`profiles.js` gains an `incrementWordsRead(profileId, count)` method that adds to
+`profile.wordsRead` (default 0). Called in `handleGenerate()` after each successful
+generation alongside `recordSeen()`. Displayed in the profile chip.
+
+### Save-on-change audit
+
+| Field | Trigger | Notes |
+|---|---|---|
+| API key inputs | `blur` | Avoid mid-paste saves |
+| Model name inputs | `blur` | Same reason |
+| Provider select | `change` | |
+| Theme select | `change` | Already works this way |
+| Max-width toggle + value | `change` / `blur` | |
+| SRS toggles and selects | `change` | Per profile via updateSettings() |
+
+### Mobile-migration practices (baked in from the start)
+
+- Sidebar and reading panel have no cross-component layout assumptions
+- No `vw`-based sizing inside the sidebar
+- Generate button is positioned relative to the sidebar container, not the page
+- Tab panels are self-contained scrollable `<div>`s — they become full-screen views
+  on mobile with minimal CSS changes
+- Tab bar maps directly onto a mobile bottom-nav bar (rotate + reposition)
+
+### Implementation phases
+
+Each phase is independently committable and testable.
+
+**Phase 1 — Profile chip + words-read**
+Files: `js/profiles.js`, `js/ui.js`, `js/app.js`, `index.html`, `css/main.css`
+- Add `wordsRead` field and `incrementWordsRead()` to profiles.js
+- Profile chip HTML above tab bar; shows name + words-read; expands for management
+- Move all profile management JS from modal into chip panel (ui.js)
+- `handleGenerate()` calls `incrementWordsRead()` after each successful generation
+- Tests: chip displays active profile name; incrementWordsRead() updates correctly;
+  chip updates on profile switch
+
+**Phase 2 — Tab bar scaffolding**
+Files: `index.html`, `css/main.css`, `js/ui.js`
+- Add tab bar HTML with four tabs (Generate / Vocab / Tuning / Settings)
+- Wrap existing config form in `#tab-generate` panel (no content changes yet)
+- Add empty `#tab-vocab`, `#tab-tuning`, `#tab-settings` panels
+- Tab switching logic: toggle `hidden`, `aria-selected`, `tabindex`
+- Move Generate button outside `<form>` with `form="config-form"` attribute so it
+  stays sticky below the tab bar
+- Tests: clicking each tab shows correct panel and hides others; aria-selected updates
+
+**Phase 3 — Settings tab + save-on-change**
+Files: `index.html`, `css/main.css`, `js/app.js`
+- Add API key / model / UI prefs HTML inside `#tab-settings`
+- Implement save-on-change (blur/change) for all Settings tab fields
+- Remove `openSettings()`, `saveSettings()`, settings-btn, close-settings, modal
+  event listeners from app.js
+- Remove Settings modal `<dialog>` from index.html
+- Keep Test API key buttons functional (they work in-place, no modal needed)
+- Tests: Settings tab fields populate when tab is activated; theme change applies immediately
+
+**Phase 4 — Tuning tab**
+Files: `index.html`, `css/main.css`, `js/ui.js`
+- Move SRS params HTML into `#tab-tuning`
+- Save-on-change wired through `KrashenProfiles.updateSettings()`
+- SRS fields refresh when active profile changes
+- Tests: Tuning tab shows active profile's SRS settings; toggling srsEnabled
+  collapses/expands dependent fields
+
+**Phase 5 — Vocab tab**
+Files: `index.html`, `css/main.css`, `js/ui.js`
+- Move vocab stats + term list HTML into `#tab-vocab`
+- Vocab tab re-renders on activation (calls existing `renderVocabStats()`)
+- Tests: Vocab tab shows correct total count; re-renders after recordLookup()
+
+**Phase 6 — Cleanup and docs**
+- Remove any remaining Settings modal remnants
+- Remove now-unused CSS (modal open/close animation, Settings modal article styles)
+- Update DECISIONS.md (save-on-change rationale, tab architecture, words-read storage)
+- Update SPEC.md §4 (Settings & Persistence) to reflect new structure
+
+### File scaffold changes
+
+```
+js/
+  profiles.js   Updated: wordsRead field, incrementWordsRead()
+  ui.js         Rewritten: tab switching, profile chip, per-tab content
+  app.js        Updated: remove modal wiring; add save-on-change; call
+                incrementWordsRead(); remove openSettings/saveSettings
+index.html      Updated: tab bar, tab panels, profile chip; Settings
+                modal removed; Settings button removed
+css/main.css    Updated: tab bar, chip, tab panel styles; modal styles
+                removed
+tests/
+  ui.test.js    NEW (Vitest/jsdom): tab switching, chip rendering
+  profiles.test.js  Updated: incrementWordsRead() tests
+docs/
+  BRIEF.md      Updated: mobile stance (done)
+  PLAN.md       Updated: this section
+  DECISIONS.md  To update in Phase 6
+  SPEC.md       To update in Phase 6
+```
+
+### Done criteria
+
+- [ ] Profile chip always shows active profile name and words-read counter
+- [ ] Profile chip expands to show switch/create/delete controls
+- [ ] words-read increments after each successful generation
+- [ ] All four tabs switch correctly; Generate button always sticky
+- [ ] Settings tab: all fields populate on activation; save on change/blur
+- [ ] Tuning tab: SRS fields per active profile; save on change
+- [ ] Vocab tab: renders fresh on activation
+- [ ] Settings modal is gone; no dead HTML or JS
+- [ ] `node tests/run.js` — all pass
+- [ ] `npm test` — all pass
+- [ ] DECISIONS.md and SPEC.md updated
+- [ ] No vw-based sizing in sidebar; layout components are independent
+
+### Deferred to later milestones
+
+- Vocab normalization (lemmatization / conjugation merging)
+- Topic-aware re-expose list
+- Per-word delete and per-generation deactivation
+- Profile import/export
+- History scoping per profile
+- Per-profile vs. global settings audit (form defaults, provider selection)
+- Mobile layout (architecture is migration-ready; layout itself deferred)
 
 ---

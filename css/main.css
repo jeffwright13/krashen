@@ -82,6 +82,80 @@ html, body {
   padding: 0.3rem 0.7rem;
 }
 
+/* ── Profile chip ────────────────────────────────────────── */
+
+#profile-chip {
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  position: relative;
+}
+
+#profile-chip-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+#chip-profile-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip-words-read {
+  font-size: 0.75rem;
+  color: var(--pico-muted-color);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#chip-toggle-btn {
+  background: none;
+  border: none;
+  padding: 0 0.2rem;
+  font-size: 0.7rem;
+  color: var(--pico-muted-color);
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+  margin: 0;
+  width: auto;
+}
+
+#profile-chip-panel {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--pico-muted-border-color);
+}
+
+.chip-profile-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.chip-profile-row select {
+  flex: 1;
+  margin: 0;
+  font-size: 0.82rem;
+  padding: 0.25rem 1.5rem 0.25rem 0.4rem;
+  height: auto;
+}
+
+.chip-profile-row button {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.5rem;
+  margin: 0;
+}
+
 /* Compact form fields */
 #config-form label {
   margin-bottom: 0.15rem;

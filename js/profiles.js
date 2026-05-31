@@ -42,6 +42,7 @@ function createKrashenProfiles(storage) {
       name:       name.trim(),
       created:    Date.now(),
       lastActive: Date.now(),
+      wordsRead:  0,
       settings:   Object.assign({}, DEFAULT_SETTINGS),
     };
     const profiles = getAll();
@@ -77,6 +78,14 @@ function createKrashenProfiles(storage) {
     write(PROFILES_KEY, profiles);
   }
 
+  function incrementWordsRead(profileId, count) {
+    const profiles = getAll();
+    const idx = profiles.findIndex(p => p.id === profileId);
+    if (idx === -1) return;
+    profiles[idx].wordsRead = (profiles[idx].wordsRead || 0) + count;
+    write(PROFILES_KEY, profiles);
+  }
+
   function onSwitch(callback) {
     switchCallbacks.push(callback);
   }
@@ -88,6 +97,7 @@ function createKrashenProfiles(storage) {
     switchTo,
     delete:         deleteProfile,
     updateSettings,
+    incrementWordsRead,
     onSwitch,
     DEFAULT_SETTINGS,
   };

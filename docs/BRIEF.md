@@ -1,48 +1,69 @@
 # Krashen — Project Brief
 
+_Stable document: what this is, why it exists, who it's for, and hard constraints.
+Update when the fundamentals change; not a changelog._
+
+---
+
 ## What It Is
 
-Krashen is a browser-based comprehensible input (CI) tool, initially implemented for Spanish. It generates graded reading content (stories, articles, dialogues) using an LLM, displays it for reading practice, and will support TTS playback for listening practice. The name references Stephen Krashen's input hypothesis (i+1): acquire language by receiving input slightly above your current level.
+Krashen is a browser-based comprehensible input (CI) tool for language learners. It
+generates graded reading content (stories, articles, dialogues) using an LLM, tracks
+vocabulary across sessions, and uses that vocabulary to constrain future prompts —
+implementing the i+1 technique: receive input slightly above your current level,
+with known vocabulary reinforced and new words introduced in small, controlled doses.
+The name references Stephen Krashen's input hypothesis.
 
 ## Who It's For
 
-Initially: a single personal user (the developer). Architecture should anticipate optional future public release without requiring a rewrite.
+Currently a single personal user (the developer). Architecture anticipates optional
+future public release without requiring a rewrite: all state is local, no accounts,
+no server.
 
 ## The Core Loop
 
-1. User configures a content request (topic, difficulty, length, linguistic parameters)
-2. Tool generates a structured LLM prompt from those parameters
-3. LLM returns graded Spanish content
-4. User reads the content in the browser
-5. (Future) User listens to a TTS-generated audio version
-6. Vocabulary is tracked across sessions; known words and re-expose candidates are fed back into the next generation prompt (i+1 loop)
+1. User selects an active profile (learner identity + SRS settings)
+2. User configures a content request (topic, format, difficulty, linguistic focus)
+3. Tool assembles an LLM prompt incorporating vocabulary constraints from the active
+   profile's vocab store (i+1 block: known words, re-expose candidates, new-word cap)
+4. LLM returns graded content
+5. User reads the content; vocabulary from the piece is recorded (seenCount)
+6. User can look up words via Define; lookups are saved to the vocab store (lookupCount)
+7. Mastery levels update; the next generation reflects what the learner now knows
 
 ## Constraints (Hard)
 
 - **Browser-only.** No backend server. Deployable to GitHub Pages as a static site.
-- **User-supplied API key.** Stored in localStorage. Never transmitted to any server other than the chosen LLM/TTS provider.
+- **User-supplied API key.** Stored in localStorage. Never transmitted anywhere except
+  the chosen LLM provider.
 - **No user accounts.** All state is local to the browser.
-- **No speech recognition.** Output (reading/listening) only; speaking practice is out of scope.
-- **No mobile-native app.** Desktop browser primary target. PWA support is a possible later addition, not a v1 concern.
+- **No speech recognition.** Output (reading) only; speaking practice is out of scope.
+- **Desktop primary.** Mobile is deferred but the architecture must not foreclose it.
+  Layout and component boundaries are kept independent so a responsive layout can be
+  layered on later without a rewrite.
 
 ## Technology
 
-- Vanilla HTML/CSS/JavaScript (no framework required for v1; keep the door open for a lightweight framework later if complexity demands it)
-- LLM: Claude API primary, OpenAI API as secondary/switchable
-- TTS: OpenAI TTS primary (architecture must not assume a specific provider)
-- Storage: localStorage for settings/preferences; structured for future export/import
+- Vanilla HTML/CSS/JavaScript. No framework. Keep the door open for a lightweight
+  framework (Alpine.js, Preact) if complexity demands it.
+- LLM: Claude API primary, OpenAI and Google Gemini as user-selectable alternatives.
+  All three abstracted behind a single `generateContent()` interface.
+- TTS: Removed from roadmap. See DECISIONS.md.
+- Storage: localStorage only. Structured for future export/import.
 
-## Explicitly Out of Scope (v1)
+## Permanently Out of Scope
 
 - Speech recognition / speaking practice
 - User accounts or server-side persistence
-- Click-to-translate (architecture should not preclude it; implementation deferred)
-- Inline vocabulary quizzing (same — defer, don't foreclose)
-- Anki deck export (defer)
-- PWA / installable app
-- Sentence-level TTS highlighting / read-along sync (defer)
 - Multi-user or shared content
+- Sentence-level TTS read-along sync
 
-## Success Criteria (v1)
+## Deferred (architecture must not foreclose)
 
-A user can open the tool in a browser, configure a content request, generate a graded story or article, and read it. The experience is clean, fast, and produces noticeably better-calibrated content than a raw LLM prompt.
+- Mobile layout
+- Click-to-translate / inline word highlighting
+- Inline vocabulary quizzing
+- Anki deck export
+- PWA / installable app
+- Vocab normalization (lemmatization, conjugation merging)
+- Topic-aware vocabulary filtering

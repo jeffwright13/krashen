@@ -79,6 +79,34 @@ module.exports = {
     assert.strictEqual(fired.id, profile.id);
   },
 
+  'create() initialises wordsRead to 0': function () {
+    const P = createProfiles(makeMockStorage());
+    const profile = P.create('Alice');
+    assert.strictEqual(profile.wordsRead, 0);
+  },
+
+  'incrementWordsRead() adds to wordsRead': function () {
+    const P = createProfiles(makeMockStorage());
+    const profile = P.create('Alice');
+    P.incrementWordsRead(profile.id, 350);
+    P.incrementWordsRead(profile.id, 200);
+    const updated = P.getAll().find(p => p.id === profile.id);
+    assert.strictEqual(updated.wordsRead, 550);
+  },
+
+  'incrementWordsRead() handles missing wordsRead field (backward compat)': function () {
+    const storage = makeMockStorage();
+    const P = createProfiles(storage);
+    const profile = P.create('Alice');
+    // Simulate an old profile with no wordsRead field
+    const profiles = P.getAll();
+    delete profiles[0].wordsRead;
+    storage.setItem('krashen_profiles', JSON.stringify(profiles));
+    P.incrementWordsRead(profile.id, 100);
+    const updated = P.getAll().find(p => p.id === profile.id);
+    assert.strictEqual(updated.wordsRead, 100);
+  },
+
   'updateSettings() persists changes to profile settings': function () {
     const P = createProfiles(makeMockStorage());
     const profile = P.create('Alice');
