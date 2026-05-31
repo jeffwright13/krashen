@@ -484,9 +484,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.1rem;
-  padding-bottom: 1.1rem;
-  border-bottom: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 0.5rem;
 }
 
 .settings-check-label {
@@ -522,9 +520,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1.1rem;
-  border-bottom: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 0.5rem;
 }
 
 .settings-theme-row label {
@@ -583,6 +579,24 @@ html, body {
 
 .test-status.ok   { color: var(--pico-ins-color); }
 .test-status.fail { color: var(--pico-del-color); }
+
+#tab-settings label {
+  font-size: 0.85rem;
+  margin-bottom: 0.15rem;
+}
+
+#tab-settings input:not([type="checkbox"]),
+#tab-settings select {
+  font-size: 0.85rem;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  height: auto;
+  margin-bottom: 0.35rem;
+}
+
+#tab-settings select {
+  padding-right: 1.5rem;
+}
 
 /* ── History modal ───────────────────────────────────────── */
 
