@@ -256,7 +256,10 @@ const providerHint   = document.getElementById('provider-hint');
 function updateProviderHint() {
   providerHint.hidden = providerSelect.value !== 'claude';
 }
-providerSelect.addEventListener('change', updateProviderHint);
+providerSelect.addEventListener('change', () => {
+  updateProviderHint();
+  saveFormDefault('provider', providerSelect.value);
+});
 updateProviderHint();
 
 // ── Show/hide key toggles ─────────────────────────────────────────────────────
@@ -600,6 +603,50 @@ importFile.addEventListener('change', () => {
   };
   reader.readAsText(file);
 });
+
+// ── Per-profile form defaults ─────────────────────────────────────────────────
+
+function saveFormDefault(key, value) {
+  const active = window.KrashenProfiles?.getActive();
+  if (!active) return;
+  window.KrashenProfiles.updateFormDefaults(active.id, { [key]: value });
+}
+
+function restoreFormDefaults(profile) {
+  const fd = Object.assign(
+    {}, window.KrashenProfiles?.DEFAULT_FORM_DEFAULTS, profile.formDefaults ?? {}
+  );
+  document.getElementById('provider').value        = fd.provider;
+  document.getElementById('cefr-level').value      = fd.cefrLevel;
+  document.getElementById('word-cap').value        = String(fd.wordCap);
+  document.getElementById('target-dialect').value  = fd.targetDialect;
+  document.getElementById('target-language').value = fd.targetLanguage;
+  document.getElementById('native-language').value = fd.nativeLanguage;
+  updateProviderHint();
+}
+
+(function initFormDefaults() {
+  document.getElementById('cefr-level').addEventListener('change', e =>
+    saveFormDefault('cefrLevel', e.target.value)
+  );
+  document.getElementById('word-cap').addEventListener('change', e =>
+    saveFormDefault('wordCap', parseInt(e.target.value, 10))
+  );
+  document.getElementById('target-dialect').addEventListener('change', e =>
+    saveFormDefault('targetDialect', e.target.value)
+  );
+  document.getElementById('target-language').addEventListener('blur', e =>
+    saveFormDefault('targetLanguage', e.target.value.trim())
+  );
+  document.getElementById('native-language').addEventListener('blur', e =>
+    saveFormDefault('nativeLanguage', e.target.value.trim())
+  );
+
+  window.KrashenProfiles?.onSwitch(restoreFormDefaults);
+
+  const active = window.KrashenProfiles?.getActive();
+  if (active) restoreFormDefaults(active);
+})();
 
 // ── Main event wiring ─────────────────────────────────────────────────────────
 

@@ -10,6 +10,15 @@ const DEFAULT_SETTINGS = {
   reExposeMaxMastery: 3,
 };
 
+const DEFAULT_FORM_DEFAULTS = {
+  provider:       'openai',
+  cefrLevel:      'A2',
+  wordCap:        1000,
+  targetLanguage: 'Spanish',
+  targetDialect:  'Neutral',
+  nativeLanguage: 'English',
+};
+
 function createKrashenProfiles(storage) {
   const switchCallbacks = [];
 
@@ -38,12 +47,13 @@ function createKrashenProfiles(storage) {
 
   function create(name) {
     const profile = {
-      id:         String(Date.now()),
-      name:       name.trim(),
-      created:    Date.now(),
-      lastActive: Date.now(),
-      wordsRead:  0,
-      settings:   Object.assign({}, DEFAULT_SETTINGS),
+      id:           String(Date.now()),
+      name:         name.trim(),
+      created:      Date.now(),
+      lastActive:   Date.now(),
+      wordsRead:    0,
+      settings:     Object.assign({}, DEFAULT_SETTINGS),
+      formDefaults: Object.assign({}, DEFAULT_FORM_DEFAULTS),
     };
     const profiles = getAll();
     profiles.push(profile);
@@ -78,6 +88,16 @@ function createKrashenProfiles(storage) {
     write(PROFILES_KEY, profiles);
   }
 
+  function updateFormDefaults(profileId, patch) {
+    const profiles = getAll();
+    const idx = profiles.findIndex(p => p.id === profileId);
+    if (idx === -1) return;
+    profiles[idx].formDefaults = Object.assign(
+      {}, DEFAULT_FORM_DEFAULTS, profiles[idx].formDefaults, patch
+    );
+    write(PROFILES_KEY, profiles);
+  }
+
   function incrementWordsRead(profileId, count) {
     const profiles = getAll();
     const idx = profiles.findIndex(p => p.id === profileId);
@@ -95,11 +115,13 @@ function createKrashenProfiles(storage) {
     getActive,
     create,
     switchTo,
-    delete:         deleteProfile,
+    delete:             deleteProfile,
     updateSettings,
+    updateFormDefaults,
     incrementWordsRead,
     onSwitch,
     DEFAULT_SETTINGS,
+    DEFAULT_FORM_DEFAULTS,
   };
 }
 
