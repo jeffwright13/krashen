@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { toggleLoading, renderError, renderContent } from '../js/display.js';
+import { toggleLoading, renderError, renderContent, showToast } from '../js/display.js';
 
 const FIXTURE = `
   <button id="generate-btn"></button>
@@ -235,6 +235,27 @@ describe('renderContent — title', () => {
     const h1 = document.getElementById('content-display').querySelector('h1');
     expect(h1.textContent).toBe('<script>xss</script>');
     expect(document.getElementById('content-display').innerHTML).not.toContain('<script>');
+  });
+});
+
+describe('showToast', () => {
+  it('creates a toast element with the given message', () => {
+    showToast('Saved to vocab');
+    const toast = document.getElementById('krashen-toast');
+    expect(toast).not.toBeNull();
+    expect(toast.textContent).toBe('Saved to vocab');
+  });
+
+  it('adds the toast-visible class', () => {
+    showToast('Test');
+    expect(document.getElementById('krashen-toast').classList.contains('toast-visible')).toBe(true);
+  });
+
+  it('reuses the existing element on repeated calls', () => {
+    showToast('First');
+    showToast('Second');
+    expect(document.querySelectorAll('#krashen-toast').length).toBe(1);
+    expect(document.getElementById('krashen-toast').textContent).toBe('Second');
   });
 });
 

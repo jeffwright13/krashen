@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt } from '../js/prompt.js';
+import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt, buildI1Constraints } from '../js/prompt.js';
 import { DEFAULT_CONFIG } from '../js/config.js';
 
 const base = () => ({
@@ -114,6 +114,70 @@ describe('buildUserPrompt', () => {
 
   it('instructs the LLM to begin with a ## title line', () => {
     expect(buildUserPrompt(base())).toMatch(/##\s|title/i);
+  });
+});
+
+describe('buildSystemPrompt — vocabContext (i+1)', () => {
+  it('omits i+1 block when vocabContext is not provided', () => {
+    const prompt = buildSystemPrompt(base());
+    expect(prompt).not.toMatch(/known vocabulary|re-expose/i);
+  });
+
+  it('omits i+1 block when vocabContext is null', () => {
+    const prompt = buildSystemPrompt(base(), null);
+    expect(prompt).not.toMatch(/known vocabulary|re-expose/i);
+  });
+
+  it('injects i+1 block when vocabContext is provided', () => {
+    const ctx = { knownTerms: ['casa', 'perro'], reExposeTerms: ['gato'], newWordsPerSession: 5 };
+    const prompt = buildSystemPrompt(base(), ctx);
+    expect(prompt).toContain('casa');
+    expect(prompt).toContain('gato');
+  });
+
+  it('i+1 block appears after the language/level section', () => {
+    const ctx = { knownTerms: ['casa'], reExposeTerms: [], newWordsPerSession: 5 };
+    const prompt = buildSystemPrompt(base(), ctx);
+    const levelPos = prompt.indexOf('CEFR level');
+    const vocabPos = prompt.indexOf('Vocabulary Constraints');
+    expect(levelPos).toBeGreaterThanOrEqual(0);
+    expect(vocabPos).toBeGreaterThan(levelPos);
+  });
+});
+
+describe('buildI1Constraints', () => {
+  it('includes known terms when provided', () => {
+    const result = buildI1Constraints({ knownTerms: ['casa', 'perro'], reExposeTerms: [], newWordsPerSession: 5 });
+    expect(result).toContain('casa');
+    expect(result).toContain('perro');
+  });
+
+  it('includes re-expose terms when provided', () => {
+    const result = buildI1Constraints({ knownTerms: [], reExposeTerms: ['gato', 'rojo'], newWordsPerSession: 5 });
+    expect(result).toContain('gato');
+    expect(result).toContain('rojo');
+  });
+
+  it('includes newWordsPerSession ceiling', () => {
+    const result = buildI1Constraints({ knownTerms: [], reExposeTerms: [], newWordsPerSession: 8 });
+    expect(result).toContain('8');
+  });
+
+  it('caps known terms at 50', () => {
+    const manyTerms = Array.from({ length: 60 }, (_, i) => `word${i}`);
+    const result = buildI1Constraints({ knownTerms: manyTerms, reExposeTerms: [], newWordsPerSession: 5 });
+    expect(result).toContain('word49');
+    expect(result).not.toContain('word50');
+  });
+
+  it('omits known terms section when list is empty', () => {
+    const result = buildI1Constraints({ knownTerms: [], reExposeTerms: [], newWordsPerSession: 5 });
+    expect(result).not.toMatch(/known vocabulary/i);
+  });
+
+  it('omits re-expose section when list is empty', () => {
+    const result = buildI1Constraints({ knownTerms: [], reExposeTerms: [], newWordsPerSession: 5 });
+    expect(result).not.toMatch(/re-expose/i);
   });
 });
 

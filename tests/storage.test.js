@@ -117,10 +117,5 @@ describe('models', () => {
   });
 });
 
-describe('vocab scaffold', () => {
-  it('returns empty seenWords and sessions when nothing is stored', () => {
-    const vocab = getVocab();
-    expect(vocab.seenWords).toEqual([]);
-    expect(vocab.sessions).toEqual([]);
-  });
-});
+// Vocab tracking is handled by js/vocab.js (per-profile) — see tests/vocab.test.js.
+// getVocab() in storage.js is a v1 scaffold stub retained for backwards compatibility.
