@@ -79,4 +79,44 @@ module.exports = {
     assert.strictEqual(entry.contexts.length, 3);
   },
 
+  'deleteTerm() removes the entry from the store': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('gato', 'cat', '');
+    v.deleteTerm('gato');
+    assert.strictEqual(v.getStore()['gato'], undefined);
+  },
+
+  'deleteTerm() is a no-op for unknown terms': function () {
+    const v = makeVocab('p1');
+    assert.doesNotThrow(() => v.deleteTerm('nonexistent'));
+  },
+
+  'setActive(false) marks an entry inactive': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('perro', 'dog', '');
+    v.setActive('perro', false);
+    assert.strictEqual(v.getStore()['perro'].inactive, true);
+  },
+
+  'setActive(true) removes the inactive flag': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('perro', 'dog', '');
+    v.setActive('perro', false);
+    v.setActive('perro', true);
+    assert.strictEqual(v.getStore()['perro'].inactive, undefined);
+  },
+
+  'getForPrompt() excludes inactive entries': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('uno',  'one', '');
+    v.recordLookup('dos',  'two', '');
+    v.setActive('dos', false);
+    const { knownTerms, reExposeTerms } = v.getForPrompt({
+      knownThreshold: 2, reExposeMaxMastery: 3, reExposeCount: 8,
+    });
+    assert.ok(!knownTerms.includes('dos'),     'inactive term excluded from knownTerms');
+    assert.ok(!reExposeTerms.includes('dos'),  'inactive term excluded from reExposeTerms');
+    assert.ok(knownTerms.includes('uno'),      'active term still present');
+  },
+
 };

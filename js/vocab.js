@@ -90,8 +90,28 @@ function createKrashenVocab({ storage, getProfileId }) {
     if (changed) saveStore(store);
   }
 
+  function deleteTerm(term) {
+    const key   = normalizeTerm(term);
+    const store = getStore();
+    if (!store[key]) return;
+    delete store[key];
+    saveStore(store);
+  }
+
+  function setActive(term, isActive) {
+    const key   = normalizeTerm(term);
+    const store = getStore();
+    if (!store[key]) return;
+    if (isActive) {
+      delete store[key].inactive;
+    } else {
+      store[key].inactive = true;
+    }
+    saveStore(store);
+  }
+
   function getForPrompt({ knownThreshold = 2, reExposeMaxMastery = 3, reExposeCount = 8 } = {}) {
-    const terms = Object.values(getStore());
+    const terms = Object.values(getStore()).filter(t => !t.inactive);
 
     const knownTerms = terms
       .filter(t => t.mastery >= knownThreshold)
@@ -111,7 +131,7 @@ function createKrashenVocab({ storage, getProfileId }) {
     if (key) storage.removeItem(key);
   }
 
-  return { recordLookup, recordSeen, getStore, getForPrompt, clear };
+  return { recordLookup, recordSeen, getStore, getForPrompt, deleteTerm, setActive, clear };
 }
 
 createKrashenVocab.deriveMastery = deriveMastery;
