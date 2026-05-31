@@ -42,3 +42,19 @@ export function exportLibraryAsMarkdown(entries) {
   if (entries.length === 0) return header + '\n';
   return header + '\n\n' + entries.map(pieceToMarkdown).join('\n\n');
 }
+
+export function exportProfileBundle(profile, vocabStore) {
+  return JSON.stringify({
+    schema:     'krashen-profile-v1',
+    exportedAt: new Date().toISOString().slice(0, 10),
+    profile: {
+      name:         profile.name,
+      created:      profile.created,
+      lastActive:   profile.lastActive,
+      wordsRead:    profile.wordsRead    ?? 0,
+      settings:     profile.settings     ?? {},
+      formDefaults: profile.formDefaults ?? {},
+    },
+    vocab: vocabStore,
+  }, null, 2);
+}

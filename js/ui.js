@@ -1,6 +1,10 @@
 // Left-panel UI: profile chip, SRS parameters, vocab list.
 // Loaded as <script type="module">; exposes window.KrashenUI.
 
+import { exportProfileBundle } from './export.js';
+import { parseProfileBundle  } from './import.js';
+import { showToast            } from './display.js';
+
 (function () {
 
   // ── Tab switching ─────────────────────────────────────────────────────────
@@ -93,10 +97,11 @@
   // ── Profile section ────────────────────────────────────────────────────────
 
   function renderProfileSelect() {
-    const sel    = document.getElementById('profile-select');
-    const delBtn = document.getElementById('delete-profile-btn');
-    const active = window.KrashenProfiles?.getActive();
-    const all    = window.KrashenProfiles?.getAll() ?? [];
+    const sel       = document.getElementById('profile-select');
+    const delBtn    = document.getElementById('delete-profile-btn');
+    const exportBtn = document.getElementById('export-profile-btn');
+    const active    = window.KrashenProfiles?.getActive();
+    const all       = window.KrashenProfiles?.getAll() ?? [];
 
     sel.innerHTML = '';
 
@@ -105,7 +110,8 @@
       opt.value = '';
       opt.textContent = '(no profiles)';
       sel.appendChild(opt);
-      delBtn.disabled = true;
+      delBtn.disabled    = true;
+      exportBtn.disabled = true;
       return;
     }
 
@@ -117,7 +123,8 @@
       sel.appendChild(opt);
     });
 
-    delBtn.disabled = !active;
+    delBtn.disabled    = !active;
+    exportBtn.disabled = !active;
   }
 
   document.getElementById('profile-select').addEventListener('change', e => {
@@ -170,6 +177,70 @@
     renderSrsFields(window.KrashenProfiles.getActive()?.settings ?? {});
     renderVocabStats();
     closeChipPanel();
+  });
+
+  // ── Profile export / import ────────────────────────────────────────────────
+
+  function downloadFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById('export-profile-btn').addEventListener('click', () => {
+    const active = window.KrashenProfiles?.getActive();
+    if (!active) return;
+    const vocabStore = window.KrashenVocab?.getStore() ?? {};
+    const json = exportProfileBundle(active, vocabStore);
+    const slug = active.name.replace(/[^a-z0-9]+/gi, '-').slice(0, 40).toLowerCase();
+    downloadFile(`krashen-profile-${slug}.json`, json, 'application/json');
+  });
+
+  document.getElementById('import-profile-btn').addEventListener('click', () => {
+    document.getElementById('import-profile-input').click();
+  });
+
+  document.getElementById('import-profile-input').addEventListener('change', e => {
+    const file     = e.target.files[0];
+    const statusEl = document.getElementById('import-profile-status');
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const { profile: bundleProfile, vocab } = parseProfileBundle(ev.target.result);
+
+        // Resolve name collision
+        const allNames = window.KrashenProfiles.getAll().map(p => p.name);
+        let name   = bundleProfile.name;
+        let suffix = 2;
+        while (allNames.includes(name)) name = `${bundleProfile.name} (${suffix++})`;
+
+        // Create new profile
+        const newProfile = window.KrashenProfiles.create(name);
+        if (bundleProfile.settings)     window.KrashenProfiles.updateSettings(newProfile.id, bundleProfile.settings);
+        if (bundleProfile.formDefaults) window.KrashenProfiles.updateFormDefaults(newProfile.id, bundleProfile.formDefaults);
+        if (bundleProfile.wordsRead > 0) window.KrashenProfiles.incrementWordsRead(newProfile.id, bundleProfile.wordsRead);
+        if (Object.keys(vocab).length > 0) window.KrashenProfiles.importProfileVocab(newProfile.id, vocab);
+
+        renderProfileSelect();
+        const renamed = name !== bundleProfile.name ? ` (renamed to "${name}")` : '';
+        statusEl.textContent = `Profile imported successfully${renamed}.`;
+        statusEl.className   = 'chip-import-status ok';
+        statusEl.hidden      = false;
+        setTimeout(() => { statusEl.hidden = true; }, 4000);
+      } catch (err) {
+        statusEl.textContent = `Import failed: ${err.message}`;
+        statusEl.className   = 'chip-import-status fail';
+        statusEl.hidden      = false;
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
   });
 
   // Keep chip, SRS fields, and vocab in sync on profile switch

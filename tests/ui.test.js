@@ -20,6 +20,12 @@ const FIXTURE = `
         <button id="confirm-new-profile"></button>
         <button id="cancel-new-profile"></button>
       </div>
+      <div class="chip-profile-row">
+        <button id="export-profile-btn" disabled></button>
+        <button id="import-profile-btn"></button>
+        <input type="file" id="import-profile-input" hidden>
+      </div>
+      <p id="import-profile-status" hidden></p>
     </div>
   </div>
   <div id="tab-bar" role="tablist">
@@ -74,13 +80,19 @@ beforeAll(async () => {
 
   // Minimal stubs so ui.js doesn't throw on KrashenProfiles/KrashenVocab access
   window.KrashenProfiles = {
-    getActive:      () => null,
-    getAll:         () => [],
-    onSwitch:       () => {},
-    updateSettings: vi.fn(),
+    getActive:          () => null,
+    getAll:             () => [],
+    onSwitch:           () => {},
+    updateSettings:     vi.fn(),
+    updateFormDefaults: vi.fn(),
+    importProfileVocab: vi.fn(),
     DEFAULT_SETTINGS: {
       autosave: false, srsEnabled: true, knownThreshold: 2,
       newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3,
+    },
+    DEFAULT_FORM_DEFAULTS: {
+      provider: 'openai', cefrLevel: 'A2', wordCap: 1000,
+      targetLanguage: 'Spanish', targetDialect: 'Neutral', nativeLanguage: 'English',
     },
   };
   window.KrashenVocab = { getStore: () => ({}) };

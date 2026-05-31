@@ -106,6 +106,11 @@ function createKrashenProfiles(storage) {
     write(PROFILES_KEY, profiles);
   }
 
+  function importProfileVocab(profileId, vocabStore) {
+    const key = 'krashen_' + profileId + '_vocab';
+    try { storage.setItem(key, JSON.stringify(vocabStore)); } catch (_) {}
+  }
+
   function onSwitch(callback) {
     switchCallbacks.push(callback);
   }
@@ -119,6 +124,7 @@ function createKrashenProfiles(storage) {
     updateSettings,
     updateFormDefaults,
     incrementWordsRead,
+    importProfileVocab,
     onSwitch,
     DEFAULT_SETTINGS,
     DEFAULT_FORM_DEFAULTS,
