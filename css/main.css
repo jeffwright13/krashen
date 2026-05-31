@@ -906,8 +906,8 @@ html, body {
 
 .vocab-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.35rem;
   padding: 0.15rem 0.4rem;
   font-size: 0.82rem;
 }
@@ -916,10 +916,19 @@ html, body {
   background: var(--pico-card-sectionning-background-color);
 }
 
+.vocab-term {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .vocab-mastery {
   font-size: 0.72rem;
   color: var(--pico-muted-color);
   font-family: monospace;
+  flex-shrink: 0;
 }
 
 .vocab-item-actions {
