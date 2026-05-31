@@ -46,8 +46,10 @@ html, body {
 /* ── Config panel ────────────────────────────────────────── */
 
 #config-panel {
-  overflow-y: auto;
-  padding: 1rem 1.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1rem 1.25rem 0;
   background: var(--pico-card-sectionning-background-color);
 }
 
@@ -156,6 +158,58 @@ html, body {
   margin: 0;
 }
 
+/* ── Tab bar ─────────────────────────────────────────────── */
+
+#tab-bar {
+  display: flex;
+  flex-shrink: 0;
+  margin: 0 -1.25rem;
+  padding: 0 1.25rem;
+  border-bottom: 2px solid var(--pico-muted-border-color);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin: 0 0 -2px;
+  padding: 0.45rem 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pico-muted-color);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  width: auto;
+}
+
+.tab-btn[aria-selected="true"] {
+  color: var(--pico-primary);
+  border-bottom-color: var(--pico-primary);
+}
+
+.tab-btn:hover:not([aria-selected="true"]) {
+  color: var(--pico-color);
+}
+
+/* ── Tab panels ──────────────────────────────────────────── */
+
+.tab-panel {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-top: 0.75rem;
+}
+
+.tab-placeholder {
+  color: var(--pico-muted-color);
+  font-size: 0.88rem;
+  padding: 0.5rem 0;
+}
+
 /* Compact form fields */
 #config-form label {
   margin-bottom: 0.15rem;
@@ -186,16 +240,13 @@ html, body {
 }
 
 .form-actions {
-  position: sticky;
-  bottom: 0;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.5rem;
-  padding: 0.6rem 0 0.25rem;
+  padding: 0.6rem 0 0.75rem;
   background: var(--pico-card-sectionning-background-color);
   border-top: 1px solid var(--pico-muted-border-color);
-  z-index: 5;
 }
 
 .form-actions button {

@@ -3,6 +3,44 @@
 
 (function () {
 
+  // ── Tab switching ─────────────────────────────────────────────────────────
+
+  const TAB_IDS = ['generate', 'vocab', 'tuning', 'settings'];
+
+  function activateTab(tabId) {
+    TAB_IDS.forEach(id => {
+      const btn   = document.getElementById('tab-btn-' + id);
+      const panel = document.getElementById('tab-' + id);
+      const active = id === tabId;
+      btn.setAttribute('aria-selected', String(active));
+      btn.tabIndex = active ? 0 : -1;
+      panel.hidden = !active;
+    });
+    if (tabId === 'vocab') renderVocabStats();
+  }
+
+  TAB_IDS.forEach(id => {
+    document.getElementById('tab-btn-' + id).addEventListener('click', () => activateTab(id));
+  });
+
+  document.getElementById('tab-bar').addEventListener('keydown', e => {
+    const current = TAB_IDS.findIndex(
+      id => document.getElementById('tab-btn-' + id).getAttribute('aria-selected') === 'true'
+    );
+    if (e.key === 'ArrowRight') {
+      const next = (current + 1) % TAB_IDS.length;
+      activateTab(TAB_IDS[next]);
+      document.getElementById('tab-btn-' + TAB_IDS[next]).focus();
+      e.preventDefault();
+    }
+    if (e.key === 'ArrowLeft') {
+      const prev = (current - 1 + TAB_IDS.length) % TAB_IDS.length;
+      activateTab(TAB_IDS[prev]);
+      document.getElementById('tab-btn-' + TAB_IDS[prev]).focus();
+      e.preventDefault();
+    }
+  });
+
   // ── Profile chip ───────────────────────────────────────────────────────────
 
   function renderChip() {
@@ -213,6 +251,6 @@
   // Initial chip render on page load
   renderChip();
 
-  window.KrashenUI = { refreshSettings, saveSettings, refreshChip: renderChip };
+  window.KrashenUI = { refreshSettings, saveSettings, refreshChip: renderChip, activateTab };
 
 })();

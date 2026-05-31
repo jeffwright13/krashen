@@ -8,5 +8,6 @@ export default defineConfig({
       'tests/vocab.test.js',
       'tests/run.js',
     ],
+    include: ['tests/**/*.test.js', '**/*.test.js'],
   },
 });

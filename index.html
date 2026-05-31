@@ -189,6 +189,20 @@
         </div>
       </div>
 
+      <!-- Tab bar -->
+      <div id="tab-bar" role="tablist">
+        <button role="tab" class="tab-btn" id="tab-btn-generate"
+          aria-selected="true"  aria-controls="tab-generate" tabindex="0">Generate</button>
+        <button role="tab" class="tab-btn" id="tab-btn-vocab"
+          aria-selected="false" aria-controls="tab-vocab"    tabindex="-1">Vocab</button>
+        <button role="tab" class="tab-btn" id="tab-btn-tuning"
+          aria-selected="false" aria-controls="tab-tuning"   tabindex="-1">Tuning</button>
+        <button role="tab" class="tab-btn" id="tab-btn-settings"
+          aria-selected="false" aria-controls="tab-settings" tabindex="-1">Settings</button>
+      </div>
+
+      <!-- Generate tab -->
+      <div id="tab-generate" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-generate">
       <form id="config-form" novalidate>
 
         <fieldset class="form-group">
@@ -280,11 +294,32 @@
           <input type="text" id="exclude-words" placeholder="comma-separated">
         </fieldset>
 
-        <div class="form-actions">
-          <button type="submit" id="generate-btn">Generate</button>
-        </div>
-
       </form>
+      </div><!-- #tab-generate -->
+
+      <!-- Vocab tab (populated in Phase 5) -->
+      <div id="tab-vocab" class="tab-panel" role="tabpanel"
+        aria-labelledby="tab-btn-vocab" hidden>
+        <p class="tab-placeholder">Vocabulary panel — coming soon.</p>
+      </div>
+
+      <!-- Tuning tab (populated in Phase 4) -->
+      <div id="tab-tuning" class="tab-panel" role="tabpanel"
+        aria-labelledby="tab-btn-tuning" hidden>
+        <p class="tab-placeholder">Tuning panel — coming soon.</p>
+      </div>
+
+      <!-- Settings tab (populated in Phase 3) -->
+      <div id="tab-settings" class="tab-panel" role="tabpanel"
+        aria-labelledby="tab-btn-settings" hidden>
+        <p class="tab-placeholder">Settings panel — coming soon.</p>
+      </div>
+
+      <!-- Generate button: always sticky at bottom, submits #config-form -->
+      <div class="form-actions">
+        <button type="submit" id="generate-btn" form="config-form">Generate</button>
+      </div>
+
     </aside>
 
     <div id="resizer" role="separator" aria-orientation="vertical" aria-label="Resize panels"></div>
