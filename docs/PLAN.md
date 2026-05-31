@@ -287,16 +287,152 @@ the original scope:
 ## v3 — Vocabulary Tracking and i+1 Loop
 
 **Goal:** Close the feedback loop between what the user has read and what gets generated
-next. The app tracks which words have appeared in generated content and can use that
-list to constrain future prompts — the core of the i+1 (comprehensible input + 1)
-technique.
+next. Track which words the user has seen and looked up, derive a mastery level per
+word, and feed that back into the prompt so the LLM naturally re-exposes acquiring
+vocabulary while limiting new introductions.
 
-_Stub. Scope TBD after v2 ships. Key design questions to resolve at v3 kickoff:_
+### Scope (what shipped in v3)
 
-- _Word extraction: client-side tokenization (split on whitespace, strip punctuation) or
-  LLM-assisted (ask the model to return a word list alongside the content)?_
-- _i+1 UI: how does the user review and edit the seen-words list before it influences
-  generation?_
-- _Anki export: is it in scope for v3 or deferred further?_
+**Profiles (`js/profiles.js`)**
+- Named profiles stored in localStorage (`krashen_profiles`, `krashen_active_profile`)
+- Per-profile SRS settings: autosave, srsEnabled, knownThreshold, newWordsPerSession,
+  reExposeCount, reExposeMaxMastery
+- Methods: `getAll`, `getActive`, `create`, `switchTo`, `delete`, `updateSettings`, `onSwitch`
+- Storage adapter pattern for testability; browser auto-initialises with `localStorage`
+
+**Vocabulary store (`js/vocab.js`)**
+- Per-profile store keyed as `krashen_{profileId}_vocab`
+- Per-term data: translations, firstSeen/lastSeen, seenCount, lookupCount, lastLookup,
+  contexts (capped at 3), mastery 0–5
+- Mastery derivation (evaluated highest-first): 5 = acquired through reading, 4 = re-encountered
+  after lookup, 3 = looked up ≥2 times, 2 = looked up once, 1 = seen but never looked up, 0 = never seen
+- Methods: `recordLookup`, `recordSeen`, `getStore`, `getForPrompt`, `clear`
+
+**i+1 prompt integration (`js/prompt.js`)**
+- `buildI1Constraints(vocabContext)` assembles known terms (capped at 50), re-expose
+  terms, and new-words-per-session ceiling into a prompt fragment
+- `buildSystemPrompt(config, vocabContext)` injects the block after the CEFR/word-cap
+  section when `srsEnabled` is true for the active profile
+
+**Define → vocab pipeline (`js/app.js`)**
+- After a successful Define lookup: if `autosave` is on, calls `recordLookup` immediately
+  and shows a toast; if off, appends a "Save to vocab" button to the popup
+- After each content generation: extracts a deduplicated word list (lowercase, strip
+  Spanish punctuation) and calls `recordSeen`
+
+**Settings UI (`js/ui.js`)**
+- Profile selector (switch, create, delete) in Settings modal
+- SRS settings panel with all per-profile parameters; collapses when SRS is disabled
+- Collapsible vocabulary section: total count, mastery breakdown (0×M0 … n×M5),
+  scrollable term list sorted by lastSeen, "Clear vocab" button
+
+**Test harness**
+- `tests/run.js`: minimal Node/CJS runner; no npm deps; skips Vitest files automatically
+- `tests/profiles.test.js`: 9 tests
+- `tests/vocab.test.js`: 5 tests
+- `vitest.config.js`: excludes CJS test files from Vitest
+
+**Infrastructure notes**
+- profiles.js and vocab.js are ES modules (`export default factory`) loaded as
+  `<script type="module">` in the browser; Node 22 `require(esm)` returns `{ default: factory }`
+- `tests/package.json` sets `"type": "commonjs"` so the runner and test files use `require()`
+
+### File scaffold changes
+
+```
+js/
+  profiles.js     NEW
+  vocab.js        NEW
+  ui.js           NEW
+  prompt.js       Updated: buildI1Constraints(), vocabContext param on buildSystemPrompt()
+  app.js          Updated: vocab pipeline wiring, KrashenUI integration
+  display.js      Updated: showToast()
+tests/
+  run.js          NEW
+  package.json    NEW  {"type": "commonjs"}
+  profiles.test.js  NEW (9 tests)
+  vocab.test.js   NEW (5 tests)
+vitest.config.js  NEW  excludes CJS test files
+css/main.css      Updated: toast, define popup, profile/SRS/vocab section styles
+index.html        Updated: profile + SRS + vocab HTML in Settings modal; module script tags
+docs/             BRIEF.md, SPEC.md, DECISIONS.md all updated
+```
+
+### Done criteria
+
+- [x] `node tests/run.js` — 14 tests pass
+- [x] `npm test` — 267 Vitest tests pass
+- [x] Profile create/switch/delete works in Settings modal
+- [x] SRS settings saved per profile and respected on next generation
+- [x] Define lookup saves to vocab (autosave or manual button)
+- [x] Vocab list visible in Settings with mastery breakdown
+- [x] i+1 constraints injected into prompt when SRS enabled
+- [x] SRS disabled → vocab tracked but prompt unchanged
+- [x] DECISIONS.md updated (7 new entries)
+- [x] SPEC.md sections 1.5 and 6 updated to reflect live implementation
+
+### Known issues and deferred work
+
+The following were identified during v3 and deferred to v4. See v4 section below and
+`docs/DECISIONS.md` for rationale.
+
+- Vocab normalization: inflected forms (plurals, conjugations) stored as separate entries
+- Topic-aware re-expose: words from unrelated domains included indiscriminately
+- No per-word delete or per-generation deactivation
+- Active profile not visible in main UI without opening Settings
+- Settings modal is overloaded (SRS, profile, vocab, API keys, UI prefs all in one place)
+
+---
+
+## v4 — Vocab Refinement and UI Re-org
+
+**Goal:** Address the structural debt that accumulated in v3, clean up the information
+architecture of the full UI, and make the vocabulary system more precise and controllable.
+
+_Work in progress. Items below are confirmed scope; implementation order TBD._
+
+### Confirmed scope
+
+**Vocab quality**
+- Lemmatization / normalization: plurals and conjugated forms should map to a single
+  base entry. Options to evaluate: client-side Spanish stemmer, LLM-assisted normalization
+  at lookup time, or a fuzzy-merge pass on write. Defer design until v3 has real usage data.
+- Topic-aware re-expose: words from a reef story shouldn't appear in a jungle prompt.
+  First step: per-word delete and per-generation deactivation (manual curation). Automated
+  topic-matching (embeddings or LLM) is a later enhancement.
+- Per-word controls in the vocab list: delete an entry permanently; exclude from the
+  re-expose list for the next generation only (checkbox or toggle in a pre-generate step).
+
+**UI re-org**
+- The Settings modal mixes too many concerns. Full hierarchy redesign required.
+- Proposed direction: replace the flat config form in the left panel with large collapsible
+  sections, e.g. API Settings / Profile / Vocab / Content / Linguistic Focus.
+- Vocab section loads dynamically from the active profile.
+- Active profile name visible at top level at all times (e.g. in the panel header),
+  updating reactively on profile switch.
+- Reading panel toolbar may also need revisiting as feature count grows.
+- Draft an information architecture and get approval before writing any code.
+
+**Settings persistence**
+- Audit every stored value and assign it definitively to per-profile or global.
+  Document the outcome in DECISIONS.md. (Unclear items: default form values, generated
+  history scoping, provider selection.)
+- Evaluate switching from explicit Save button to save-on-change throughout the Settings
+  modal. Theme already works this way; the Save button provides no real escape hatch.
+  Check edge cases (free-text model name fields) before committing.
+
+**Profile import/export**
+- Bundle: profile metadata + SRS settings + vocab store. Possibly also history entries
+  tagged to the profile.
+- Format: JSON (consistent with existing history export).
+- Design the schema to be stable under future changes before writing any code.
+- Import: warn on name collision; offer merge vs. replace.
+
+### Open questions (resolve before implementation)
+
+- What is the right granularity for topic-domain tagging on vocab entries?
+- Should generated history be scoped per profile or remain global?
+- What does a "pre-generate vocab review" step look like UX-wise without adding friction
+  to the main generation flow?
 
 ---
