@@ -16,8 +16,12 @@
       btn.tabIndex = active ? 0 : -1;
       panel.hidden = !active;
     });
-    if (tabId === 'vocab')   renderVocabStats();
-    if (tabId === 'tuning')  renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
+    if (tabId === 'vocab')  renderVocabStats();
+    if (tabId === 'tuning') {
+      const active = window.KrashenProfiles?.getActive();
+      document.getElementById('tuning-no-profile').hidden = !!active;
+      renderSrsFields(active?.settings ?? {});
+    }
   }
 
   TAB_IDS.forEach(id => {
@@ -172,6 +176,7 @@
   window.KrashenProfiles?.onSwitch(profile => {
     renderChip();
     renderSrsFields(profile.settings ?? {});
+    document.getElementById('tuning-no-profile').hidden = true;
   });
 
   // ── SRS section ───────────────────────────────────────────────────────────

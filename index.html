@@ -186,12 +186,15 @@
         aria-labelledby="tab-btn-tuning" hidden>
         <div class="tab-section">
           <p class="tab-section-label">SRS / i+1</p>
+          <p id="tuning-no-profile" class="tab-hint" hidden>
+            Create or select a profile to configure SRS settings.
+          </p>
           <label class="settings-check-label">
             <input type="checkbox" id="srs-enabled">
             Enable i+1 vocabulary constraints
           </label>
           <div id="srs-fields">
-            <label class="settings-check-label" style="margin-top:0.5rem">
+            <label class="settings-check-label srs-subfield">
               <input type="checkbox" id="srs-autosave">
               Autosave lookups to vocab
             </label>

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 
 // Minimal DOM fixture — every element ui.js's IIFE touches must be present
 const FIXTURE = `
@@ -37,6 +37,7 @@ const FIXTURE = `
   <div id="tab-tuning"   class="tab-panel" hidden></div>
   <div id="tab-settings" class="tab-panel" hidden></div>
   <div id="tab-tuning" class="tab-panel" hidden>
+    <p id="tuning-no-profile" hidden></p>
     <input type="checkbox" id="srs-enabled">
     <input type="checkbox" id="srs-autosave">
     <div id="srs-fields" hidden></div>
@@ -71,9 +72,10 @@ beforeAll(async () => {
 
   // Minimal stubs so ui.js doesn't throw on KrashenProfiles/KrashenVocab access
   window.KrashenProfiles = {
-    getActive:  () => null,
-    getAll:     () => [],
-    onSwitch:   () => {},
+    getActive:      () => null,
+    getAll:         () => [],
+    onSwitch:       () => {},
+    updateSettings: vi.fn(),
     DEFAULT_SETTINGS: {
       autosave: false, srsEnabled: true, knownThreshold: 2,
       newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3,
@@ -203,5 +205,57 @@ describe('tuning tab — SRS fields', () => {
     });
     window.KrashenUI.activateTab('tuning');
     expect(document.getElementById('srs-known-threshold').value).toBe('3');
+  });
+
+  it('toggling srs-enabled unchecked hides srs-fields', () => {
+    // Start with srsEnabled true (fields visible)
+    window.KrashenProfiles.getActive = () => ({
+      name: 'Alice', wordsRead: 0,
+      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
+        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+    });
+    window.KrashenUI.activateTab('tuning');
+    expect(document.getElementById('srs-fields').hidden).toBe(false);
+
+    // Uncheck the toggle
+    const chk = document.getElementById('srs-enabled');
+    chk.checked = false;
+    chk.dispatchEvent(new Event('change'));
+    expect(document.getElementById('srs-fields').hidden).toBe(true);
+  });
+
+  it('changing a field calls updateSettings with correct values', () => {
+    const mockUpdate = vi.fn();
+    window.KrashenProfiles.getActive = () => ({
+      id: 'p1', name: 'Alice', wordsRead: 0,
+      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
+        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+    });
+    window.KrashenProfiles.updateSettings = mockUpdate;
+
+    window.KrashenUI.activateTab('tuning');
+    const sel = document.getElementById('srs-known-threshold');
+    sel.value = '4';
+    sel.dispatchEvent(new Event('change'));
+
+    expect(mockUpdate).toHaveBeenCalledOnce();
+    expect(mockUpdate.mock.calls[0][0]).toBe('p1');
+    expect(mockUpdate.mock.calls[0][1].knownThreshold).toBe(4);
+  });
+
+  it('shows no-profile hint when no profile is active', () => {
+    window.KrashenProfiles.getActive = () => null;
+    window.KrashenUI.activateTab('tuning');
+    expect(document.getElementById('tuning-no-profile').hidden).toBe(false);
+  });
+
+  it('hides no-profile hint when a profile is active', () => {
+    window.KrashenProfiles.getActive = () => ({
+      name: 'Alice', wordsRead: 0,
+      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
+        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+    });
+    window.KrashenUI.activateTab('tuning');
+    expect(document.getElementById('tuning-no-profile').hidden).toBe(true);
   });
 });

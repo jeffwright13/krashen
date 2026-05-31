@@ -238,6 +238,16 @@ html, body {
   margin-top: 0.5rem;
 }
 
+.tab-hint {
+  font-size: 0.82rem;
+  color: var(--pico-muted-color);
+  margin-bottom: 0.6rem;
+}
+
+.srs-subfield {
+  margin-top: 0.5rem;
+}
+
 /* Compact form fields */
 #config-form label {
   margin-bottom: 0.15rem;
