@@ -567,7 +567,10 @@ docs/
 - Topic-aware re-expose list
 - Per-word delete and per-generation deactivation
 - Profile import/export
-- History scoping per profile
+- History scoping per profile: entries are now stamped with `profileId` and
+  `profileName` at generation time and the profile name appears in the History
+  modal detail line. Full filtering/scoping UI (show only entries for the active
+  profile, or a filter-by-profile dropdown) remains deferred.
 - Per-profile vs. global settings audit (form defaults, provider selection)
 - Mobile layout (architecture is migration-ready; layout itself deferred)
 

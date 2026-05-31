@@ -112,6 +112,10 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 **Decision:** The words-read counter shows a raw cumulative total. No thresholds, no level labels, no "you're at B1" inference.  
 **Rationale:** Level-to-words mappings are associated with commercial CI platforms (Dreaming Spanish etc.) and their specific content types. Reproducing them would create IP risk and false precision. The user interprets their own progress.
 
+## 2026-05-31 — History entries stamped with active profile at generation time
+**Decision:** Each history entry now includes `profileId` and `profileName` from the active profile at generation time (both `null` when no profile is active). The profile name is displayed in the History modal detail line. Existing entries without these fields continue to work — the fields are simply absent.  
+**Rationale:** Establishes the data foundation for per-profile history filtering without requiring a schema migration or scoping decision now. The stamp is additive and backward-compatible. Full history scoping (filtering modal by profile, or per-profile storage) is deferred until the history UI gets its own redesign pass.
+
 ## 2026-05-28 — gemini-2.0-flash briefly adopted then reverted to gemini-2.5-flash
 **Decision:** During v2, the default Google model was temporarily changed to `gemini-2.0-flash` (v2.0.4) and then reverted to `gemini-2.5-flash` (v2.0.5).  
 **Rationale:** Free-tier quota for `gemini-2.0-flash` is zero in some regions/accounts, producing an immediate hard error. `gemini-2.5-flash` has confirmed free-tier quota available and is kept as the default. If a user hits demand throttling on `gemini-2.5-flash`, `gemini-2.0-flash` remains a viable fallback in Settings.

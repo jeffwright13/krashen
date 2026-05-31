@@ -90,7 +90,11 @@ async function handleGenerate(e) {
 
     const firstLine = content.slice(0, content.indexOf('\n') === -1 ? content.length : content.indexOf('\n'));
     const title     = firstLine.startsWith('## ') ? firstLine.slice(3).trim() : null;
-    currentEntry = { id: Date.now(), date, config, content, wordCount, topic: config.topic, title };
+    currentEntry = {
+      id: Date.now(), date, config, content, wordCount, topic: config.topic, title,
+      profileId:   activeProfile?.id   ?? null,
+      profileName: activeProfile?.name ?? null,
+    };
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
@@ -448,8 +452,9 @@ function renderHistoryList() {
     item.className = 'history-item';
     item.setAttribute('role', 'listitem');
 
-    const cefr   = entry.config?.cefrLevel ?? '';
-    const detail = [cefr, `~${entry.wordCount} words`, entry.date].filter(Boolean).join(' · ');
+    const cefr    = entry.config?.cefrLevel ?? '';
+    const profile = entry.profileName ?? null;
+    const detail  = [cefr, `~${entry.wordCount} words`, entry.date, profile].filter(Boolean).join(' · ');
 
     item.innerHTML = `
       <label class="history-item-check" aria-label="Select">

@@ -50,6 +50,22 @@ describe('deleteHistoryEntry', () => {
   });
 });
 
+describe('profile stamp', () => {
+  it('preserves profileId and profileName on stamped entries', () => {
+    appendHistory({ ...makeEntry(1), profileId: 'p1', profileName: 'Alice' });
+    const entry = getHistory()[0];
+    expect(entry.profileId).toBe('p1');
+    expect(entry.profileName).toBe('Alice');
+  });
+
+  it('handles legacy entries without a profile stamp', () => {
+    appendHistory(makeEntry(1));
+    const entry = getHistory()[0];
+    expect(entry.profileId).toBeUndefined();
+    expect(entry.profileName).toBeUndefined();
+  });
+});
+
 describe('clearHistory', () => {
   it('empties the history list', () => {
     appendHistory(makeEntry(1));
