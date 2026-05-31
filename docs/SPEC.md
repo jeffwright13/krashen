@@ -108,10 +108,38 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 
 ## 4. Settings & Persistence
 
-- API key entry (LLM provider, TTS provider) — stored in localStorage, never logged
-- Default learner profile (pre-fills the configuration form)
-- UI preferences (font size, theme)
-- Export/import of settings and generated content — architecture should support this from the start even if UI is deferred
+All settings are accessed through the tabbed left panel (no separate modal). All fields save on change — there is no Save button.
+
+### 4.1 Tab layout
+
+| Tab | Contents |
+|---|---|
+| Generate | Provider selector; content and linguistic focus parameters |
+| Vocab | Per-profile vocabulary list with mastery breakdown; Clear vocab |
+| Tuning | Per-profile SRS / i+1 parameters |
+| Settings | API keys and model overrides (per provider); theme; column width |
+
+### 4.2 Profile chip (always visible)
+
+Above the tab bar: active profile name + cumulative words-read counter. Click to expand for profile management (switch / create / delete).
+
+### 4.3 Per-profile settings (Tuning tab)
+
+Saved immediately on change via `KrashenProfiles.updateSettings()`. See SPEC §1.5 for the full parameter list.
+
+### 4.4 Global settings (Settings tab)
+
+| Setting | Storage | Notes |
+|---|---|---|
+| API keys | `krashen_settings.apiKeys` | Saved on blur |
+| Model overrides | `krashen_settings.models` | Saved on blur |
+| Theme | `krashen_settings.ui.theme` | Saved on change; applied immediately |
+| Column width | `krashen_settings.ui.maxWidth` / `maxWidthValue` | Saved on change |
+| Font size | `krashen_settings.ui.fontSize` | Controlled from reading toolbar |
+
+### 4.5 Export / import
+
+History export (JSON / Markdown) and import are available from the History modal. Profile import/export is deferred — see PLAN.md §v3.1.
 
 ---
 

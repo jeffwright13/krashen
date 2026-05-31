@@ -96,6 +96,22 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 **Decision:** The mastery derivation uses `lookupCount >= 2` for level 3 rather than the spec's `lookupCount >= 2 && lookupCount <= 3`.  
 **Rationale:** The edge case where `lookupCount > 3` and `seenCount <= lookupCount` would fall through to level 0 with a strict upper bound, which is wrong (heavily studied words should not appear untracked). Level 3 ("still reinforcing") is the correct floor for any heavily-looked-up word that hasn't been re-encountered naturally.
 
+## 2026-05-31 — Tabbed left panel replaces Settings modal (v3.1 UI re-org)
+**Decision:** The Settings modal is eliminated. The left panel becomes a four-tab layout (Generate / Vocab / Tuning / Settings). A persistent profile chip above the tabs always shows the active profile name and cumulative words-read counter; clicking it expands profile management.  
+**Rationale:** The modal had become a dumping ground mixing API credentials, SRS parameters, vocab data, and display preferences. Tabs give each concern a permanent, labelled home. The profile chip solves the "which profile is active" problem without opening anything. Architecture selected after evaluating three candidate layouts (tabbed sidebar, icon rail, reading-first drawer); tabbed sidebar won on familiarity and minimal workflow disruption.
+
+## 2026-05-31 — Save-on-change replaces the Save button
+**Decision:** All settings fields (API keys, model names, SRS params, theme, column width) now save immediately on blur or change. The explicit Save button is removed.  
+**Rationale:** All storage is localStorage — there is no network call, no failure mode, and no meaningful escape hatch. The Save button provided only the illusion of a two-phase commit. Theme already saved on change before this refactor; extending the same pattern to all fields is consistent and removes an unnecessary interaction step.
+
+## 2026-05-31 — wordsRead stored on the profile object
+**Decision:** `profile.wordsRead` is a cumulative integer on the profile object itself, incremented by `incrementWordsRead()` after each successful generation.  
+**Rationale:** History entries are global (not per-profile), so accumulating from history at read time would require filtering by profile — which doesn't exist yet. Storing directly on the profile is simpler, backward-compatible (missing field defaults to 0), and doesn't depend on history scoping being resolved.
+
+## 2026-05-31 — words-read is pure exposure; no level-to-words mapping
+**Decision:** The words-read counter shows a raw cumulative total. No thresholds, no level labels, no "you're at B1" inference.  
+**Rationale:** Level-to-words mappings are associated with commercial CI platforms (Dreaming Spanish etc.) and their specific content types. Reproducing them would create IP risk and false precision. The user interprets their own progress.
+
 ## 2026-05-28 — gemini-2.0-flash briefly adopted then reverted to gemini-2.5-flash
 **Decision:** During v2, the default Google model was temporarily changed to `gemini-2.0-flash` (v2.0.4) and then reverted to `gemini-2.5-flash` (v2.0.5).  
 **Rationale:** Free-tier quota for `gemini-2.0-flash` is zero in some regions/accounts, producing an immediate hard error. `gemini-2.5-flash` has confirmed free-tier quota available and is kept as the default. If a user hits demand throttling on `gemini-2.5-flash`, `gemini-2.0-flash` remains a viable fallback in Settings.
