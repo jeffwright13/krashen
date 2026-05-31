@@ -174,10 +174,16 @@
           <p class="tab-section-label">Vocabulary
             <span id="vocab-total" class="vocab-count"></span>
           </p>
-          <p id="vocab-mastery-breakdown" class="vocab-breakdown"></p>
+          <p id="vocab-no-profile" class="tab-hint" hidden>
+            Create or select a profile to track vocabulary.
+          </p>
+          <p id="vocab-empty" class="tab-hint" hidden>
+            No vocabulary saved yet. Use Define to look up words.
+          </p>
+          <p id="vocab-mastery-breakdown" class="vocab-breakdown" hidden></p>
           <div id="vocab-term-list" class="vocab-term-list"></div>
           <button type="button" id="clear-vocab-btn"
-            class="outline secondary danger-btn tab-danger-btn">Clear vocab</button>
+            class="outline secondary danger-btn tab-danger-btn" hidden>Clear vocab</button>
         </div>
       </div>
 

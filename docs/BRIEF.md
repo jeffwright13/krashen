@@ -36,7 +36,7 @@ no server.
 - **Browser-only.** No backend server. Deployable to GitHub Pages as a static site.
 - **User-supplied API key.** Stored in localStorage. Never transmitted anywhere except
   the chosen LLM provider.
-- **No user accounts.** All state is local to the browser.
+- **No user accounts or server-side state.** All data is stored locally in the browser. Named profiles are local-only configurations, not authenticated identities.
 - **No speech recognition.** Output (reading) only; speaking practice is out of scope.
 - **Desktop primary.** Mobile is deferred but the architecture must not foreclose it.
   Layout and component boundaries are kept independent so a responsive layout can be

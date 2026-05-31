@@ -172,10 +172,11 @@
     closeChipPanel();
   });
 
-  // Keep chip and SRS fields in sync on profile switch
+  // Keep chip, SRS fields, and vocab in sync on profile switch
   window.KrashenProfiles?.onSwitch(profile => {
     renderChip();
     renderSrsFields(profile.settings ?? {});
+    renderVocabStats();
     document.getElementById('tuning-no-profile').hidden = true;
   });
 
@@ -220,22 +221,48 @@
   // ── Vocab section ─────────────────────────────────────────────────────────
 
   function renderVocabStats() {
+    const noProfileEl = document.getElementById('vocab-no-profile');
+    const emptyEl     = document.getElementById('vocab-empty');
+    const breakdownEl = document.getElementById('vocab-mastery-breakdown');
+    const listEl      = document.getElementById('vocab-term-list');
+    const clearBtn    = document.getElementById('clear-vocab-btn');
+    const totalEl     = document.getElementById('vocab-total');
+
+    const active = window.KrashenProfiles?.getActive();
+    if (!active) {
+      noProfileEl.hidden  = false;
+      emptyEl.hidden      = true;
+      breakdownEl.hidden  = true;
+      clearBtn.hidden     = true;
+      listEl.innerHTML    = '';
+      totalEl.textContent = '';
+      return;
+    }
+    noProfileEl.hidden = true;
+
     if (!window.KrashenVocab) return;
-    const store   = window.KrashenVocab.getStore();
-    const entries = Object.values(store);
+    const entries = Object.values(window.KrashenVocab.getStore());
     const total   = entries.length;
+
+    totalEl.textContent = total > 0 ? `${total} word${total !== 1 ? 's' : ''}` : '';
+
+    if (total === 0) {
+      emptyEl.hidden     = false;
+      breakdownEl.hidden = true;
+      clearBtn.hidden    = true;
+      listEl.innerHTML   = '';
+      return;
+    }
+
+    emptyEl.hidden     = true;
+    breakdownEl.hidden = false;
+    clearBtn.hidden    = false;
 
     const byMastery = [0, 0, 0, 0, 0, 0];
     entries.forEach(e => { byMastery[e.mastery] = (byMastery[e.mastery] || 0) + 1; });
+    breakdownEl.textContent = byMastery.map((n, i) => `${n}×M${i}`).join('  ');
 
-    document.getElementById('vocab-total').textContent =
-      `${total} word${total !== 1 ? 's' : ''}`;
-
-    document.getElementById('vocab-mastery-breakdown').textContent =
-      byMastery.map((n, i) => `${n}×M${i}`).join('  ');
-
-    const list = document.getElementById('vocab-term-list');
-    list.innerHTML = '';
+    listEl.innerHTML = '';
     entries
       .slice()
       .sort((a, b) => b.lastSeen - a.lastSeen)
@@ -245,7 +272,7 @@
         row.innerHTML =
           `<span class="vocab-term">${e.term}</span>` +
           `<span class="vocab-mastery">M${e.mastery}</span>`;
-        list.appendChild(row);
+        listEl.appendChild(row);
       });
   }
 

@@ -60,9 +60,11 @@ const FIXTURE = `
   </div>
   <div id="tab-vocab" class="tab-panel" hidden>
     <span id="vocab-total"></span>
-    <p id="vocab-mastery-breakdown"></p>
+    <p id="vocab-no-profile" hidden></p>
+    <p id="vocab-empty" hidden></p>
+    <p id="vocab-mastery-breakdown" hidden></p>
     <div id="vocab-term-list"></div>
-    <button id="clear-vocab-btn"></button>
+    <button id="clear-vocab-btn" hidden></button>
   </div>
   <div id="tab-settings" class="tab-panel" hidden></div>
 `;
@@ -257,5 +259,85 @@ describe('tuning tab — SRS fields', () => {
     });
     window.KrashenUI.activateTab('tuning');
     expect(document.getElementById('tuning-no-profile').hidden).toBe(true);
+  });
+});
+
+// ── Vocab tab ──────────────────────────────────────────────────────────────────
+
+describe('vocab tab — no profile', () => {
+  it('shows no-profile hint when no profile is active', () => {
+    window.KrashenProfiles.getActive = () => null;
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('vocab-no-profile').hidden).toBe(false);
+  });
+
+  it('hides clear button and breakdown when no profile', () => {
+    window.KrashenProfiles.getActive = () => null;
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('clear-vocab-btn').hidden).toBe(true);
+    expect(document.getElementById('vocab-mastery-breakdown').hidden).toBe(true);
+  });
+});
+
+describe('vocab tab — empty store', () => {
+  it('shows empty-state hint when vocab store has no entries', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => ({}) };
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('vocab-empty').hidden).toBe(false);
+    expect(document.getElementById('clear-vocab-btn').hidden).toBe(true);
+  });
+
+  it('hides breakdown when store is empty', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => ({}) };
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('vocab-mastery-breakdown').hidden).toBe(true);
+  });
+});
+
+describe('vocab tab — with entries', () => {
+  const mockStore = {
+    hola:  { term: 'hola',  mastery: 2, lastSeen: 2000 },
+    gato:  { term: 'gato',  mastery: 1, lastSeen: 1000 },
+  };
+
+  it('shows word count in vocab-total', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStore };
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('vocab-total').textContent).toBe('2 words');
+  });
+
+  it('shows mastery breakdown', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStore };
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('vocab-mastery-breakdown').hidden).toBe(false);
+  });
+
+  it('renders term list sorted by lastSeen descending', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStore };
+    window.KrashenUI.activateTab('vocab');
+    const items = document.querySelectorAll('#vocab-term-list .vocab-item');
+    expect(items).toHaveLength(2);
+    expect(items[0].querySelector('.vocab-term').textContent).toBe('hola');
+    expect(items[1].querySelector('.vocab-term').textContent).toBe('gato');
+  });
+
+  it('shows clear button when entries exist', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStore };
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('clear-vocab-btn').hidden).toBe(false);
+  });
+
+  it('hides no-profile and empty hints when entries exist', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStore };
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('vocab-no-profile').hidden).toBe(true);
+    expect(document.getElementById('vocab-empty').hidden).toBe(true);
   });
 });
