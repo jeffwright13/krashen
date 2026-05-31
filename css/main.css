@@ -210,6 +210,34 @@ html, body {
   padding: 0.5rem 0;
 }
 
+.tab-section {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.tab-section:last-child {
+  border-bottom: none;
+}
+
+.tab-section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pico-muted-color);
+  margin: 0 0 0.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.tab-danger-btn {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  margin-top: 0.5rem;
+}
+
 /* Compact form fields */
 #config-form label {
   margin-bottom: 0.15rem;

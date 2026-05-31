@@ -36,17 +36,34 @@ const FIXTURE = `
   <div id="tab-vocab"    class="tab-panel" hidden></div>
   <div id="tab-tuning"   class="tab-panel" hidden></div>
   <div id="tab-settings" class="tab-panel" hidden></div>
-  <input type="checkbox" id="srs-enabled">
-  <input type="checkbox" id="srs-autosave">
-  <div id="srs-fields" hidden></div>
-  <select id="srs-known-threshold"><option value="2" selected>2</option></select>
-  <select id="srs-new-words"><option value="5" selected>5</option></select>
-  <select id="srs-reexpose-count"><option value="8" selected>8</option></select>
-  <select id="srs-reexpose-mastery"><option value="3" selected>3</option></select>
-  <span id="vocab-total"></span>
-  <p id="vocab-mastery-breakdown"></p>
-  <div id="vocab-term-list"></div>
-  <button id="clear-vocab-btn"></button>
+  <div id="tab-tuning" class="tab-panel" hidden>
+    <input type="checkbox" id="srs-enabled">
+    <input type="checkbox" id="srs-autosave">
+    <div id="srs-fields" hidden></div>
+    <select id="srs-known-threshold">
+      <option value="1">1</option><option value="2" selected>2</option>
+      <option value="3">3</option><option value="4">4</option>
+    </select>
+    <select id="srs-new-words">
+      <option value="3">3</option><option value="5" selected>5</option>
+      <option value="8">8</option><option value="10">10</option>
+    </select>
+    <select id="srs-reexpose-count">
+      <option value="5">5</option><option value="8" selected>8</option>
+      <option value="12">12</option>
+    </select>
+    <select id="srs-reexpose-mastery">
+      <option value="1">1</option><option value="2">2</option>
+      <option value="3" selected>3</option><option value="4">4</option>
+    </select>
+  </div>
+  <div id="tab-vocab" class="tab-panel" hidden>
+    <span id="vocab-total"></span>
+    <p id="vocab-mastery-breakdown"></p>
+    <div id="vocab-term-list"></div>
+    <button id="clear-vocab-btn"></button>
+  </div>
+  <div id="tab-settings" class="tab-panel" hidden></div>
 `;
 
 beforeAll(async () => {
@@ -64,7 +81,8 @@ beforeAll(async () => {
   };
   window.KrashenVocab = { getStore: () => ({}) };
 
-  await import('../js/ui.js');
+  // ui.js is cached after first import — subsequent describe blocks reuse same instance
+  try { await import('../js/ui.js'); } catch (_) {}
 });
 
 // ── Tab switching ──────────────────────────────────────────────────────────────
@@ -151,5 +169,39 @@ describe('profile chip — with active profile', () => {
     window.KrashenUI.refreshChip();
     expect(document.getElementById('chip-profile-name').textContent).toBe('Alice');
     expect(document.getElementById('chip-words-read').textContent).toContain('1');
+  });
+});
+
+// ── Tuning tab ─────────────────────────────────────────────────────────────────
+
+describe('tuning tab — SRS fields', () => {
+  it('srs-enabled reflects active profile srsEnabled setting', () => {
+    window.KrashenProfiles.getActive = () => ({
+      name: 'Alice', wordsRead: 0,
+      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
+        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+    });
+    window.KrashenUI.activateTab('tuning');
+    expect(document.getElementById('srs-enabled').checked).toBe(true);
+  });
+
+  it('srs-fields is hidden when srsEnabled is false', () => {
+    window.KrashenProfiles.getActive = () => ({
+      name: 'Alice', wordsRead: 0,
+      settings: { srsEnabled: false, autosave: false, knownThreshold: 2,
+        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+    });
+    window.KrashenUI.activateTab('tuning');
+    expect(document.getElementById('srs-fields').hidden).toBe(true);
+  });
+
+  it('known threshold select reflects profile setting', () => {
+    window.KrashenProfiles.getActive = () => ({
+      name: 'Alice', wordsRead: 0,
+      settings: { srsEnabled: true, autosave: false, knownThreshold: 3,
+        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+    });
+    window.KrashenUI.activateTab('tuning');
+    expect(document.getElementById('srs-known-threshold').value).toBe('3');
   });
 });

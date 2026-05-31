@@ -16,7 +16,8 @@
       btn.tabIndex = active ? 0 : -1;
       panel.hidden = !active;
     });
-    if (tabId === 'vocab') renderVocabStats();
+    if (tabId === 'vocab')   renderVocabStats();
+    if (tabId === 'tuning')  renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
   }
 
   TAB_IDS.forEach(id => {
@@ -167,8 +168,11 @@
     closeChipPanel();
   });
 
-  // Keep chip in sync whenever any profile switch fires (e.g. from app.js)
-  window.KrashenProfiles?.onSwitch(() => renderChip());
+  // Keep chip and SRS fields in sync on profile switch
+  window.KrashenProfiles?.onSwitch(profile => {
+    renderChip();
+    renderSrsFields(profile.settings ?? {});
+  });
 
   // ── SRS section ───────────────────────────────────────────────────────────
 
@@ -183,9 +187,30 @@
     document.getElementById('srs-fields').hidden = !s.srsEnabled;
   }
 
+  function saveSrsFields() {
+    const active = window.KrashenProfiles?.getActive();
+    if (!active) return;
+    window.KrashenProfiles.updateSettings(active.id, {
+      srsEnabled:         document.getElementById('srs-enabled').checked,
+      autosave:           document.getElementById('srs-autosave').checked,
+      knownThreshold:     parseInt(document.getElementById('srs-known-threshold').value, 10),
+      newWordsPerSession: parseInt(document.getElementById('srs-new-words').value, 10),
+      reExposeCount:      parseInt(document.getElementById('srs-reexpose-count').value, 10),
+      reExposeMaxMastery: parseInt(document.getElementById('srs-reexpose-mastery').value, 10),
+    });
+  }
+
   document.getElementById('srs-enabled').addEventListener('change', e => {
     document.getElementById('srs-fields').hidden = !e.target.checked;
+    saveSrsFields();
   });
+
+  ['srs-autosave'].forEach(id =>
+    document.getElementById(id).addEventListener('change', saveSrsFields)
+  );
+  ['srs-known-threshold', 'srs-new-words', 'srs-reexpose-count', 'srs-reexpose-mastery'].forEach(id =>
+    document.getElementById(id).addEventListener('change', saveSrsFields)
+  );
 
   // ── Vocab section ─────────────────────────────────────────────────────────
 
@@ -230,27 +255,14 @@
   function refreshSettings() {
     renderChip();
     renderProfileSelect();
-    const active = window.KrashenProfiles?.getActive();
-    renderSrsFields(active?.settings ?? {});
+    renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
     renderVocabStats();
   }
 
-  function saveSettings() {
-    const active = window.KrashenProfiles?.getActive();
-    if (!active) return;
-    window.KrashenProfiles.updateSettings(active.id, {
-      srsEnabled:         document.getElementById('srs-enabled').checked,
-      autosave:           document.getElementById('srs-autosave').checked,
-      knownThreshold:     parseInt(document.getElementById('srs-known-threshold').value, 10),
-      newWordsPerSession: parseInt(document.getElementById('srs-new-words').value, 10),
-      reExposeCount:      parseInt(document.getElementById('srs-reexpose-count').value, 10),
-      reExposeMaxMastery: parseInt(document.getElementById('srs-reexpose-mastery').value, 10),
-    });
-  }
-
-  // Initial chip render on page load
+  // Initial render on page load
   renderChip();
+  renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
 
-  window.KrashenUI = { refreshSettings, saveSettings, refreshChip: renderChip, activateTab };
+  window.KrashenUI = { refreshSettings, refreshChip: renderChip, activateTab };
 
 })();

@@ -55,7 +55,7 @@ async function handleGenerate(e) {
 
   const apiKey = getApiKey(config.provider);
   if (!apiKey) {
-    renderError(`No API key set for ${config.provider}. Open Settings to add one.`);
+    renderError(`No API key set for ${config.provider}. Add one in the Settings tab.`);
     return;
   }
 
@@ -111,37 +111,47 @@ async function handleGenerate(e) {
   }
 }
 
-function openSettings() {
+function initSettingsTab() {
   ['claude', 'openai', 'google'].forEach(provider => {
-    document.getElementById(`api-key-${provider}`).value = getApiKey(provider);
-    document.getElementById(`model-${provider}`).value   = getModel(provider);
+    const keyEl   = document.getElementById(`api-key-${provider}`);
+    const modelEl = document.getElementById(`model-${provider}`);
+    keyEl.value   = getApiKey(provider);
+    modelEl.value = getModel(provider);
+    keyEl.addEventListener('blur', () => setApiKey(provider, keyEl.value.trim()));
+    modelEl.addEventListener('blur', () => { if (modelEl.value.trim()) setModel(provider, modelEl.value.trim()); });
   });
+
   const uiSettings = getSettings().ui;
-  document.getElementById('modal-theme').value          = uiSettings.theme || 'system';
-  const enabledEl = document.getElementById('modal-maxwidth-enabled');
-  const valueEl   = document.getElementById('modal-maxwidth-value');
+  const themeEl    = document.getElementById('modal-theme');
+  const enabledEl  = document.getElementById('modal-maxwidth-enabled');
+  const valueEl    = document.getElementById('modal-maxwidth-value');
+
+  themeEl.value      = uiSettings.theme || 'system';
   enabledEl.checked  = uiSettings.maxWidth !== false;
   valueEl.value      = uiSettings.maxWidthValue ?? 70;
   valueEl.disabled   = !enabledEl.checked;
-  window.KrashenUI?.refreshSettings();
-  document.getElementById('settings-modal').showModal();
-}
 
-function saveSettings() {
-  ['claude', 'openai', 'google'].forEach(provider => {
-    setApiKey(provider, document.getElementById(`api-key-${provider}`).value.trim());
-    const model = document.getElementById(`model-${provider}`).value.trim();
-    if (model) setModel(provider, model);
+  themeEl.addEventListener('change', () => {
+    const s = getSettings();
+    s.ui.theme = themeEl.value;
+    setSettings(s);
+    applyTheme(themeEl.value);
   });
-  window.KrashenUI?.saveSettings();
-  const settings = getSettings();
-  settings.ui.theme         = document.getElementById('modal-theme').value;
-  settings.ui.maxWidth      = document.getElementById('modal-maxwidth-enabled').checked;
-  settings.ui.maxWidthValue = parseInt(document.getElementById('modal-maxwidth-value').value, 10) || 70;
-  setSettings(settings);
-  applyTheme(settings.ui.theme);
-  applyMaxWidth(settings.ui.maxWidth, settings.ui.maxWidthValue);
-  document.getElementById('settings-modal').close();
+
+  enabledEl.addEventListener('change', () => {
+    valueEl.disabled = !enabledEl.checked;
+    const s = getSettings();
+    s.ui.maxWidth = enabledEl.checked;
+    setSettings(s);
+    applyMaxWidth(enabledEl.checked, parseInt(valueEl.value, 10) || 70);
+  });
+
+  valueEl.addEventListener('change', () => {
+    const s = getSettings();
+    s.ui.maxWidthValue = parseInt(valueEl.value, 10) || 70;
+    setSettings(s);
+    applyMaxWidth(enabledEl.checked, s.ui.maxWidthValue);
+  });
 }
 
 async function handleTestKey(provider) {
@@ -197,17 +207,6 @@ applyMaxWidth(_ui.maxWidth !== false, _ui.maxWidthValue ?? 70);
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
   if ((getSettings().ui.theme || 'system') === 'system') applyTheme('system');
-});
-
-document.getElementById('modal-maxwidth-enabled').addEventListener('change', e => {
-  document.getElementById('modal-maxwidth-value').disabled = !e.target.checked;
-});
-
-document.getElementById('modal-theme').addEventListener('change', (e) => {
-  const settings = getSettings();
-  settings.ui.theme = e.target.value;
-  setSettings(settings);
-  applyTheme(e.target.value);
 });
 
 // ── Resizer ───────────────────────────────────────────────────────────────────
@@ -600,14 +599,7 @@ importFile.addEventListener('change', () => {
 // ── Main event wiring ─────────────────────────────────────────────────────────
 
 document.getElementById('config-form').addEventListener('submit', handleGenerate);
-document.getElementById('settings-btn').addEventListener('click', openSettings);
-document.getElementById('save-settings').addEventListener('click', saveSettings);
-document.getElementById('close-settings').addEventListener('click', () => {
-  document.getElementById('settings-modal').close();
-});
-document.getElementById('settings-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) e.currentTarget.close();
-});
+initSettingsTab();
 
 // ── Version display ───────────────────────────────────────────────────────────
 

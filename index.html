@@ -23,135 +23,6 @@
 </head>
 <body>
 
-  <dialog id="settings-modal" aria-labelledby="settings-title">
-    <article>
-      <header>
-        <h2 id="settings-title">Settings</h2>
-        <button id="close-settings" class="outline secondary" aria-label="Close">Close</button>
-      </header>
-
-      <!-- SRS / i+1 section -->
-      <div class="settings-section">
-        <p class="settings-section-label">SRS / i+1</p>
-        <label class="settings-check-label">
-          <input type="checkbox" id="srs-enabled">
-          Enable i+1 vocabulary constraints
-        </label>
-        <div id="srs-fields">
-          <label class="settings-check-label" style="margin-top:0.5rem">
-            <input type="checkbox" id="srs-autosave">
-            Autosave lookups to vocab
-          </label>
-          <div class="srs-grid">
-            <label for="srs-known-threshold">Known threshold</label>
-            <select id="srs-known-threshold">
-              <option value="1">1</option>
-              <option value="2" selected>2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-            </select>
-            <label for="srs-new-words">New words / session</label>
-            <select id="srs-new-words">
-              <option value="3">3</option>
-              <option value="5" selected>5</option>
-              <option value="8">8</option>
-              <option value="10">10</option>
-            </select>
-            <label for="srs-reexpose-count">Re-expose count</label>
-            <select id="srs-reexpose-count">
-              <option value="5">5</option>
-              <option value="8" selected>8</option>
-              <option value="12">12</option>
-            </select>
-            <label for="srs-reexpose-mastery">Re-expose max mastery</label>
-            <select id="srs-reexpose-mastery">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3" selected>3</option>
-              <option value="4">4</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Vocab list section -->
-      <details class="settings-section vocab-details">
-        <summary class="settings-section-label">Vocabulary
-          <span id="vocab-total" class="vocab-count"></span>
-        </summary>
-        <p id="vocab-mastery-breakdown" class="vocab-breakdown"></p>
-        <div id="vocab-term-list" class="vocab-term-list"></div>
-        <button type="button" id="clear-vocab-btn" class="outline secondary danger-btn"
-          style="margin-top:0.5rem; font-size:0.78rem; padding:0.2rem 0.6rem">Clear vocab</button>
-      </details>
-
-      <div class="settings-theme-row">
-        <label for="modal-theme">Theme</label>
-        <select id="modal-theme">
-          <option value="system">System</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-      </div>
-
-      <div class="settings-maxwidth-row">
-        <label class="settings-check-label">
-          <input type="checkbox" id="modal-maxwidth-enabled" checked>
-          Limit column width to
-        </label>
-        <input type="number" id="modal-maxwidth-value"
-          min="40" max="200" step="5" value="70"
-          aria-label="Column width in characters">
-        <span class="settings-unit">ch</span>
-      </div>
-
-      <p class="settings-hint">API keys are stored in your browser only, and sent securely to the selected provider.</p>
-
-      <div class="provider-section">
-        <p class="provider-label">Claude (Anthropic)</p>
-        <label for="api-key-claude">API Key</label>
-        <div class="key-row">
-          <input type="password" id="api-key-claude" placeholder="sk-ant-..." autocomplete="off">
-          <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-claude">Show</button>
-          <button type="button" class="outline secondary key-test-btn" data-provider="claude">Test</button>
-        </div>
-        <small class="test-status" id="test-status-claude" hidden></small>
-        <label for="model-claude">Model</label>
-        <input type="text" id="model-claude" placeholder="claude-opus-4-5">
-      </div>
-
-      <div class="provider-section">
-        <p class="provider-label">OpenAI</p>
-        <label for="api-key-openai">API Key</label>
-        <div class="key-row">
-          <input type="password" id="api-key-openai" placeholder="sk-..." autocomplete="off">
-          <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-openai">Show</button>
-          <button type="button" class="outline secondary key-test-btn" data-provider="openai">Test</button>
-        </div>
-        <small class="test-status" id="test-status-openai" hidden></small>
-        <label for="model-openai">Model</label>
-        <input type="text" id="model-openai" placeholder="gpt-4o">
-      </div>
-
-      <div class="provider-section">
-        <p class="provider-label">Google Gemini</p>
-        <label for="api-key-google">API Key</label>
-        <div class="key-row">
-          <input type="password" id="api-key-google" placeholder="AIza..." autocomplete="off">
-          <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-google">Show</button>
-          <button type="button" class="outline secondary key-test-btn" data-provider="google">Test</button>
-        </div>
-        <small class="test-status" id="test-status-google" hidden></small>
-        <label for="model-google">Model</label>
-        <input type="text" id="model-google" placeholder="gemini-2.5-flash">
-      </div>
-
-      <footer>
-        <button id="save-settings">Save</button>
-      </footer>
-    </article>
-  </dialog>
-
   <div id="app">
 
     <aside id="config-panel">
@@ -160,7 +31,6 @@
           <strong class="app-title">Krashen</strong>
           <span id="app-version" class="app-version">v?.?.?</span>
         </div>
-        <button id="settings-btn" class="outline secondary settings-btn-sm">Settings</button>
       </div>
 
       <!-- Profile chip — always visible -->
@@ -297,22 +167,134 @@
       </form>
       </div><!-- #tab-generate -->
 
-      <!-- Vocab tab (populated in Phase 5) -->
+      <!-- Vocab tab -->
       <div id="tab-vocab" class="tab-panel" role="tabpanel"
         aria-labelledby="tab-btn-vocab" hidden>
-        <p class="tab-placeholder">Vocabulary panel — coming soon.</p>
+        <div class="tab-section">
+          <p class="tab-section-label">Vocabulary
+            <span id="vocab-total" class="vocab-count"></span>
+          </p>
+          <p id="vocab-mastery-breakdown" class="vocab-breakdown"></p>
+          <div id="vocab-term-list" class="vocab-term-list"></div>
+          <button type="button" id="clear-vocab-btn"
+            class="outline secondary danger-btn tab-danger-btn">Clear vocab</button>
+        </div>
       </div>
 
-      <!-- Tuning tab (populated in Phase 4) -->
+      <!-- Tuning tab -->
       <div id="tab-tuning" class="tab-panel" role="tabpanel"
         aria-labelledby="tab-btn-tuning" hidden>
-        <p class="tab-placeholder">Tuning panel — coming soon.</p>
+        <div class="tab-section">
+          <p class="tab-section-label">SRS / i+1</p>
+          <label class="settings-check-label">
+            <input type="checkbox" id="srs-enabled">
+            Enable i+1 vocabulary constraints
+          </label>
+          <div id="srs-fields">
+            <label class="settings-check-label" style="margin-top:0.5rem">
+              <input type="checkbox" id="srs-autosave">
+              Autosave lookups to vocab
+            </label>
+            <div class="srs-grid">
+              <label for="srs-known-threshold">Known threshold</label>
+              <select id="srs-known-threshold">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+              <label for="srs-new-words">New words / session</label>
+              <select id="srs-new-words">
+                <option value="3">3</option>
+                <option value="5" selected>5</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+              </select>
+              <label for="srs-reexpose-count">Re-expose count</label>
+              <select id="srs-reexpose-count">
+                <option value="5">5</option>
+                <option value="8" selected>8</option>
+                <option value="12">12</option>
+              </select>
+              <label for="srs-reexpose-mastery">Re-expose max mastery</label>
+              <select id="srs-reexpose-mastery">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3" selected>3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Settings tab (populated in Phase 3) -->
+      <!-- Settings tab -->
       <div id="tab-settings" class="tab-panel" role="tabpanel"
         aria-labelledby="tab-btn-settings" hidden>
-        <p class="tab-placeholder">Settings panel — coming soon.</p>
+
+        <div class="tab-section">
+          <p class="tab-section-label">Display</p>
+          <div class="settings-theme-row">
+            <label for="modal-theme">Theme</label>
+            <select id="modal-theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+          <div class="settings-maxwidth-row">
+            <label class="settings-check-label">
+              <input type="checkbox" id="modal-maxwidth-enabled" checked>
+              Limit column width to
+            </label>
+            <input type="number" id="modal-maxwidth-value"
+              min="40" max="200" step="5" value="70"
+              aria-label="Column width in characters">
+            <span class="settings-unit">ch</span>
+          </div>
+        </div>
+
+        <p class="settings-hint">API keys are stored in your browser only, and sent only to the selected provider.</p>
+
+        <div class="provider-section">
+          <p class="provider-label">Claude (Anthropic)</p>
+          <label for="api-key-claude">API Key</label>
+          <div class="key-row">
+            <input type="password" id="api-key-claude" placeholder="sk-ant-..." autocomplete="off">
+            <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-claude">Show</button>
+            <button type="button" class="outline secondary key-test-btn" data-provider="claude">Test</button>
+          </div>
+          <small class="test-status" id="test-status-claude" hidden></small>
+          <label for="model-claude">Model</label>
+          <input type="text" id="model-claude" placeholder="claude-opus-4-5">
+        </div>
+
+        <div class="provider-section">
+          <p class="provider-label">OpenAI</p>
+          <label for="api-key-openai">API Key</label>
+          <div class="key-row">
+            <input type="password" id="api-key-openai" placeholder="sk-..." autocomplete="off">
+            <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-openai">Show</button>
+            <button type="button" class="outline secondary key-test-btn" data-provider="openai">Test</button>
+          </div>
+          <small class="test-status" id="test-status-openai" hidden></small>
+          <label for="model-openai">Model</label>
+          <input type="text" id="model-openai" placeholder="gpt-4o">
+        </div>
+
+        <div class="provider-section">
+          <p class="provider-label">Google Gemini</p>
+          <label for="api-key-google">API Key</label>
+          <div class="key-row">
+            <input type="password" id="api-key-google" placeholder="AIza..." autocomplete="off">
+            <button type="button" class="outline secondary key-toggle-btn" data-target="api-key-google">Show</button>
+            <button type="button" class="outline secondary key-test-btn" data-provider="google">Test</button>
+          </div>
+          <small class="test-status" id="test-status-google" hidden></small>
+          <label for="model-google">Model</label>
+          <input type="text" id="model-google" placeholder="gemini-2.5-flash">
+        </div>
+
       </div>
 
       <!-- Generate button: always sticky at bottom, submits #config-form -->
