@@ -117,4 +117,40 @@ module.exports = {
     assert.strictEqual(updated.settings.srsEnabled, true); // default preserved
   },
 
+  'create() includes formDefaults with correct defaults': function () {
+    const P = createProfiles(makeMockStorage());
+    const profile = P.create('Alice');
+    assert.ok(typeof profile.formDefaults === 'object');
+    assert.strictEqual(profile.formDefaults.provider,       'openai');
+    assert.strictEqual(profile.formDefaults.cefrLevel,      'A2');
+    assert.strictEqual(profile.formDefaults.wordCap,        1000);
+    assert.strictEqual(profile.formDefaults.targetLanguage, 'Spanish');
+    assert.strictEqual(profile.formDefaults.targetDialect,  'Neutral');
+    assert.strictEqual(profile.formDefaults.nativeLanguage, 'English');
+  },
+
+  'updateFormDefaults() patches formDefaults and preserves unpatched keys': function () {
+    const P = createProfiles(makeMockStorage());
+    const profile = P.create('Alice');
+    P.updateFormDefaults(profile.id, { cefrLevel: 'B1', provider: 'google' });
+    const updated = P.getAll().find(p => p.id === profile.id);
+    assert.strictEqual(updated.formDefaults.cefrLevel,      'B1');
+    assert.strictEqual(updated.formDefaults.provider,       'google');
+    assert.strictEqual(updated.formDefaults.targetLanguage, 'Spanish'); // unchanged
+  },
+
+  'updateFormDefaults() is backward-compatible for profiles without formDefaults': function () {
+    const storage = makeMockStorage();
+    const P = createProfiles(storage);
+    const profile = P.create('Alice');
+    // Simulate old profile with no formDefaults field
+    const profiles = P.getAll();
+    delete profiles[0].formDefaults;
+    storage.setItem('krashen_profiles', JSON.stringify(profiles));
+    P.updateFormDefaults(profile.id, { cefrLevel: 'C1' });
+    const updated = P.getAll().find(p => p.id === profile.id);
+    assert.strictEqual(updated.formDefaults.cefrLevel,      'C1');
+    assert.strictEqual(updated.formDefaults.targetLanguage, 'Spanish'); // filled from defaults
+  },
+
 };
