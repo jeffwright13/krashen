@@ -295,7 +295,15 @@ html, body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   z-index: 1000;
   max-width: 280px;
-  pointer-events: none;
+  pointer-events: auto;
+}
+
+.define-save-btn {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  width: 100%;
 }
 
 .define-word   { font-style: italic; color: var(--pico-muted-color); }
@@ -634,4 +642,164 @@ html, body {
   margin: 0;
   color: var(--pico-del-color);
   border-color: var(--pico-del-color);
+}
+
+/* ── Toast notification ──────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--pico-primary);
+  color: var(--pico-primary-inverse);
+  padding: 0.35rem 1rem;
+  border-radius: var(--pico-border-radius);
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 9000;
+  white-space: nowrap;
+}
+
+.toast-visible { opacity: 1; }
+
+/* ── Settings: profile + SRS + vocab sections ────────────── */
+
+.settings-section {
+  margin-bottom: 1.1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.settings-section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pico-muted-color);
+  margin: 0 0 0.6rem;
+  cursor: pointer;
+}
+
+.profile-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.profile-row select {
+  flex: 1;
+  margin: 0;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  height: auto;
+}
+
+.profile-row button {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  margin: 0;
+}
+
+.new-profile-form {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+
+.new-profile-form input {
+  flex: 1;
+  margin: 0;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  height: auto;
+}
+
+.new-profile-form button {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  margin: 0;
+}
+
+.danger-btn {
+  color: var(--pico-del-color);
+  border-color: var(--pico-del-color);
+}
+
+.srs-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.3rem 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.srs-grid label {
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.srs-grid select {
+  margin: 0;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.4rem;
+  height: auto;
+  width: auto;
+}
+
+.vocab-details summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.vocab-details summary::-webkit-details-marker { display: none; }
+
+.vocab-count {
+  font-size: 0.78rem;
+  font-weight: normal;
+  color: var(--pico-muted-color);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.vocab-breakdown {
+  font-size: 0.75rem;
+  color: var(--pico-muted-color);
+  margin: 0.4rem 0 0.5rem;
+  font-family: monospace;
+}
+
+.vocab-term-list {
+  max-height: 180px;
+  overflow-y: auto;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  padding: 0.25rem;
+}
+
+.vocab-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.82rem;
+}
+
+.vocab-item:nth-child(even) {
+  background: var(--pico-card-sectionning-background-color);
+}
+
+.vocab-mastery {
+  font-size: 0.72rem;
+  color: var(--pico-muted-color);
+  font-family: monospace;
 }

@@ -6,7 +6,7 @@ import { getHistory, deleteHistoryEntry, clearHistory } from './history.js';
 import { exportPieceAsMarkdown, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
 import { mergeHistory } from './storage.js';
-import { toggleLoading, renderContent, renderError } from './display.js';
+import { toggleLoading, renderContent, renderError, showToast } from './display.js';
 
 let currentEntry = null;
 
@@ -62,12 +62,28 @@ async function handleGenerate(e) {
   toggleLoading(true);
 
   try {
+    const activeProfile = window.KrashenProfiles?.getActive();
+    const srsSettings   = activeProfile?.settings;
+    const srsEnabled    = srsSettings?.srsEnabled !== false;
+
+    let vocabContext = null;
+    if (srsEnabled && window.KrashenVocab) {
+      vocabContext = {
+        ...window.KrashenVocab.getForPrompt({
+          knownThreshold:     srsSettings?.knownThreshold     ?? 2,
+          reExposeMaxMastery: srsSettings?.reExposeMaxMastery ?? 3,
+          reExposeCount:      srsSettings?.reExposeCount      ?? 8,
+        }),
+        newWordsPerSession: srsSettings?.newWordsPerSession ?? 5,
+      };
+    }
+
     const prompts = {
-      system: buildSystemPrompt(config),
+      system: buildSystemPrompt(config, vocabContext),
       user:   buildUserPrompt(config),
     };
 
-    const model   = getModel(config.provider);
+    const model    = getModel(config.provider);
     const content  = await generateContent(prompts, config.provider, apiKey, model || undefined);
     const wordCount = content.trim().split(/\s+/).length;
     const date      = new Date().toLocaleDateString();
@@ -78,6 +94,13 @@ async function handleGenerate(e) {
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
+
+    if (window.KrashenVocab) {
+      const words = [...new Set(
+        content.toLowerCase().replace(/[¡!¿?.,;:«»"'()\-—]/g, ' ').split(/\s+/).filter(Boolean)
+      )];
+      window.KrashenVocab.recordSeen(words);
+    }
   } catch (err) {
     renderError(err.message ?? 'An unexpected error occurred.');
   }
@@ -95,6 +118,7 @@ function openSettings() {
   enabledEl.checked  = uiSettings.maxWidth !== false;
   valueEl.value      = uiSettings.maxWidthValue ?? 70;
   valueEl.disabled   = !enabledEl.checked;
+  window.KrashenUI?.refreshSettings();
   document.getElementById('settings-modal').showModal();
 }
 
@@ -104,6 +128,7 @@ function saveSettings() {
     const model = document.getElementById(`model-${provider}`).value.trim();
     if (model) setModel(provider, model);
   });
+  window.KrashenUI?.saveSettings();
   const settings = getSettings();
   settings.ui.theme         = document.getElementById('modal-theme').value;
   settings.ui.maxWidth      = document.getElementById('modal-maxwidth-enabled').checked;
@@ -286,6 +311,7 @@ function showDefinePopup(x, y, word) {
 
 function hideDefinePopup() {
   definePopup.hidden = true;
+  definePopup.querySelector('.define-save-btn')?.remove();
 }
 
 defineBtn.addEventListener('click', () => {
@@ -319,9 +345,27 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
   showDefinePopup(rect.right, rect.bottom, text);
 
   try {
-    const prompts    = buildDefinePrompt(text, context, targetLang, nativeLang);
+    const prompts     = buildDefinePrompt(text, context, targetLang, nativeLang);
     const translation = await generateContent(prompts, provider, apiKey, model);
     defineResult.textContent = translation.trim();
+
+    const activeProfile = window.KrashenProfiles?.getActive();
+    if (window.KrashenVocab && activeProfile) {
+      if (activeProfile.settings?.autosave) {
+        window.KrashenVocab.recordLookup(text, translation.trim(), context);
+        showToast('Saved to vocab');
+      } else {
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save to vocab';
+        saveBtn.className   = 'define-save-btn';
+        saveBtn.addEventListener('click', () => {
+          window.KrashenVocab.recordLookup(text, translation.trim(), context);
+          showToast('Saved to vocab');
+          saveBtn.remove();
+        });
+        definePopup.appendChild(saveBtn);
+      }
+    }
   } catch (err) {
     defineResult.textContent = err.message ?? 'Error';
   }

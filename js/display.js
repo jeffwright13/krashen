@@ -1,3 +1,17 @@
+export function showToast(message, durationMs = 2000) {
+  let toast = document.getElementById('krashen-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'krashen-toast';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add('toast-visible');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('toast-visible'), durationMs);
+}
+
 function escapeHtml(str) {
   return str
     .replace(/&/g, '&amp;')

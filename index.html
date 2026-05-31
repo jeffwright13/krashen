@@ -30,6 +30,76 @@
         <button id="close-settings" class="outline secondary" aria-label="Close">Close</button>
       </header>
 
+      <!-- Profile section -->
+      <div class="settings-section">
+        <p class="settings-section-label">Profile</p>
+        <div class="profile-row">
+          <select id="profile-select" aria-label="Active profile"></select>
+          <button type="button" id="new-profile-btn" class="outline secondary">New</button>
+          <button type="button" id="delete-profile-btn" class="outline secondary danger-btn" disabled>Delete</button>
+        </div>
+        <div id="new-profile-form" class="new-profile-form" hidden>
+          <input type="text" id="new-profile-name" placeholder="Profile name" autocomplete="off">
+          <button type="button" id="confirm-new-profile" class="outline secondary">Create</button>
+          <button type="button" id="cancel-new-profile" class="outline secondary">Cancel</button>
+        </div>
+      </div>
+
+      <!-- SRS / i+1 section -->
+      <div class="settings-section">
+        <p class="settings-section-label">SRS / i+1</p>
+        <label class="settings-check-label">
+          <input type="checkbox" id="srs-enabled">
+          Enable i+1 vocabulary constraints
+        </label>
+        <div id="srs-fields">
+          <label class="settings-check-label" style="margin-top:0.5rem">
+            <input type="checkbox" id="srs-autosave">
+            Autosave lookups to vocab
+          </label>
+          <div class="srs-grid">
+            <label for="srs-known-threshold">Known threshold</label>
+            <select id="srs-known-threshold">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+            <label for="srs-new-words">New words / session</label>
+            <select id="srs-new-words">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="8">8</option>
+              <option value="10">10</option>
+            </select>
+            <label for="srs-reexpose-count">Re-expose count</label>
+            <select id="srs-reexpose-count">
+              <option value="5">5</option>
+              <option value="8" selected>8</option>
+              <option value="12">12</option>
+            </select>
+            <label for="srs-reexpose-mastery">Re-expose max mastery</label>
+            <select id="srs-reexpose-mastery">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vocab list section -->
+      <details class="settings-section vocab-details">
+        <summary class="settings-section-label">Vocabulary
+          <span id="vocab-total" class="vocab-count"></span>
+        </summary>
+        <p id="vocab-mastery-breakdown" class="vocab-breakdown"></p>
+        <div id="vocab-term-list" class="vocab-term-list"></div>
+        <button type="button" id="clear-vocab-btn" class="outline secondary danger-btn"
+          style="margin-top:0.5rem; font-size:0.78rem; padding:0.2rem 0.6rem">Clear vocab</button>
+      </details>
+
       <div class="settings-theme-row">
         <label for="modal-theme">Theme</label>
         <select id="modal-theme">
@@ -303,6 +373,9 @@
     <span id="define-result" class="define-result"></span>
   </div>
 
+  <script type="module" src="js/profiles.js"></script>
+  <script type="module" src="js/vocab.js"></script>
+  <script type="module" src="js/ui.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

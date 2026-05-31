@@ -68,6 +68,34 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 **Decision:** `--content-max-width` is a CSS custom property set at runtime from `settings.ui.maxWidth` / `settings.ui.maxWidthValue`. Default is 70 ch, but the user can change or disable it in Settings.  
 **Rationale:** The right comfortable reading width varies by screen size, font, and user preference. A hardcoded `70ch` was correct for one user's monitor and wrong for others.
 
+## 2026-05-30 — Storage adapter pattern for profiles.js and vocab.js
+**Decision:** Both modules are written as factory functions that accept a storage adapter (`{getItem, setItem, removeItem}`) rather than directly calling `localStorage`. The browser auto-initialises with `localStorage`; tests pass an in-memory mock.  
+**Rationale:** Testability in Node (no DOM, no localStorage). Also makes future export/import of profile data straightforward — swap the adapter without touching module logic.
+
+## 2026-05-30 — profiles.js and vocab.js as ES modules with a browser side-effect
+**Decision:** Both files use `export default` (proper ESM). They set `window.KrashenProfiles` / `window.KrashenVocab` as a module-load side effect, guarded by `typeof window !== 'undefined'`. Loaded in the browser as `<script type="module">`.  
+**Rationale:** The project root has `"type": "module"`, so Node 22 treats all .js files as ESM. UMD-style IIFE wrappers fail because `typeof module` is undefined in ESM context. Pure ES modules loaded as `<script type="module">` work cleanly in the browser and are importable via Node 22's `require(esm)` compatibility layer in tests (accessed as `.default`).
+
+## 2026-05-30 — CJS test runner co-existing with Vitest
+**Decision:** `tests/package.json` sets `"type": "commonjs"` so the Node test runner and its test files can use `require()`. `vitest.config.js` excludes `profiles.test.js` and `vocab.test.js` so Vitest doesn't try to run them.  
+**Rationale:** The new modules are not testable under Vitest without a full jsdom setup. A minimal Node-only runner with no npm deps is faster and sufficient for pure-logic modules.
+
+## 2026-05-30 — Autosave vs. popup-save in Define flow
+**Decision:** The Define popup shows a "Save to vocab" button by default. If the active profile has `settings.autosave === true`, the entry is saved immediately after the translation arrives and a toast confirms it.  
+**Rationale:** Most lookups are exploratory (hover-and-check), not all of them are worth saving. Making save opt-in per lookup reduces noise in the vocab store. Users who prefer automatic tracking can enable autosave per profile.
+
+## 2026-05-30 — Word extraction for recordSeen()
+**Decision:** Words are extracted from generated content by lowercasing the full text, replacing Spanish punctuation characters (`¡!¿?.,;:«»"'()-—`) with spaces, splitting on whitespace, filtering empty strings, and deduplicating with a Set.  
+**Rationale:** Simple and sufficient for Spanish. Avoids treating punctuation-attached tokens (e.g. "hola,") as separate from their base form. No stemming or lemmatisation — the vocab store uses exact lowercase terms to match what the user sees and looks up.
+
+## 2026-05-30 — SRS algorithm is toggleable per profile
+**Decision:** Each profile has a `settings.srsEnabled` boolean (default `true`). When false, `handleGenerate()` passes `null` for `vocabContext`, so no i+1 block is injected into the prompt. Vocab tracking (recordSeen, recordLookup) still functions regardless.  
+**Rationale:** Some users may want vocabulary tracking for their own reference without constraining the LLM prompt. Separating "track vocab" from "use vocab in prompts" gives finer control without adding a second tracking toggle.
+
+## 2026-05-30 — Mastery level 3 upper bound dropped
+**Decision:** The mastery derivation uses `lookupCount >= 2` for level 3 rather than the spec's `lookupCount >= 2 && lookupCount <= 3`.  
+**Rationale:** The edge case where `lookupCount > 3` and `seenCount <= lookupCount` would fall through to level 0 with a strict upper bound, which is wrong (heavily studied words should not appear untracked). Level 3 ("still reinforcing") is the correct floor for any heavily-looked-up word that hasn't been re-encountered naturally.
+
 ## 2026-05-28 — gemini-2.0-flash briefly adopted then reverted to gemini-2.5-flash
 **Decision:** During v2, the default Google model was temporarily changed to `gemini-2.0-flash` (v2.0.4) and then reverted to `gemini-2.5-flash` (v2.0.5).  
 **Rationale:** Free-tier quota for `gemini-2.0-flash` is zero in some regions/accounts, producing an immediate hard error. `gemini-2.5-flash` has confirmed free-tier quota available and is kept as the default. If a user hits demand throttling on `gemini-2.5-flash`, `gemini-2.0-flash` remains a viable fallback in Settings.
