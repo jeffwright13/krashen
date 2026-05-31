@@ -894,3 +894,56 @@ html, body {
   color: var(--pico-muted-color);
   font-family: monospace;
 }
+
+.vocab-item-actions {
+  display: flex;
+  gap: 0.2rem;
+  margin-left: auto;
+  padding-left: 0.4rem;
+  flex-shrink: 0;
+}
+
+.vocab-action-btn {
+  all: unset;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  border: 1px solid var(--pico-muted-border-color);
+  color: var(--pico-muted-color);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.vocab-action-btn:hover {
+  color: var(--pico-color);
+  border-color: var(--pico-color);
+}
+
+.vocab-delete-btn:hover {
+  color: var(--pico-del-color, #c0392b);
+  border-color: var(--pico-del-color, #c0392b);
+}
+
+.vocab-resume-btn {
+  color: var(--pico-primary);
+  border-color: var(--pico-primary);
+}
+
+.vocab-toggle-inactive-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-top: 0.3rem;
+  border-color: transparent;
+  font-style: italic;
+}
+
+.vocab-item-inactive .vocab-term {
+  text-decoration: line-through;
+  opacity: 0.45;
+}
+
+.vocab-item-inactive .vocab-mastery {
+  opacity: 0.45;
+}

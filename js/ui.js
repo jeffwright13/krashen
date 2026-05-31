@@ -220,6 +220,58 @@
 
   // ── Vocab section ─────────────────────────────────────────────────────────
 
+  let showInactive = false;
+
+  function renderVocabRow(entry, isInactive) {
+    const row = document.createElement('div');
+    row.className = 'vocab-item' + (isInactive ? ' vocab-item-inactive' : '');
+
+    const termEl = document.createElement('span');
+    termEl.className   = 'vocab-term';
+    termEl.textContent = entry.term;
+
+    const mastEl = document.createElement('span');
+    mastEl.className   = 'vocab-mastery';
+    mastEl.textContent = 'M' + entry.mastery;
+
+    const actions = document.createElement('span');
+    actions.className = 'vocab-item-actions';
+
+    if (isInactive) {
+      const resumeBtn = document.createElement('button');
+      resumeBtn.textContent = 'Resume';
+      resumeBtn.className   = 'vocab-action-btn vocab-resume-btn';
+      resumeBtn.addEventListener('click', () => {
+        window.KrashenVocab.setActive(entry.term, true);
+        renderVocabStats();
+      });
+      actions.appendChild(resumeBtn);
+    } else {
+      const skipBtn = document.createElement('button');
+      skipBtn.textContent = 'Skip';
+      skipBtn.className   = 'vocab-action-btn vocab-skip-btn';
+      skipBtn.addEventListener('click', () => {
+        window.KrashenVocab.setActive(entry.term, false);
+        renderVocabStats();
+      });
+      actions.appendChild(skipBtn);
+    }
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '×';
+    delBtn.className   = 'vocab-action-btn vocab-delete-btn';
+    delBtn.addEventListener('click', () => {
+      window.KrashenVocab.deleteTerm(entry.term);
+      renderVocabStats();
+    });
+    actions.appendChild(delBtn);
+
+    row.appendChild(termEl);
+    row.appendChild(mastEl);
+    row.appendChild(actions);
+    return row;
+  }
+
   function renderVocabStats() {
     const noProfileEl = document.getElementById('vocab-no-profile');
     const emptyEl     = document.getElementById('vocab-empty');
@@ -228,8 +280,8 @@
     const clearBtn    = document.getElementById('clear-vocab-btn');
     const totalEl     = document.getElementById('vocab-total');
 
-    const active = window.KrashenProfiles?.getActive();
-    if (!active) {
+    const activeProfile = window.KrashenProfiles?.getActive();
+    if (!activeProfile) {
       noProfileEl.hidden  = false;
       emptyEl.hidden      = true;
       breakdownEl.hidden  = true;
@@ -241,44 +293,67 @@
     noProfileEl.hidden = true;
 
     if (!window.KrashenVocab) return;
-    const entries = Object.values(window.KrashenVocab.getStore());
-    const total   = entries.length;
+    const allEntries  = Object.values(window.KrashenVocab.getStore());
+    const active      = allEntries.filter(e => !e.inactive).sort((a, b) => b.lastSeen - a.lastSeen);
+    const inactive    = allEntries.filter(e =>  e.inactive).sort((a, b) => b.lastSeen - a.lastSeen);
 
-    totalEl.textContent = total > 0 ? `${total} word${total !== 1 ? 's' : ''}` : '';
-
-    if (total === 0) {
-      emptyEl.hidden     = false;
-      breakdownEl.hidden = true;
-      clearBtn.hidden    = true;
-      listEl.innerHTML   = '';
+    if (allEntries.length === 0) {
+      emptyEl.hidden      = false;
+      breakdownEl.hidden  = true;
+      clearBtn.hidden     = true;
+      listEl.innerHTML    = '';
+      totalEl.textContent = '';
       return;
     }
+    emptyEl.hidden = true;
 
-    emptyEl.hidden     = true;
-    breakdownEl.hidden = false;
-    clearBtn.hidden    = false;
+    // Total label
+    let totalLabel = `${active.length} word${active.length !== 1 ? 's' : ''}`;
+    if (inactive.length > 0) totalLabel += ` · ${inactive.length} hidden`;
+    totalEl.textContent = totalLabel;
 
-    const byMastery = [0, 0, 0, 0, 0, 0];
-    entries.forEach(e => { byMastery[e.mastery] = (byMastery[e.mastery] || 0) + 1; });
-    breakdownEl.textContent = byMastery.map((n, i) => `${n}×M${i}`).join('  ');
+    // Breakdown and clear button based on active entries only
+    if (active.length > 0) {
+      const byMastery = [0, 0, 0, 0, 0, 0];
+      active.forEach(e => { byMastery[e.mastery] = (byMastery[e.mastery] || 0) + 1; });
+      breakdownEl.textContent = byMastery.map((n, i) => `${n}×M${i}`).join('  ');
+      breakdownEl.hidden = false;
+      clearBtn.hidden    = false;
+    } else {
+      breakdownEl.hidden = true;
+      clearBtn.hidden    = true;
+    }
 
     listEl.innerHTML = '';
-    entries
-      .slice()
-      .sort((a, b) => b.lastSeen - a.lastSeen)
-      .forEach(e => {
-        const row = document.createElement('div');
-        row.className = 'vocab-item';
-        row.innerHTML =
-          `<span class="vocab-term">${e.term}</span>` +
-          `<span class="vocab-mastery">M${e.mastery}</span>`;
-        listEl.appendChild(row);
+
+    // Active rows
+    active.forEach(e => listEl.appendChild(renderVocabRow(e, false)));
+
+    // Show/hide inactive toggle
+    if (inactive.length === 0) {
+      showInactive = false;
+    } else {
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className   = 'vocab-action-btn vocab-toggle-inactive-btn';
+      toggleBtn.textContent = showInactive
+        ? 'Hide hidden'
+        : `Show hidden (${inactive.length})`;
+      toggleBtn.addEventListener('click', () => {
+        showInactive = !showInactive;
+        renderVocabStats();
       });
+      listEl.appendChild(toggleBtn);
+
+      if (showInactive) {
+        inactive.forEach(e => listEl.appendChild(renderVocabRow(e, true)));
+      }
+    }
   }
 
   document.getElementById('clear-vocab-btn').addEventListener('click', () => {
     if (!confirm('Clear all vocabulary for this profile?')) return;
     window.KrashenVocab?.clear();
+    showInactive = false;
     renderVocabStats();
   });
 
