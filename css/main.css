@@ -673,6 +673,24 @@ html, body {
   height: auto;
 }
 
+.history-profile-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  margin: 0;
+}
+
+.history-profile-filter-label input[type="checkbox"] {
+  margin: 0;
+}
+
+.history-profile-filter-label:has(input:disabled) {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .history-bulk {
   display: flex;
   align-items: center;

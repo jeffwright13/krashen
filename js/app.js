@@ -429,9 +429,10 @@ document.addEventListener('keydown', e => {
 // ── History modal ─────────────────────────────────────────────────────────────
 
 function renderHistoryList() {
-  const list      = document.getElementById('history-list');
-  const empty     = document.getElementById('history-empty');
-  const filterVal = document.getElementById('history-filter').value.toLowerCase().trim();
+  const list            = document.getElementById('history-list');
+  const empty           = document.getElementById('history-empty');
+  const filterVal       = document.getElementById('history-filter').value.toLowerCase().trim();
+  const profileFilterEl = document.getElementById('history-profile-filter');
 
   let entries = getHistory().slice().reverse();
   if (filterVal) {
@@ -439,6 +440,10 @@ function renderHistoryList() {
       (e.title ?? '').toLowerCase().includes(filterVal) ||
       (e.topic ?? '').toLowerCase().includes(filterVal)
     );
+  }
+  if (profileFilterEl.checked && !profileFilterEl.disabled) {
+    const activeId = window.KrashenProfiles?.getActive()?.id;
+    if (activeId) entries = entries.filter(e => e.profileId === activeId);
   }
 
   list.querySelectorAll('.history-item').forEach(el => el.remove());
@@ -521,6 +526,16 @@ function updateBulkControls() {
 function openHistory() {
   document.getElementById('import-status').hidden = true;
   document.getElementById('history-filter').value = '';
+
+  const active          = window.KrashenProfiles?.getActive();
+  const profileFilterEl = document.getElementById('history-profile-filter');
+  const profileLabelEl  = document.getElementById('history-profile-filter-text');
+  profileFilterEl.disabled = !active;
+  if (!active) profileFilterEl.checked = false;
+  profileLabelEl.textContent = active
+    ? `This profile only (${active.name})`
+    : 'This profile only';
+
   renderHistoryList();
   document.getElementById('history-modal').showModal();
 }
@@ -534,6 +549,7 @@ document.getElementById('history-modal').addEventListener('click', e => {
 });
 
 document.getElementById('history-filter').addEventListener('input', renderHistoryList);
+document.getElementById('history-profile-filter').addEventListener('change', renderHistoryList);
 
 document.getElementById('history-select-all').addEventListener('change', e => {
   document.querySelectorAll('#history-list .history-checkbox').forEach(cb => {
