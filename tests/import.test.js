@@ -20,8 +20,8 @@ describe('parseLibraryJSON', () => {
     expect(result[0].id).toBe(1);
   });
 
-  it('throws on malformed JSON', () => {
-    expect(() => parseLibraryJSON('not json {')).toThrow();
+  it('throws on malformed JSON with a friendly message', () => {
+    expect(() => parseLibraryJSON('not json {')).toThrow('File is not valid JSON');
   });
 
   it('throws when schema field is missing', () => {

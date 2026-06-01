@@ -3,7 +3,7 @@
 
 import { exportProfileBundle } from './export.js';
 import { parseProfileBundle  } from './import.js';
-import { showToast            } from './display.js';
+import { triggerDownload     } from './display.js';
 
 (function () {
 
@@ -181,23 +181,13 @@ import { showToast            } from './display.js';
 
   // ── Profile export / import ────────────────────────────────────────────────
 
-  function downloadFile(filename, content, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-    const url  = URL.createObjectURL(blob);
-    const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-
   document.getElementById('export-profile-btn').addEventListener('click', () => {
     const active = window.KrashenProfiles?.getActive();
     if (!active) return;
     const vocabStore = window.KrashenVocab?.getStore() ?? {};
     const json = exportProfileBundle(active, vocabStore);
     const slug = active.name.replace(/[^a-z0-9]+/gi, '-').slice(0, 40).toLowerCase();
-    downloadFile(`krashen-profile-${slug}.json`, json, 'application/json');
+    triggerDownload(`krashen-profile-${slug}.json`, json, 'application/json');
   });
 
   document.getElementById('import-profile-btn').addEventListener('click', () => {
@@ -212,6 +202,7 @@ import { showToast            } from './display.js';
     const reader = new FileReader();
     reader.onload = ev => {
       try {
+        if (!window.KrashenProfiles) throw new Error('Profiles module not available');
         const { profile: bundleProfile, vocab } = parseProfileBundle(ev.target.result);
 
         // Resolve name collision
@@ -220,12 +211,14 @@ import { showToast            } from './display.js';
         let suffix = 2;
         while (allNames.includes(name)) name = `${bundleProfile.name} (${suffix++})`;
 
-        // Create new profile
-        const newProfile = window.KrashenProfiles.create(name);
-        if (bundleProfile.settings)     window.KrashenProfiles.updateSettings(newProfile.id, bundleProfile.settings);
-        if (bundleProfile.formDefaults) window.KrashenProfiles.updateFormDefaults(newProfile.id, bundleProfile.formDefaults);
-        if (bundleProfile.wordsRead > 0) window.KrashenProfiles.incrementWordsRead(newProfile.id, bundleProfile.wordsRead);
-        if (Object.keys(vocab).length > 0) window.KrashenProfiles.importProfileVocab(newProfile.id, vocab);
+        // Create profile from bundle in a single localStorage write
+        const newProfile = window.KrashenProfiles.createFromBundle(bundleProfile, name);
+
+        // Write vocab store; bail with error if storage is full
+        if (Object.keys(vocab).length > 0) {
+          const ok = window.KrashenProfiles.importProfileVocab(newProfile.id, vocab);
+          if (!ok) throw new Error('Profile created but vocab could not be saved (storage full)');
+        }
 
         renderProfileSelect();
         const renamed = name !== bundleProfile.name ? ` (renamed to "${name}")` : '';
@@ -245,6 +238,7 @@ import { showToast            } from './display.js';
 
   // Keep chip, SRS fields, and vocab in sync on profile switch
   window.KrashenProfiles?.onSwitch(profile => {
+    showInactive = false;
     renderChip();
     renderSrsFields(profile.settings ?? {});
     renderVocabStats();
@@ -383,16 +377,15 @@ import { showToast            } from './display.js';
     if (inactive.length > 0) totalLabel += ` · ${inactive.length} hidden`;
     totalEl.textContent = totalLabel;
 
-    // Breakdown and clear button based on active entries only
+    // Breakdown reflects active entries only; clear button available whenever any entry exists
+    clearBtn.hidden = false;
     if (active.length > 0) {
       const byMastery = [0, 0, 0, 0, 0, 0];
       active.forEach(e => { byMastery[e.mastery] = (byMastery[e.mastery] || 0) + 1; });
       breakdownEl.textContent = byMastery.map((n, i) => `${n}×M${i}`).join('  ');
       breakdownEl.hidden = false;
-      clearBtn.hidden    = false;
     } else {
       breakdownEl.hidden = true;
-      clearBtn.hidden    = true;
     }
 
     listEl.innerHTML = '';

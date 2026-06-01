@@ -6,19 +6,10 @@ import { getHistory, deleteHistoryEntry, clearHistory } from './history.js';
 import { exportPieceAsMarkdown, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
 import { mergeHistory } from './storage.js';
-import { toggleLoading, renderContent, renderError, showToast } from './display.js';
+import { toggleLoading, renderContent, renderError, showToast, triggerDownload } from './display.js';
 
 let currentEntry = null;
 
-function triggerDownload(filename, content, mimeType) {
-  const blob = new Blob([content], { type: mimeType });
-  const url  = URL.createObjectURL(blob);
-  const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
 
 function readConfig() {
   const sentenceRaw = document.getElementById('sentence-length').value;
@@ -441,7 +432,7 @@ function renderHistoryList() {
       (e.topic ?? '').toLowerCase().includes(filterVal)
     );
   }
-  if (profileFilterEl.checked && !profileFilterEl.disabled) {
+  if (profileFilterEl.checked) {
     const activeId = window.KrashenProfiles?.getActive()?.id;
     if (activeId) entries = entries.filter(e => e.profileId === activeId);
   }
