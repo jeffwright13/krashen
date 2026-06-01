@@ -1,11 +1,33 @@
 # Krashen
 
-Browser-based [comprehensible input](https://en.wikipedia.org/wiki/Input_hypothesis) tool
-for language learning. Generates graded reading content via LLM based on a structured
-configuration: CEFR level, vocabulary cap, target dialect, grammar focus, and more.
-Named after Stephen Krashen's i+1 input hypothesis.
+A browser-based reading tool built around Stephen Krashen's
+[i+1 input hypothesis](https://en.wikipedia.org/wiki/Input_hypothesis): you acquire
+language fastest when input is just slightly beyond your current level — comprehensible,
+but with a handful of new words to stretch you.
 
-No backend. No accounts. API keys stay in your browser.
+Krashen puts that loop into practice. It generates graded Spanish reading content via LLM,
+tuned to your CEFR level, vocabulary cap, dialect, and grammar focus. Then it tracks every
+word you look up. The next piece you generate is automatically constrained to reintroduce
+words you're still learning and avoid flooding you with unknowns. Over time the reading
+gets harder as your vocabulary grows — because it actually knows what you know.
+
+**What's in the box:**
+
+- **Generate** — stories, articles, dialogues, or scripts at any CEFR level (A0–C2),
+  with configurable word-frequency cap, dialect, tense focus, narrative person, and length
+- **Define** — select any word or phrase to get an instant inline translation from the same
+  LLM; save to your vocab store in one click, or enable autosave per profile
+- **Vocab tracking** — SRS mastery levels (0–5) derived from how often you've seen and
+  looked up each word; Skip words that don't fit the current topic; Resume them later
+- **i+1 constraints** — known vocabulary is suppressed from the prompt; words still being
+  learned are reintroduced; new words per session is configurable
+- **Profiles** — separate learner configurations with their own vocab store, CEFR level,
+  dialect, provider preference, and SRS settings; import/export for backup or transfer
+- **History** — every generated piece saved with metadata, filterable by profile,
+  exportable as JSON or Markdown
+
+No backend. No accounts. API keys live in your browser and go only to the provider you
+choose.
 
 ---
 
@@ -25,8 +47,8 @@ npm run serve
 Then open the URL printed in the terminal (`serve` defaults to port 3000 but
 auto-selects another if 3000 is in use).
 
-On first launch, click **API Keys** (top-right of the config panel) and enter an API key
-for your chosen provider. Then fill in the content form and press **Generate**.
+On first launch, open the **Settings** tab in the left panel and enter an API key for
+your chosen provider. Then fill in the content form and press **Generate**.
 
 > Note: the app uses ES modules loaded directly by the browser. You must serve it over
 > HTTP — opening `index.html` via `file://` will fail in most browsers.
@@ -64,14 +86,24 @@ npm test              # run all tests once
 npm run test:watch    # re-run on file changes
 ```
 
-| Test file | What it covers |
-|---|---|
-| `config.test.js` | `DEFAULT_CONFIG` constants, `validateConfig` |
-| `prompt.test.js` | `buildSystemPrompt`, `buildUserPrompt` |
-| `storage.test.js` | localStorage read/write, settings deep-merge, history |
-| `llm.test.js` | Correct endpoint, headers, and response parsing per provider |
-| `display.test.js` | DOM rendering, loading state, error display |
-| `security.test.js` | API key storage and transmission guarantees (see API keys section) |
+Two runners are used: **Vitest** for browser-environment modules (jsdom), and a minimal
+**Node CJS runner** (`node tests/run.js`) for the pure-logic ES modules that don't
+require a DOM.
+
+| Test file | Runner | What it covers |
+|---|---|---|
+| `config.test.js` | Vitest | `DEFAULT_CONFIG` constants, `validateConfig` |
+| `prompt.test.js` | Vitest | `buildSystemPrompt`, `buildUserPrompt`, `buildI1Constraints` |
+| `storage.test.js` | Vitest | localStorage read/write, settings deep-merge, history CRUD |
+| `history.test.js` | Vitest | `getHistory`, `deleteHistoryEntry`, `clearHistory`, profile stamp |
+| `llm.test.js` | Vitest | Endpoint, headers, and response parsing per provider |
+| `display.test.js` | Vitest | DOM rendering, toast, `triggerDownload` |
+| `security.test.js` | Vitest | API key storage and transmission guarantees |
+| `import.test.js` | Vitest | `parseLibraryJSON`, `parseProfileBundle` |
+| `profileIO.test.js` | Vitest | `exportProfileBundle`, `parseProfileBundle` round-trip |
+| `ui.test.js` | Vitest | Tab switching, profile chip, SRS fields, vocab tab |
+| `profiles.test.js` | Node CJS | Profile CRUD, `createFromBundle`, `importProfileVocab` |
+| `vocab.test.js` | Node CJS | `recordLookup`, `recordSeen`, `getForPrompt`, `deleteTerm`, `setActive` |
 
 The orchestration layer (`app.js`) is verified by manual in-browser testing.
 
@@ -94,9 +126,9 @@ Version is tracked in `package.json` and displayed in the app UI. Use `npm versi
 bump and tag:
 
 ```bash
-npm version patch     # 0.1.0 → 0.1.1
-npm version minor     # 0.1.0 → 0.2.0
-npm version major     # 0.1.0 → 1.0.0  ← use this when v1 ships
+npm version patch     # x.y.Z — bug fixes, copy changes
+npm version minor     # x.Y.0 — new features
+npm version major     # X.0.0 — breaking changes or major redesigns
 
 git push origin main --tags
 ```
