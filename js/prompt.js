@@ -1,5 +1,15 @@
 const OUTPUT_LENGTH_WORDS = { Short: 300, Medium: 700, Long: 1200 };
 
+const CEFR_DESCRIPTIONS = {
+  A0: 'Complete beginner. Only the 50–100 most basic words (greetings, numbers, colors, ser/estar/tener/ir). Present tense only. Sentences of 3–5 words maximum. One idea per sentence.',
+  A1: 'Beginner. Basic high-frequency vocabulary only. Present tense; ir a + infinitive for near future. Very short simple sentences. Topics: self, family, immediate surroundings.',
+  A2: 'Elementary. Common everyday vocabulary. Pretérito indefinido and imperfecto for past events. Short clear sentences with basic connectors (y, pero, porque, cuando). Topics: daily routines, shopping, local environment.',
+  B1: 'Intermediate. Broad everyday vocabulary. Pretérito, imperfecto, futuro simple, condicional simple. Varied subordination with standard discourse connectors. Abstract topics introduced simply and directly.',
+  B2: 'Upper-intermediate. Wide vocabulary including some idiomatic expressions and less common words. Subjunctive in common contexts (ojalá, para que, cuando + subjunctive). Complex sentences with varied subordination. Abstract topics handled with nuance.',
+  C1: 'Advanced. Sophisticated vocabulary including collocations, low-frequency words, and idiomatic expressions. Well-structured fluent prose. Subjunctive in varied contexts; conditional and concessive clauses; ellipsis. Nuanced register awareness; precise and subtle expression. Abstract, professional, or literary topics.',
+  C2: 'Mastery level. Use rare, domain-specific, and low-frequency vocabulary; rich collocations; words chosen for subtle connotation. Deploy the full grammatical range: subjunctive in all moods (present, imperfect, pluperfect, and future subjunctive where appropriate), stylistic inversion, complex nominal clauses, ellipsis, anaphora. Prose must have rhetorical sophistication: varied register, literary devices, irony, and implied meaning. High information density; abstract, technical, or culturally layered content. The text must read as written by a highly educated native speaker and genuinely challenge an advanced learner.',
+};
+
 const NARRATIVE_PERSON_LABELS = {
   '1st': 'first person',
   '2nd': 'second person (tú)',
@@ -36,12 +46,17 @@ export function buildSystemPrompt(config, vocabContext = null) {
     `in comprehensible input (CI) for language learners.`
   );
 
+  const cefrDesc    = CEFR_DESCRIPTIONS[config.cefrLevel] ?? '';
+  const vocabCapLine = config.cefrLevel === 'C2'
+    ? `- Vocabulary: no frequency restriction — rare and low-frequency words are expected at this level`
+    : `- Vocabulary: restrict to the ${config.wordCap} most common ${config.targetLanguage} words`;
+
   parts.push(
     `## Language and Level\n` +
     `- Target language: ${config.targetLanguage}\n` +
     `- Dialect/variety: ${config.targetDialect}\n` +
-    `- CEFR level: ${config.cefrLevel}\n` +
-    `- Vocabulary: restrict to the ${config.wordCap} most common ${config.targetLanguage} words\n` +
+    `- CEFR level: ${config.cefrLevel}${cefrDesc ? ` — ${cefrDesc}` : ''}\n` +
+    vocabCapLine + `\n` +
     `- Learner's native language: ${config.nativeLanguage} — watch for false cognates and interference patterns`
   );
 

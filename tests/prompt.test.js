@@ -67,6 +67,34 @@ describe('buildSystemPrompt', () => {
     const config = { ...base(), targetLanguage: 'Latin', targetDialect: 'Neutral' };
     expect(buildSystemPrompt(config)).toContain('Latin');
   });
+
+  it('includes a CEFR level description for every level', () => {
+    const levels = ['A0','A1','A2','B1','B2','C1','C2'];
+    levels.forEach(level => {
+      const prompt = buildSystemPrompt({ ...base(), cefrLevel: level });
+      expect(prompt).toContain(level);
+      // description must be non-trivially present
+      expect(prompt.length).toBeGreaterThan(200);
+    });
+  });
+
+  it('suppresses word cap instruction at C2', () => {
+    const prompt = buildSystemPrompt({ ...base(), cefrLevel: 'C2', wordCap: 7500 });
+    expect(prompt).not.toContain('7500');
+    expect(prompt).toMatch(/no frequency restriction/i);
+  });
+
+  it('includes word cap for non-C2 levels', () => {
+    const prompt = buildSystemPrompt({ ...base(), cefrLevel: 'B2', wordCap: 3000 });
+    expect(prompt).toContain('3000');
+    expect(prompt).not.toMatch(/no frequency restriction/i);
+  });
+
+  it('C2 description mentions rare vocabulary and subjunctive moods', () => {
+    const prompt = buildSystemPrompt({ ...base(), cefrLevel: 'C2' });
+    expect(prompt).toMatch(/rare/i);
+    expect(prompt).toMatch(/subjunctive/i);
+  });
 });
 
 describe('buildUserPrompt', () => {
