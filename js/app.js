@@ -329,8 +329,11 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
   const text = sel?.toString().trim();
   if (!text) { hideDefinePopup(); return; }
 
-  const range   = sel.getRangeAt(0);
-  const context = range.commonAncestorContainer.parentElement?.textContent ?? '';
+  const range       = sel.getRangeAt(0);
+  const anchorNode  = range.commonAncestorContainer;
+  const anchorEl    = anchorNode.nodeType === Node.TEXT_NODE
+    ? anchorNode.parentElement : anchorNode;
+  const context     = (anchorEl?.closest('p, h1') ?? anchorEl)?.textContent ?? '';
   const rect    = range.getBoundingClientRect();
 
   const provider      = document.getElementById('provider').value;

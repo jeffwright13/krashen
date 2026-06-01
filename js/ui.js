@@ -261,14 +261,18 @@ import { triggerDownload     } from './display.js';
   function saveSrsFields() {
     const active = window.KrashenProfiles?.getActive();
     if (!active) return;
-    window.KrashenProfiles.updateSettings(active.id, {
+    const patch = {
       srsEnabled:         document.getElementById('srs-enabled').checked,
       autosave:           document.getElementById('srs-autosave').checked,
       knownThreshold:     parseInt(document.getElementById('srs-known-threshold').value, 10),
       newWordsPerSession: parseInt(document.getElementById('srs-new-words').value, 10),
       reExposeCount:      parseInt(document.getElementById('srs-reexpose-count').value, 10),
       reExposeMaxMastery: parseInt(document.getElementById('srs-reexpose-mastery').value, 10),
-    });
+    };
+    window.KrashenProfiles.updateSettings(active.id, patch);
+    // Re-render from the saved patch so the visual state is always authoritative,
+    // guarding against browser rendering glitches with custom checkbox styles.
+    renderSrsFields(patch);
   }
 
   document.getElementById('srs-enabled').addEventListener('change', e => {
