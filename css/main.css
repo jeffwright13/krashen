@@ -2,6 +2,12 @@
   --content-max-width: 70ch;
 }
 
+/* ── Restore native checkbox appearance (override Pico) ──── */
+
+[type="checkbox"] {
+  appearance: auto;
+}
+
 /* ── Layout ─────────────────────────────────────────────── */
 
 html, body {
