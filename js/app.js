@@ -613,6 +613,13 @@ importFile.addEventListener('change', () => {
 
 // ── Per-profile form defaults ─────────────────────────────────────────────────
 
+// Natural word-cap pairing for each CEFR level.
+// These are the defaults; the user can override word-cap independently after
+// selecting a level. See the Generate tab hint for guidance.
+const CEFR_DEFAULT_WORD_CAP = {
+  A0: 550, A1: 550, A2: 1000, B1: 2000, B2: 3000, C1: 5000, C2: 7500,
+};
+
 function saveFormDefault(key, value) {
   const active = window.KrashenProfiles?.getActive();
   if (!active) return;
@@ -633,9 +640,14 @@ function restoreFormDefaults(profile) {
 }
 
 (function initFormDefaults() {
-  document.getElementById('cefr-level').addEventListener('change', e =>
-    saveFormDefault('cefrLevel', e.target.value)
-  );
+  document.getElementById('cefr-level').addEventListener('change', e => {
+    saveFormDefault('cefrLevel', e.target.value);
+    const defaultCap = CEFR_DEFAULT_WORD_CAP[e.target.value];
+    if (defaultCap) {
+      document.getElementById('word-cap').value = String(defaultCap);
+      saveFormDefault('wordCap', defaultCap);
+    }
+  });
   document.getElementById('word-cap').addEventListener('change', e =>
     saveFormDefault('wordCap', parseInt(e.target.value, 10))
   );
