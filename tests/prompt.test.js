@@ -95,6 +95,37 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toMatch(/rare/i);
     expect(prompt).toMatch(/subjunctive/i);
   });
+
+  it('C1 description mentions density and unmistakably C1', () => {
+    const prompt = buildSystemPrompt({ ...base(), cefrLevel: 'C1' });
+    expect(prompt).toMatch(/density/i);
+    expect(prompt).toMatch(/unmistakably/i);
+  });
+
+  it('includes dialect description for Mexican', () => {
+    const prompt = buildSystemPrompt({ ...base(), targetDialect: 'Mexican' });
+    expect(prompt).toMatch(/órale|ahorita|chido/i);
+  });
+
+  it('includes dialect description for Rioplatense', () => {
+    const prompt = buildSystemPrompt({ ...base(), targetDialect: 'Rioplatense' });
+    expect(prompt).toMatch(/voseo|vos tenés/i);
+  });
+
+  it('includes dialect description for Castilian', () => {
+    const prompt = buildSystemPrompt({ ...base(), targetDialect: 'Castilian' });
+    expect(prompt).toMatch(/vosotros/i);
+  });
+
+  it('includes dialect description for Neutral', () => {
+    const prompt = buildSystemPrompt({ ...base(), targetDialect: 'Neutral' });
+    expect(prompt).toMatch(/neutral/i);
+  });
+
+  it('includes dialect description for Central American', () => {
+    const prompt = buildSystemPrompt({ ...base(), targetDialect: 'Central American' });
+    expect(prompt).toMatch(/central american/i);
+  });
 });
 
 describe('buildUserPrompt', () => {
