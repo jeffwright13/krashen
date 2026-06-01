@@ -1,3 +1,13 @@
+export function triggerDownload(filename, content, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export function showToast(message, durationMs = 2000) {
   let toast = document.getElementById('krashen-toast');
   if (!toast) {

@@ -106,9 +106,30 @@ function createKrashenProfiles(storage) {
     write(PROFILES_KEY, profiles);
   }
 
+  function createFromBundle(bundleProfile, resolvedName) {
+    const profile = {
+      id:           String(Date.now()),
+      name:         resolvedName,
+      created:      bundleProfile.created    ?? Date.now(),
+      lastActive:   bundleProfile.lastActive  ?? Date.now(),
+      wordsRead:    bundleProfile.wordsRead   ?? 0,
+      settings:     Object.assign({}, DEFAULT_SETTINGS,      bundleProfile.settings     ?? {}),
+      formDefaults: Object.assign({}, DEFAULT_FORM_DEFAULTS, bundleProfile.formDefaults ?? {}),
+    };
+    const profiles = getAll();
+    profiles.push(profile);
+    write(PROFILES_KEY, profiles);
+    return profile;
+  }
+
   function importProfileVocab(profileId, vocabStore) {
     const key = 'krashen_' + profileId + '_vocab';
-    try { storage.setItem(key, JSON.stringify(vocabStore)); } catch (_) {}
+    try {
+      storage.setItem(key, JSON.stringify(vocabStore));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function onSwitch(callback) {
@@ -119,6 +140,7 @@ function createKrashenProfiles(storage) {
     getAll,
     getActive,
     create,
+    createFromBundle,
     switchTo,
     delete:             deleteProfile,
     updateSettings,

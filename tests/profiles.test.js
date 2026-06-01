@@ -139,6 +139,48 @@ module.exports = {
     assert.strictEqual(updated.formDefaults.targetLanguage, 'Spanish'); // unchanged
   },
 
+  'createFromBundle() builds a profile with merged settings/formDefaults in one write': function () {
+    const P = createProfiles(makeMockStorage());
+    const bundle = {
+      name: 'Imported',
+      created: 1000, lastActive: 2000, wordsRead: 42,
+      settings: { knownThreshold: 3 },
+      formDefaults: { cefrLevel: 'B2' },
+    };
+    const p = P.createFromBundle(bundle, 'Imported');
+    assert.strictEqual(p.name, 'Imported');
+    assert.strictEqual(p.wordsRead, 42);
+    assert.strictEqual(p.settings.knownThreshold, 3);
+    assert.strictEqual(p.settings.srsEnabled, true);    // default preserved
+    assert.strictEqual(p.formDefaults.cefrLevel, 'B2');
+    assert.strictEqual(p.formDefaults.provider, 'openai'); // default preserved
+    assert.strictEqual(P.getAll().length, 1);
+  },
+
+  'createFromBundle() uses resolvedName not bundle name': function () {
+    const P = createProfiles(makeMockStorage());
+    const p = P.createFromBundle({ name: 'Alice', wordsRead: 0 }, 'Alice (2)');
+    assert.strictEqual(p.name, 'Alice (2)');
+  },
+
+  'importProfileVocab() returns true on success': function () {
+    const P = createProfiles(makeMockStorage());
+    const p = P.create('Alice');
+    const result = P.importProfileVocab(p.id, { gato: { term: 'gato', mastery: 2 } });
+    assert.strictEqual(result, true);
+  },
+
+  'importProfileVocab() returns false when storage throws': function () {
+    const brokenStorage = {
+      getItem:    () => null,
+      setItem:    () => { throw new Error('QuotaExceededError'); },
+      removeItem: () => {},
+    };
+    const P = createProfiles(brokenStorage);
+    const result = P.importProfileVocab('any-id', { gato: { term: 'gato' } });
+    assert.strictEqual(result, false);
+  },
+
   'updateFormDefaults() is backward-compatible for profiles without formDefaults': function () {
     const storage = makeMockStorage();
     const P = createProfiles(storage);

@@ -85,7 +85,8 @@ beforeAll(async () => {
     onSwitch:           () => {},
     updateSettings:     vi.fn(),
     updateFormDefaults: vi.fn(),
-    importProfileVocab: vi.fn(),
+    importProfileVocab: vi.fn().mockReturnValue(true),
+    createFromBundle:   vi.fn().mockReturnValue({ id: 'new', name: 'Imported', settings: {}, formDefaults: {} }),
     DEFAULT_SETTINGS: {
       autosave: false, srsEnabled: true, knownThreshold: 2,
       newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3,
