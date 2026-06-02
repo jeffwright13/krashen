@@ -438,6 +438,6 @@ import { triggerDownload     } from './display.js';
   renderChip();
   renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
 
-  window.KrashenUI = { refreshSettings, refreshChip: renderChip, activateTab };
+  window.KrashenUI = { refreshSettings, refreshChip: renderChip, refreshVocab: renderVocabStats, activateTab };
 
 })();

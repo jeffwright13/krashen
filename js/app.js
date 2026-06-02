@@ -10,6 +10,10 @@ import { toggleLoading, renderContent, renderError, showToast, triggerDownload }
 
 let currentEntry = null;
 
+function persistCurrentEntry(entry) {
+  currentEntry = entry;
+  try { sessionStorage.setItem('krashen_current', JSON.stringify(entry)); } catch (_) {}
+}
 
 function readConfig() {
   const sentenceRaw = document.getElementById('sentence-length').value;
@@ -81,11 +85,11 @@ async function handleGenerate(e) {
 
     const firstLine = content.slice(0, content.indexOf('\n') === -1 ? content.length : content.indexOf('\n'));
     const title     = firstLine.startsWith('## ') ? firstLine.slice(3).trim() : null;
-    currentEntry = {
+    persistCurrentEntry({
       id: Date.now(), date, config, content, wordCount, topic: config.topic, title,
       profileId:   activeProfile?.id   ?? null,
       profileName: activeProfile?.name ?? null,
-    };
+    });
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
@@ -379,13 +383,17 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
       if (activeProfile.settings?.autosave) {
         window.KrashenVocab.recordLookup(text, translation.trim(), context);
         showToast('Saved to vocab');
+        window.KrashenUI?.refreshVocab();
       } else {
+        // Remove any button left by a concurrent lookup before adding ours
+        definePopup.querySelector('.define-save-btn')?.remove();
         const saveBtn = document.createElement('button');
         saveBtn.textContent = 'Save to vocab';
         saveBtn.className   = 'define-save-btn';
         saveBtn.addEventListener('click', () => {
           window.KrashenVocab.recordLookup(text, translation.trim(), context);
           showToast('Saved to vocab');
+          window.KrashenUI?.refreshVocab();
           saveBtn.remove();
         });
         definePopup.appendChild(saveBtn);
@@ -499,7 +507,7 @@ function renderHistoryList() {
     item.querySelector('.history-checkbox').addEventListener('change', updateBulkControls);
 
     item.querySelector('.load-btn').addEventListener('click', () => {
-      currentEntry = entry;
+      persistCurrentEntry(entry);
       renderContent(entry.content, {
         cefrLevel: entry.config?.cefrLevel ?? '',
         wordCount: entry.wordCount,
@@ -633,12 +641,12 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
   document.getElementById('export-piece-btn').hidden = false;
 
   const activeProfile = window.KrashenProfiles?.getActive();
-  currentEntry = {
+  persistCurrentEntry({
     id: Date.now(), date, config: null, content, wordCount,
     topic: title, title, source: 'user',
     profileId:   activeProfile?.id   ?? null,
     profileName: activeProfile?.name ?? null,
-  };
+  });
   appendHistory(currentEntry);
 
   if (window.KrashenVocab) {
@@ -763,6 +771,23 @@ function restoreFormDefaults(profile) {
 
 document.getElementById('config-form').addEventListener('submit', handleGenerate);
 initSettingsTab();
+
+// ── Restore last content after page reload ────────────────────────────────────
+
+(function restoreSession() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem('krashen_current') ?? 'null');
+    if (!saved?.content) return;
+    currentEntry = saved;
+    renderContent(saved.content, {
+      cefrLevel: saved.config?.cefrLevel ?? '',
+      wordCount:  saved.wordCount,
+      topic:      saved.topic ?? '',
+      date:       saved.date,
+    });
+    document.getElementById('export-piece-btn').hidden = false;
+  } catch (_) {}
+})();
 
 // ── Version display ───────────────────────────────────────────────────────────
 
