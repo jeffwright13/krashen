@@ -348,6 +348,8 @@
           title="Copy all content to clipboard">Copy</button>
         <button id="export-piece-btn" class="outline secondary" hidden
           title="Export this piece as Markdown">Export ↓</button>
+        <button id="load-text-btn" class="outline secondary"
+          title="Load your own Spanish text into the reading panel">Load text</button>
         <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="history-btn" class="outline secondary"
           title="Browse and manage past generated pieces">History</button>
@@ -427,6 +429,28 @@
     <span class="define-sep"> → </span>
     <span id="define-result" class="define-result"></span>
   </div>
+
+  <dialog id="load-text-modal" aria-labelledby="load-text-modal-title">
+    <article>
+      <header>
+        <h2 id="load-text-modal-title">Load your text</h2>
+        <button id="close-load-text" class="outline secondary" aria-label="Close">Close</button>
+      </header>
+      <label for="load-text-title-input">Title</label>
+      <input type="text" id="load-text-title-input"
+        placeholder="e.g. Chapter 1, Mi novela…" autocomplete="off">
+      <label for="load-text-area">Text</label>
+      <textarea id="load-text-area" rows="12"
+        placeholder="Paste your Spanish text here…"></textarea>
+      <div class="load-text-actions">
+        <button type="button" id="load-from-file-btn" class="outline secondary">
+          Load from file…
+        </button>
+        <input type="file" id="load-text-file" accept=".txt,.md" hidden>
+        <button type="button" id="display-text-btn">Display</button>
+      </div>
+    </article>
+  </dialog>
 
   <script type="module" src="js/profiles.js"></script>
   <script type="module" src="js/vocab.js"></script>

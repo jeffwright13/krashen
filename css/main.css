@@ -615,6 +615,48 @@ html, body {
 
 /* ── History modal ───────────────────────────────────────── */
 
+/* ── Load-text modal ─────────────────────────────────────── */
+
+#load-text-modal article {
+  max-width: 540px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#load-text-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+#load-text-modal header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+#load-text-area {
+  flex: 1;
+  resize: vertical;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  min-height: 10rem;
+  font-family: inherit;
+}
+
+.load-text-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ── History modal ───────────────────────────────────────── */
+
 #history-modal article {
   max-width: 560px;
   max-height: 80vh;
