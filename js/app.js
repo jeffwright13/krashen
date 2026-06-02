@@ -455,8 +455,9 @@ function renderHistoryList() {
     item.setAttribute('role', 'listitem');
 
     const cefr    = entry.config?.cefrLevel ?? '';
+    const source  = entry.source === 'user' ? 'imported' : null;
     const profile = entry.profileName ?? null;
-    const detail  = [cefr, `~${entry.wordCount} words`, entry.date, profile].filter(Boolean).join(' · ');
+    const detail  = [cefr, `~${entry.wordCount} words`, entry.date, source, profile].filter(Boolean).join(' · ');
 
     item.innerHTML = `
       <label class="history-item-check" aria-label="Select">
@@ -565,6 +566,75 @@ document.getElementById('clear-history-btn').addEventListener('click', () => {
   if (!confirm('Clear all history? This cannot be undone.')) return;
   clearHistory();
   renderHistoryList();
+});
+
+// ── Load user text ────────────────────────────────────────────────────────────
+
+document.getElementById('load-text-btn').addEventListener('click', () => {
+  document.getElementById('load-text-modal').showModal();
+});
+
+document.getElementById('close-load-text').addEventListener('click', () => {
+  document.getElementById('load-text-modal').close();
+});
+
+document.getElementById('load-text-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.close();
+});
+
+document.getElementById('load-from-file-btn').addEventListener('click', () => {
+  document.getElementById('load-text-file').click();
+});
+
+document.getElementById('load-text-file').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('load-text-area').value = ev.target.result.trim();
+    const titleEl = document.getElementById('load-text-title-input');
+    if (!titleEl.value.trim()) {
+      titleEl.value = file.name.replace(/\.[^.]+$/, '');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('display-text-btn').addEventListener('click', () => {
+  const rawText = document.getElementById('load-text-area').value.trim();
+  if (!rawText) return;
+
+  const title     = document.getElementById('load-text-title-input').value.trim() || 'Imported text';
+  const content   = `## ${title}\n\n${rawText}`;
+  const wordCount = rawText.split(/\s+/).filter(Boolean).length;
+  const date      = new Date().toLocaleDateString();
+
+  renderContent(content, { cefrLevel: '', wordCount, topic: title, date });
+  document.getElementById('export-piece-btn').hidden = false;
+
+  const activeProfile = window.KrashenProfiles?.getActive();
+  currentEntry = {
+    id: Date.now(), date, config: null, content, wordCount,
+    topic: title, title, source: 'user',
+    profileId:   activeProfile?.id   ?? null,
+    profileName: activeProfile?.name ?? null,
+  };
+  appendHistory(currentEntry);
+
+  if (window.KrashenVocab) {
+    const words = [...new Set(
+      rawText.toLowerCase().replace(/[¡!¿?.,;:«»"'()\-—]/g, ' ').split(/\s+/).filter(Boolean)
+    )];
+    window.KrashenVocab.recordSeen(words);
+  }
+
+  if (activeProfile) {
+    window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);
+    window.KrashenUI?.refreshChip();
+  }
+
+  document.getElementById('load-text-modal').close();
 });
 
 // ── Export ────────────────────────────────────────────────────────────────────
