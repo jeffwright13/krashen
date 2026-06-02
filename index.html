@@ -86,9 +86,9 @@
         <fieldset class="form-group">
           <legend>Provider</legend>
           <select id="provider">
-            <option value="claude">Claude (Anthropic)</option>
             <option value="openai" selected>OpenAI</option>
             <option value="google">Google Gemini</option>
+            <option value="claude" class="provider-opt-proxy">Claude (Anthropic) — proxy required</option>
           </select>
           <small id="provider-hint" hidden>
             Claude's API blocks browser requests (CORS). Works only via a local proxy.
@@ -282,9 +282,9 @@
           <p class="settings-hint">Keys are stored in your browser only and sent only to the selected provider.</p>
           <label for="settings-provider">Provider</label>
           <select id="settings-provider">
-            <option value="claude">Claude (Anthropic)</option>
             <option value="openai">OpenAI</option>
             <option value="google">Google Gemini</option>
+            <option value="claude" class="provider-opt-proxy">Claude (Anthropic) — proxy required</option>
           </select>
           <small id="settings-provider-hint" class="settings-hint" hidden>
             Claude's API blocks browser requests (CORS). Works only via a local proxy.

@@ -2,6 +2,13 @@
   --content-max-width: 70ch;
 }
 
+/* ── Provider option: proxy-only (best-effort — ignored by some native pickers) */
+
+.provider-opt-proxy {
+  font-style: italic;
+  color: var(--pico-muted-color);
+}
+
 /* ── Restore native checkbox appearance (override Pico) ──── */
 
 [type="checkbox"] {
