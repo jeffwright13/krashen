@@ -106,15 +106,44 @@ async function handleGenerate(e) {
   }
 }
 
+const KEY_PLACEHOLDERS = {
+  claude: 'sk-ant-…', openai: 'sk-…', google: 'AIza…',
+};
+const MODEL_PLACEHOLDERS = {
+  claude: 'claude-opus-4-5', openai: 'gpt-4o', google: 'gemini-2.5-flash',
+};
+
 function initSettingsTab() {
-  ['claude', 'openai', 'google'].forEach(provider => {
-    const keyEl   = document.getElementById(`api-key-${provider}`);
-    const modelEl = document.getElementById(`model-${provider}`);
-    keyEl.value   = getApiKey(provider);
-    modelEl.value = getModel(provider);
-    keyEl.addEventListener('blur', () => setApiKey(provider, keyEl.value.trim()));
-    modelEl.addEventListener('blur', () => { if (modelEl.value.trim()) setModel(provider, modelEl.value.trim()); });
+  const providerSel = document.getElementById('settings-provider');
+  const keyEl       = document.getElementById('settings-api-key');
+  const modelEl     = document.getElementById('settings-model');
+  const hintEl      = document.getElementById('settings-provider-hint');
+  const testBtn     = document.getElementById('settings-test-btn');
+  const testStatus  = document.getElementById('settings-test-status');
+  const toggleBtn   = document.querySelector('.key-toggle-btn[data-target="settings-api-key"]');
+
+  function loadProvider(p) {
+    keyEl.value         = getApiKey(p);
+    keyEl.placeholder   = KEY_PLACEHOLDERS[p]   ?? '';
+    modelEl.value       = getModel(p);
+    modelEl.placeholder = MODEL_PLACEHOLDERS[p] ?? '';
+    hintEl.hidden       = p !== 'claude';
+    testStatus.hidden   = true;
+    keyEl.type          = 'password';
+    if (toggleBtn) toggleBtn.textContent = 'Show';
+  }
+
+  providerSel.value = document.getElementById('provider').value;
+  loadProvider(providerSel.value);
+
+  providerSel.addEventListener('change', () => loadProvider(providerSel.value));
+  keyEl.addEventListener('blur',   () => setApiKey(providerSel.value, keyEl.value.trim()));
+  modelEl.addEventListener('blur', () => {
+    if (modelEl.value.trim()) setModel(providerSel.value, modelEl.value.trim());
   });
+  testBtn.addEventListener('click', () =>
+    handleTestKey(providerSel.value, keyEl, testStatus, testBtn)
+  );
 
   const uiSettings = getSettings().ui;
   const themeEl    = document.getElementById('modal-theme');
@@ -149,11 +178,7 @@ function initSettingsTab() {
   });
 }
 
-async function handleTestKey(provider) {
-  const keyInput = document.getElementById(`api-key-${provider}`);
-  const statusEl = document.getElementById(`test-status-${provider}`);
-  const btn      = document.querySelector(`.key-test-btn[data-provider="${provider}"]`);
-
+async function handleTestKey(provider, keyInput, statusEl, btn) {
   btn.disabled    = true;
   btn.textContent = 'Testing…';
   statusEl.hidden = false;
@@ -262,12 +287,6 @@ document.querySelectorAll('.key-toggle-btn').forEach(btn => {
     input.type      = showing ? 'password' : 'text';
     btn.textContent = showing ? 'Show' : 'Hide';
   });
-});
-
-// ── Test key buttons ──────────────────────────────────────────────────────────
-
-document.querySelectorAll('.key-test-btn').forEach(btn => {
-  btn.addEventListener('click', () => handleTestKey(btn.dataset.provider));
 });
 
 // ── Select All / Copy ─────────────────────────────────────────────────────────

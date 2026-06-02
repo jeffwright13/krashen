@@ -548,22 +548,7 @@ html, body {
   width: auto;
 }
 
-.provider-section {
-  margin-bottom: 0.75rem;
-}
 
-.provider-section:last-of-type {
-  margin-bottom: 0;
-}
-
-.provider-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--pico-muted-color);
-  margin: 0 0 0.5rem;
-}
 
 .key-row {
   display: flex;
