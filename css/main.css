@@ -1056,8 +1056,6 @@ html, body {
 }
 
 .vocab-term-list {
-  max-height: 180px;
-  overflow-y: auto;
   border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
   padding: 0.25rem;
