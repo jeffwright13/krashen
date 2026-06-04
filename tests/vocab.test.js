@@ -106,6 +106,37 @@ module.exports = {
     assert.strictEqual(v.getStore()['perro'].inactive, undefined);
   },
 
+  'setMastery() sets userMastery on the entry': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('gato', 'cat', '');
+    v.setMastery('gato', 4);
+    assert.strictEqual(v.getStore()['gato'].userMastery, 4);
+  },
+
+  'setMastery() clamps to 0–5': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('gato', 'cat', '');
+    v.setMastery('gato', 99);
+    assert.strictEqual(v.getStore()['gato'].userMastery, 5);
+    v.setMastery('gato', -3);
+    assert.strictEqual(v.getStore()['gato'].userMastery, 0);
+  },
+
+  'getForPrompt() uses userMastery when set': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('gato', 'cat', ''); // mastery=2
+    v.setMastery('gato', 5);           // userMastery overrides to 5
+    const { knownTerms } = v.getForPrompt({ knownThreshold: 4, reExposeMaxMastery: 3, reExposeCount: 8 });
+    assert.ok(knownTerms.includes('gato'), 'userMastery=5 should classify as known at threshold 4');
+  },
+
+  'getForPrompt() falls back to mastery when userMastery absent': function () {
+    const v = makeVocab('p1');
+    v.recordLookup('gato', 'cat', ''); // mastery=2, no userMastery
+    const { knownTerms } = v.getForPrompt({ knownThreshold: 3, reExposeMaxMastery: 3, reExposeCount: 8 });
+    assert.ok(!knownTerms.includes('gato'), 'mastery=2 below threshold 3');
+  },
+
   'getForPrompt() excludes inactive entries': function () {
     const v = makeVocab('p1');
     v.recordLookup('uno',  'one', '');

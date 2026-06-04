@@ -1,3 +1,7 @@
+function effectiveMastery(entry) {
+  return entry.userMastery ?? entry.mastery;
+}
+
 function deriveMastery({ seenCount, lookupCount }) {
   if (seenCount >= 3 && lookupCount === 0) return 5;
   if (lookupCount >= 1 && seenCount > lookupCount) return 4;
@@ -98,6 +102,14 @@ function createKrashenVocab({ storage, getProfileId }) {
     saveStore(store);
   }
 
+  function setMastery(term, level) {
+    const key   = normalizeTerm(term);
+    const store = getStore();
+    if (!store[key]) return;
+    store[key].userMastery = Math.max(0, Math.min(5, Math.round(level)));
+    saveStore(store);
+  }
+
   function setActive(term, isActive) {
     const key   = normalizeTerm(term);
     const store = getStore();
@@ -114,11 +126,11 @@ function createKrashenVocab({ storage, getProfileId }) {
     const terms = Object.values(getStore()).filter(t => !t.inactive);
 
     const knownTerms = terms
-      .filter(t => t.mastery >= knownThreshold)
+      .filter(t => effectiveMastery(t) >= knownThreshold)
       .map(t => t.term);
 
     const reExposeTerms = terms
-      .filter(t => t.mastery >= 1 && t.mastery <= reExposeMaxMastery)
+      .filter(t => effectiveMastery(t) >= 1 && effectiveMastery(t) <= reExposeMaxMastery)
       .sort((a, b) => b.lastSeen - a.lastSeen)
       .slice(0, reExposeCount)
       .map(t => t.term);
@@ -131,10 +143,11 @@ function createKrashenVocab({ storage, getProfileId }) {
     if (key) storage.removeItem(key);
   }
 
-  return { recordLookup, recordSeen, getStore, getForPrompt, deleteTerm, setActive, clear };
+  return { recordLookup, recordSeen, getStore, getForPrompt, setMastery, deleteTerm, setActive, clear };
 }
 
-createKrashenVocab.deriveMastery = deriveMastery;
+createKrashenVocab.deriveMastery    = deriveMastery;
+createKrashenVocab.effectiveMastery = effectiveMastery;
 
 // Browser: auto-initialise once profiles.js has set up the global
 if (typeof window !== 'undefined') {

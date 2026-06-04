@@ -299,9 +299,11 @@ import { triggerDownload     } from './display.js';
     termEl.className   = 'vocab-term';
     termEl.textContent = entry.term;
 
+    const em = entry.userMastery ?? entry.mastery;
     const mastEl = document.createElement('span');
-    mastEl.className   = 'vocab-mastery';
-    mastEl.textContent = 'M' + entry.mastery;
+    mastEl.className   = 'vocab-mastery' + (entry.userMastery !== undefined ? ' vocab-mastery-user' : '');
+    mastEl.textContent = 'M' + em;
+    mastEl.title       = entry.userMastery !== undefined ? 'User-rated' : 'Algorithm-derived';
 
     const actions = document.createElement('span');
     actions.className = 'vocab-item-actions';
@@ -385,7 +387,7 @@ import { triggerDownload     } from './display.js';
     clearBtn.hidden = false;
     if (active.length > 0) {
       const byMastery = [0, 0, 0, 0, 0, 0];
-      active.forEach(e => { byMastery[e.mastery] = (byMastery[e.mastery] || 0) + 1; });
+      active.forEach(e => { const m = e.userMastery ?? e.mastery; byMastery[m] = (byMastery[m] || 0) + 1; });
       breakdownEl.textContent = byMastery.map((n, i) => `${n}×M${i}`).join('  ');
       breakdownEl.hidden = false;
     } else {
