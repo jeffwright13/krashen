@@ -604,7 +604,13 @@ document.getElementById('clear-history-btn').addEventListener('click', () => {
 let studyDeck  = [];
 let studyIndex = 0;
 let studyStats = {};
-const studyReaddedTerms = new Set(); // terms already re-added this session
+const studyReaddedTerms = new Set();
+
+function extractSentence(paragraph, term) {
+  const sentences = paragraph.split(/(?<=[.!?¡])\s+/);
+  const hit = sentences.find(s => s.toLowerCase().includes(term.toLowerCase()));
+  return (hit ?? paragraph).trim();
+}
 
 function buildStudyDeck() {
   if (!currentEntry?.content || !window.KrashenVocab) return [];
@@ -626,7 +632,7 @@ function showStudyCard(entry) {
   document.getElementById('study-term').textContent       = entry.term;
   document.getElementById('study-term-back').textContent  = entry.term;
   document.getElementById('study-context').textContent    =
-    entry.contexts?.length ? `"${entry.contexts[0]}"` : '';
+    entry.contexts?.length ? `"${extractSentence(entry.contexts[0], entry.term)}"` : '';
   document.getElementById('study-translation').textContent =
     entry.translations?.length ? entry.translations[0] : '(no translation recorded)';
 
