@@ -93,6 +93,7 @@ async function handleGenerate(e) {
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
+    document.getElementById('review-btn').hidden = false;
 
     if (window.KrashenVocab) {
       const words = [...new Set(
@@ -515,6 +516,7 @@ function renderHistoryList() {
         date:      entry.date,
       });
       document.getElementById('export-piece-btn').hidden = false;
+    document.getElementById('review-btn').hidden = false;
       document.getElementById('history-modal').close();
     });
 
@@ -593,6 +595,94 @@ document.getElementById('clear-history-btn').addEventListener('click', () => {
   if (!confirm('Clear all history? This cannot be undone.')) return;
   clearHistory();
   renderHistoryList();
+});
+
+// ── Vocabulary review ─────────────────────────────────────────────────────────
+
+function openReviewModal() {
+  if (!currentEntry?.content || !window.KrashenVocab) return;
+
+  const store      = window.KrashenVocab.getStore();
+  const storyWords = new Set(
+    currentEntry.content.toLowerCase()
+      .replace(/[¡!¿?.,;:«»"'()\-—]/g, ' ')
+      .split(/\s+/).filter(Boolean)
+  );
+  const words = Object.values(store)
+    .filter(e => !e.inactive && storyWords.has(e.term))
+    .sort((a, b) => (a.userMastery ?? a.mastery) - (b.userMastery ?? b.mastery));
+
+  const listEl  = document.getElementById('review-list');
+  const emptyEl = document.getElementById('review-empty');
+  listEl.innerHTML = '';
+  emptyEl.hidden   = words.length > 0;
+
+  words.forEach(entry => {
+    const row = document.createElement('div');
+    row.className = 'review-item';
+
+    const left = document.createElement('div');
+    left.className = 'review-item-left';
+
+    const termEl = document.createElement('span');
+    termEl.className   = 'review-term';
+    termEl.textContent = entry.term;
+    left.appendChild(termEl);
+
+    if (entry.translations?.length > 0) {
+      const transEl = document.createElement('span');
+      transEl.className   = 'review-translation';
+      transEl.textContent = entry.translations[0];
+      left.appendChild(transEl);
+    }
+
+    const mastEl = document.createElement('span');
+    mastEl.className = 'review-mastery' + (entry.userMastery !== undefined ? ' review-mastery-user' : '');
+    mastEl.textContent = 'M' + (entry.userMastery ?? entry.mastery);
+
+    const actions = document.createElement('div');
+    actions.className = 'review-actions';
+
+    [
+      { label: 'Again', delta: -1, cls: 'again' },
+      { label: 'Hard',  delta:  0, cls: 'hard'  },
+      { label: 'Good',  delta:  1, cls: 'good'  },
+      { label: 'Easy',  delta:  2, cls: 'easy'  },
+    ].forEach(({ label, delta, cls }) => {
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      btn.className   = `review-btn review-btn-${cls}`;
+      btn.addEventListener('click', () => {
+        const current  = entry.userMastery ?? entry.mastery;
+        const newLevel = Math.max(0, Math.min(5, current + delta));
+        window.KrashenVocab.setMastery(entry.term, newLevel);
+        entry.userMastery  = newLevel;
+        mastEl.textContent = 'M' + newLevel;
+        mastEl.className   = 'review-mastery review-mastery-user';
+        actions.querySelectorAll('.review-btn').forEach(b => b.classList.remove('review-btn-selected'));
+        btn.classList.add('review-btn-selected');
+        window.KrashenUI?.refreshVocab();
+      });
+      actions.appendChild(btn);
+    });
+
+    row.appendChild(left);
+    row.appendChild(mastEl);
+    row.appendChild(actions);
+    listEl.appendChild(row);
+  });
+
+  document.getElementById('review-modal').showModal();
+}
+
+document.getElementById('review-btn').addEventListener('click', openReviewModal);
+
+document.getElementById('close-review').addEventListener('click', () => {
+  document.getElementById('review-modal').close();
+});
+
+document.getElementById('review-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) e.currentTarget.close();
 });
 
 // ── Load user text ────────────────────────────────────────────────────────────
@@ -786,6 +876,7 @@ initSettingsTab();
       date:       saved.date,
     });
     document.getElementById('export-piece-btn').hidden = false;
+    document.getElementById('review-btn').hidden = false;
   } catch (_) {}
 })();
 

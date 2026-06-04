@@ -331,6 +331,8 @@
           title="Copy all content to clipboard">Copy</button>
         <button id="export-piece-btn" class="outline secondary" hidden
           title="Export this piece as Markdown">Export ↓</button>
+        <button id="review-btn" class="outline secondary" hidden
+          title="Rate vocabulary words that appeared in this story">Review</button>
         <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="load-text-btn" class="outline secondary"
           title="Load your own Spanish text into the reading panel">Load Text</button>
@@ -412,6 +414,20 @@
     <span class="define-sep"> → </span>
     <span id="define-result" class="define-result"></span>
   </div>
+
+  <dialog id="review-modal" aria-labelledby="review-modal-title">
+    <article>
+      <header>
+        <h2 id="review-modal-title">Vocabulary Review</h2>
+        <button id="close-review" class="outline secondary" aria-label="Done">Done</button>
+      </header>
+      <p class="review-hint">Rate each word based on how well you knew it in this story.
+        Ratings override the algorithm and persist until you rate again.</p>
+      <p id="review-empty" class="review-hint" hidden>
+        No tracked vocabulary appeared in this story.</p>
+      <div id="review-list"></div>
+    </article>
+  </dialog>
 
   <dialog id="load-text-modal" aria-labelledby="load-text-modal-title">
     <article>
