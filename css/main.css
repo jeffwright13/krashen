@@ -608,6 +608,105 @@ html, body {
 
 /* ── History modal ───────────────────────────────────────── */
 
+/* ── Study modal ─────────────────────────────────────────── */
+
+#study-modal article {
+  max-width: 460px;
+  width: 100%;
+}
+
+#study-modal header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.study-progress {
+  font-size: 0.78rem;
+  color: var(--pico-muted-color);
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.study-title {
+  flex: 1;
+  margin: 0;
+  font-size: 1rem;
+  text-align: center;
+}
+
+#study-front,
+#study-back {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0 1rem;
+}
+
+.study-term {
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0.25rem 0;
+}
+
+.study-context {
+  font-size: 0.82rem;
+  color: var(--pico-muted-color);
+  font-style: italic;
+  text-align: center;
+  margin: 0;
+  max-width: 36ch;
+}
+
+.study-translation {
+  font-size: 1.05rem;
+  color: var(--pico-primary);
+  text-align: center;
+  margin: 0;
+}
+
+.study-rating-row {
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.study-rating-row .review-btn {
+  font-size: 0.82rem;
+  padding: 0.3rem 0.8rem;
+}
+
+.study-summary-text {
+  text-align: center;
+  font-size: 1rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.study-summary-stats {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.study-stat-chip {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  border: 1px solid currentColor;
+}
+
+.study-summary-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
 /* ── Review modal ────────────────────────────────────────── */
 
 #review-modal article {
