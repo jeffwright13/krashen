@@ -314,6 +314,10 @@ describe('vocab tab — with entries', () => {
     hola:  { term: 'hola',  mastery: 2, lastSeen: 2000 },
     gato:  { term: 'gato',  mastery: 1, lastSeen: 1000 },
   };
+  const mockStoreWithUserMastery = {
+    hola: { term: 'hola', mastery: 2, userMastery: 4, lastSeen: 2000 },
+    gato: { term: 'gato', mastery: 1,                 lastSeen: 1000 },
+  };
 
   it('shows word count in vocab-total', () => {
     window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
@@ -352,5 +356,35 @@ describe('vocab tab — with entries', () => {
     window.KrashenUI.activateTab('vocab');
     expect(document.getElementById('vocab-no-profile').hidden).toBe(true);
     expect(document.getElementById('vocab-empty').hidden).toBe(true);
+  });
+
+  it('shows userMastery in mastery badge when set', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStoreWithUserMastery };
+    window.KrashenUI.activateTab('vocab');
+    const items = document.querySelectorAll('#vocab-term-list .vocab-item');
+    // hola has userMastery:4, should show M4 not M2
+    const holaMastery = items[0].querySelector('.vocab-mastery').textContent;
+    expect(holaMastery).toBe('M4');
+  });
+
+  it('applies vocab-mastery-user class when userMastery is set', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStoreWithUserMastery };
+    window.KrashenUI.activateTab('vocab');
+    const items = document.querySelectorAll('#vocab-term-list .vocab-item');
+    expect(items[0].querySelector('.vocab-mastery').classList.contains('vocab-mastery-user')).toBe(true);
+    expect(items[1].querySelector('.vocab-mastery').classList.contains('vocab-mastery-user')).toBe(false);
+  });
+
+  it('uses userMastery in breakdown counts when set', () => {
+    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
+    window.KrashenVocab = { getStore: () => mockStoreWithUserMastery };
+    window.KrashenUI.activateTab('vocab');
+    const breakdown = document.getElementById('vocab-mastery-breakdown').textContent;
+    // hola: userMastery=4 (not mastery=2), gato: mastery=1
+    expect(breakdown).toContain('1×M1');
+    expect(breakdown).toContain('1×M4');
+    expect(breakdown).not.toContain('1×M2');
   });
 });

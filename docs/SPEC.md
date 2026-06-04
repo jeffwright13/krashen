@@ -166,7 +166,9 @@ Implemented in v3. Each profile maintains an independent vocabulary store in loc
 | lookupCount | number | Incremented when the user explicitly uses Define |
 | lastLookup | timestamp | |
 | contexts | string[] | Up to 3 most recent surrounding paragraph texts |
-| mastery | 0–5 | Derived and cached on every write (see below) |
+| mastery | 0–5 | Algorithmically derived and cached on every write (see below) |
+| userMastery | 0–5 \| undefined | Explicitly set by user rating; overrides `mastery` in all SRS logic when present |
+| inactive | boolean \| undefined | When true, excluded from i+1 prompt constraints; shown in Vocab tab only via "Show hidden" |
 
 ### 6.2 Mastery levels
 
@@ -181,16 +183,25 @@ Implemented in v3. Each profile maintains an independent vocabulary store in loc
 
 Levels are evaluated highest-first; level 4 and 5 take precedence over lower levels when conditions overlap.
 
+**Effective mastery:** all SRS logic (`getForPrompt`, Vocab tab display, review modal) uses `entry.userMastery ?? entry.mastery`. The algorithmic derivation continues to update `mastery` from counts but never overwrites a user rating.
+
 ### 6.3 i+1 prompt integration
 
 When SRS is enabled for the active profile, `buildSystemPrompt()` injects a vocabulary constraints block containing: known terms (mastery ≥ threshold, capped at 50), re-expose terms (mastery 1–maxMastery, most recently seen first, capped at reExposeCount), and a new-words-per-session ceiling.
 
-### 6.4 Future work
+### 6.4 Post-story review (v3.9)
+
+After generating or loading a story, a **Review** button appears in the reading toolbar. Clicking it opens a modal listing every tracked vocab word that appeared in the story, sorted by effective mastery (lowest first). Each row shows:
+
+- Term and first recorded translation (if any)
+- Current effective mastery badge (accent colour when user-rated)
+- Rating buttons: **Again** (−1) · **Hard** (±0) · **Good** (+1) · **Easy** (+2)
+
+Ratings write to `entry.userMastery` and immediately affect the next generation's i+1 constraints. The Vocab tab updates in real time as ratings are applied.
+
+### 6.5 Future work
 
 - Lemmatization: plurals and conjugations currently stored as separate entries (see project notes)
-- Topic-aware re-expose: words from unrelated domains should be excludable per generation
-- Per-word delete / per-generation deactivation
-- Profile import/export
 
 ---
 
