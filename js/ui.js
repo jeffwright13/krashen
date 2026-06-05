@@ -303,6 +303,15 @@ import { triggerDownload     } from './display.js';
 
   // ── Vocab section ─────────────────────────────────────────────────────────
 
+  const MASTERY_LABELS = [
+    'M0 — Never encountered',
+    'M1 — Seen in passing (not yet looked up)',
+    'M2 — Looked up once',
+    'M3 — Looked up repeatedly',
+    'M4 — Solidifying (re-encountered naturally after looking up)',
+    'M5 — Passively acquired (absorbed through reading alone)',
+  ];
+
   let showInactive = false;
 
   function renderVocabRow(entry, isInactive) {
@@ -328,7 +337,8 @@ import { triggerDownload     } from './display.js';
     const mastEl = document.createElement('span');
     mastEl.className   = 'vocab-mastery' + (entry.userMastery !== undefined ? ' vocab-mastery-user' : '');
     mastEl.textContent = 'M' + em;
-    mastEl.title       = entry.userMastery !== undefined ? 'User-rated' : 'Algorithm-derived';
+    mastEl.title       = (MASTERY_LABELS[em] ?? `M${em}`) +
+      (entry.userMastery !== undefined ? ' (user-rated)' : ' (algorithm-derived)');
 
     const actions = document.createElement('span');
     actions.className = 'vocab-item-actions';
