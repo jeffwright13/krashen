@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt, buildI1Constraints } from '../js/prompt.js';
+import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt, buildI1Constraints, parseDefineResponse } from '../js/prompt.js';
 import { DEFAULT_CONFIG } from '../js/config.js';
 
 const base = () => ({
@@ -264,5 +264,42 @@ describe('buildDefinePrompt', () => {
   it('omits context when not provided', () => {
     const { user } = buildDefinePrompt('perro', '', 'Spanish', 'English');
     expect(user).not.toContain('context');
+  });
+
+  it('system prompt requests LEMMA: and TRANSLATION: format', () => {
+    const { system } = buildDefinePrompt('corrió', '', 'Spanish', 'English');
+    expect(system).toContain('LEMMA:');
+    expect(system).toContain('TRANSLATION:');
+  });
+});
+
+describe('parseDefineResponse', () => {
+  it('parses well-formed LEMMA/TRANSLATION response', () => {
+    const { lemma, translation } = parseDefineResponse('LEMMA: hablar\nTRANSLATION: to speak');
+    expect(lemma).toBe('hablar');
+    expect(translation).toBe('to speak');
+  });
+
+  it('lowercases the lemma', () => {
+    const { lemma } = parseDefineResponse('LEMMA: Hablar\nTRANSLATION: to speak');
+    expect(lemma).toBe('hablar');
+  });
+
+  it('falls back gracefully when format is missing', () => {
+    const { lemma, translation } = parseDefineResponse('to speak');
+    expect(lemma).toBeNull();
+    expect(translation).toBe('to speak');
+  });
+
+  it('trims whitespace from lemma and translation', () => {
+    const { lemma, translation } = parseDefineResponse('LEMMA:  hablar  \nTRANSLATION:  to speak  ');
+    expect(lemma).toBe('hablar');
+    expect(translation).toBe('to speak');
+  });
+
+  it('handles LEMMA=surfaceForm when word is already a base form', () => {
+    const { lemma, translation } = parseDefineResponse('LEMMA: perro\nTRANSLATION: dog');
+    expect(lemma).toBe('perro');
+    expect(translation).toBe('dog');
   });
 });

@@ -170,16 +170,21 @@ Implemented in v3. Each profile maintains an independent vocabulary store in loc
 
 | Field | Type | Notes |
 |---|---|---|
-| term | string | Lowercased, trimmed |
+| term | string | **Lemma** (base/dictionary form), lowercased. Store key. |
+| forms | string[] | Surface forms encountered via Define (e.g. `["hablé","hablas"]`). Shown in Vocab tab when >1. |
 | translations | string[] | Captures variation across lookups |
 | firstSeen / lastSeen | timestamp | |
-| seenCount | number | Incremented when the word appears in generated content |
+| seenCount | number | Incremented when the word (or a known surface form) appears in generated content |
 | lookupCount | number | Incremented when the user explicitly uses Define |
 | lastLookup | timestamp | |
 | contexts | string[] | Up to 3 most recent surrounding paragraph texts |
 | mastery | 0–5 | Algorithmically derived and cached on every write (see below) |
 | userMastery | 0–5 \| undefined | Explicitly set by user rating; overrides `mastery` in all SRS logic when present |
 | inactive | boolean \| undefined | When true, excluded from i+1 prompt constraints; shown in Vocab tab only via "Show hidden" |
+
+**Lemma normalisation:** `recordLookup(lemma, surfaceForm, translation, context)` stores entries under the lemma key. The LLM returns the base form via the Define prompt (`LEMMA: ...` / `TRANSLATION: ...` format). `recordSeen` builds a reverse form→lemma index at runtime so seen counts credit the lemma entry when a known surface form appears in a story. Unknown inflections (not previously looked up) are silently skipped — a known limitation of not running per-word LLM calls post-generation.
+
+**Legacy entries** (pre-v3.13) keyed by surface form remain valid and display normally; they are not automatically migrated. Users can Clear vocab to start fresh with lemma-keyed entries.
 
 ### 6.2 Mastery levels
 

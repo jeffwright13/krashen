@@ -156,9 +156,26 @@ export function buildUserPrompt(config) {
 export function buildDefinePrompt(selection, context, targetLanguage, nativeLanguage) {
   const hasContext = context && context.trim() && context.trim() !== selection.trim();
   return {
-    system: `Translate ${targetLanguage} to ${nativeLanguage}. Reply with the translation only — no explanations, no added punctuation.`,
+    system:
+      `You are a ${targetLanguage}–${nativeLanguage} dictionary. ` +
+      `Reply in exactly this format (two lines, no other text):\n` +
+      `LEMMA: <the base/dictionary form of the word or phrase in ${targetLanguage}>\n` +
+      `TRANSLATION: <the ${nativeLanguage} translation>`,
     user: hasContext
       ? `"${selection}" (context: "${context.trim()}")`
       : `"${selection}"`,
   };
+}
+
+export function parseDefineResponse(raw) {
+  const text       = raw.trim();
+  const lemmaMatch = text.match(/^LEMMA:\s*(.+)$/m);
+  const transMatch = text.match(/^TRANSLATION:\s*(.+)$/m);
+  if (lemmaMatch && transMatch) {
+    return {
+      lemma:       lemmaMatch[1].trim().toLowerCase(),
+      translation: transMatch[1].trim(),
+    };
+  }
+  return { lemma: null, translation: text };
 }

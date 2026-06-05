@@ -310,8 +310,19 @@ import { triggerDownload     } from './display.js';
     row.className = 'vocab-item' + (isInactive ? ' vocab-item-inactive' : '');
 
     const termEl = document.createElement('span');
-    termEl.className   = 'vocab-term';
-    termEl.textContent = entry.term;
+    termEl.className = 'vocab-term';
+
+    const termName = document.createElement('span');
+    termName.textContent = entry.term;
+    termEl.appendChild(termName);
+
+    const otherForms = (entry.forms ?? []).filter(f => f !== entry.term);
+    if (otherForms.length > 0) {
+      const formsEl = document.createElement('span');
+      formsEl.className   = 'vocab-forms';
+      formsEl.textContent = otherForms.join(', ');
+      termEl.appendChild(formsEl);
+    }
 
     const em = entry.userMastery ?? entry.mastery;
     const mastEl = document.createElement('span');
