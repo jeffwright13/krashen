@@ -52,7 +52,7 @@ function createKrashenProfiles(storage) {
       created:      Date.now(),
       lastActive:   Date.now(),
       wordsRead:    0,
-      settings:     Object.assign({}, DEFAULT_SETTINGS),
+      settings:     Object.assign({}, DEFAULT_SETTINGS, { vocabEnabled: false }),
       formDefaults: Object.assign({}, DEFAULT_FORM_DEFAULTS),
     };
     const profiles = getAll();

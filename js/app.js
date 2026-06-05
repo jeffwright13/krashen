@@ -10,6 +10,10 @@ import { toggleLoading, renderContent, renderError, showToast, triggerDownload }
 
 let currentEntry = null;
 
+function isVocabEnabled() {
+  return window.KrashenProfiles?.getActive()?.settings?.vocabEnabled ?? true;
+}
+
 function persistCurrentEntry(entry) {
   currentEntry = entry;
   try { sessionStorage.setItem('krashen_current', JSON.stringify(entry)); } catch (_) {}
@@ -93,8 +97,10 @@ async function handleGenerate(e) {
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
-    document.getElementById('review-btn').hidden = false;
-    document.getElementById('study-btn').hidden = false;
+    if (isVocabEnabled()) {
+      document.getElementById('review-btn').hidden = false;
+      document.getElementById('study-btn').hidden = false;
+    }
 
     if (window.KrashenVocab) {
       const words = [...new Set(
@@ -181,6 +187,14 @@ function initSettingsTab() {
     s.ui.maxWidthValue = parseInt(valueEl.value, 10) || 70;
     setSettings(s);
     applyMaxWidth(enabledEl.checked, s.ui.maxWidthValue);
+  });
+
+  document.getElementById('vocab-enabled').addEventListener('change', e => {
+    const active = window.KrashenProfiles?.getActive();
+    if (!active) return;
+    const enabled = e.target.checked;
+    window.KrashenProfiles.updateSettings(active.id, { vocabEnabled: enabled });
+    window.KrashenUI?.applyVocabEnabled(enabled);
   });
 }
 
@@ -381,7 +395,7 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
     defineResult.textContent = translation.trim();
 
     const activeProfile = window.KrashenProfiles?.getActive();
-    if (window.KrashenVocab && activeProfile) {
+    if (window.KrashenVocab && activeProfile && isVocabEnabled()) {
       if (activeProfile.settings?.autosave) {
         window.KrashenVocab.recordLookup(text, translation.trim(), context);
         showToast('Saved to vocab');
@@ -517,8 +531,10 @@ function renderHistoryList() {
         date:      entry.date,
       });
       document.getElementById('export-piece-btn').hidden = false;
-    document.getElementById('review-btn').hidden = false;
-    document.getElementById('study-btn').hidden = false;
+      if (isVocabEnabled()) {
+        document.getElementById('review-btn').hidden = false;
+        document.getElementById('study-btn').hidden = false;
+      }
       document.getElementById('history-modal').close();
     });
 
@@ -1012,6 +1028,11 @@ function restoreFormDefaults(profile) {
 document.getElementById('config-form').addEventListener('submit', handleGenerate);
 initSettingsTab();
 
+// Apply vocab-enabled state on initial load (deferred so KrashenUI is ready)
+setTimeout(() => {
+  window.KrashenUI?.applyVocabEnabled(isVocabEnabled());
+}, 0);
+
 // ── Restore last content after page reload ────────────────────────────────────
 
 (function restoreSession() {
@@ -1026,8 +1047,10 @@ initSettingsTab();
       date:       saved.date,
     });
     document.getElementById('export-piece-btn').hidden = false;
-    document.getElementById('review-btn').hidden = false;
-    document.getElementById('study-btn').hidden = false;
+    if (isVocabEnabled()) {
+      document.getElementById('review-btn').hidden = false;
+      document.getElementById('study-btn').hidden = false;
+    }
   } catch (_) {}
 })();
 

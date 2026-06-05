@@ -72,7 +72,9 @@ const FIXTURE = `
     <div id="vocab-term-list"></div>
     <button id="clear-vocab-btn" hidden></button>
   </div>
-  <div id="tab-settings" class="tab-panel" hidden></div>
+  <div id="tab-settings" class="tab-panel" hidden>
+    <input type="checkbox" id="vocab-enabled">
+  </div>
 `;
 
 beforeAll(async () => {
