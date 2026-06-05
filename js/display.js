@@ -47,6 +47,35 @@ export function renderError(message) {
   document.getElementById('error-display').hidden = false;
 }
 
+function inlineMarkdown(text) {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
+function renderBlock(block) {
+  const trimmed = block.trim();
+  if (!trimmed) return '';
+
+  if (trimmed.startsWith('#### ')) return `<h4>${inlineMarkdown(trimmed.slice(5).trim())}</h4>`;
+  if (trimmed.startsWith('### '))  return `<h3>${inlineMarkdown(trimmed.slice(4).trim())}</h3>`;
+  if (trimmed.startsWith('## '))   return `<h2>${inlineMarkdown(trimmed.slice(3).trim())}</h2>`;
+
+  if (/^[-*_]{3,}$/.test(trimmed)) return '<hr>';
+
+  const lines = block.split('\n').filter(l => l.trim());
+  if (lines.length > 0 && lines.every(l => /^[-*+]\s/.test(l.trim()))) {
+    const items = lines.map(l => `<li>${inlineMarkdown(l.trim().slice(2).trim())}</li>`).join('');
+    return `<ul>${items}</ul>`;
+  }
+  if (lines.length > 0 && lines.every(l => /^\d+\.\s/.test(l.trim()))) {
+    const items = lines.map(l => `<li>${inlineMarkdown(l.trim().replace(/^\d+\.\s+/, ''))}</li>`).join('');
+    return `<ol>${items}</ol>`;
+  }
+
+  return `<p>${inlineMarkdown(block.replace(/\n/g, ' ').trim())}</p>`;
+}
+
 export function renderContent(text, { cefrLevel, wordCount, topic, date }) {
   toggleLoading(false);
   document.getElementById('error-display').hidden = true;
@@ -66,8 +95,8 @@ export function renderContent(text, { cefrLevel, wordCount, topic, date }) {
   const display   = document.getElementById('content-display');
   display.innerHTML = titleHtml + body
     .split(/\n{2,}/)
-    .filter(p => p.trim())
-    .map(p => `<p>${escapeHtml(p.replace(/\n/g, ' '))}</p>`)
+    .filter(b => b.trim())
+    .map(renderBlock)
     .join('');
 
   document.getElementById('meta-cefr').textContent  = cefrLevel;

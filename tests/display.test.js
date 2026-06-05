@@ -238,6 +238,89 @@ describe('renderContent — title', () => {
   });
 });
 
+describe('renderContent — markdown headings', () => {
+  const meta = { cefrLevel: 'B1', wordCount: 100, topic: 'test', date: '5/26/2026' };
+
+  it('renders ### as <h3>', () => {
+    renderContent('## Title\n\n### Sección\n\nTexto.', meta);
+    const h3 = document.getElementById('content-display').querySelector('h3');
+    expect(h3).not.toBeNull();
+    expect(h3.textContent).toBe('Sección');
+  });
+
+  it('renders #### as <h4>', () => {
+    renderContent('## Title\n\n#### Sub\n\nTexto.', meta);
+    const h4 = document.getElementById('content-display').querySelector('h4');
+    expect(h4).not.toBeNull();
+    expect(h4.textContent).toBe('Sub');
+  });
+
+  it('body ## renders as <h2> (not eaten as title)', () => {
+    renderContent('## Title\n\n## Segunda sección\n\nTexto.', meta);
+    const h2 = document.getElementById('content-display').querySelector('h2');
+    expect(h2).not.toBeNull();
+    expect(h2.textContent).toBe('Segunda sección');
+  });
+
+  it('escapes HTML in headings', () => {
+    renderContent('## Title\n\n### <script>xss</script>', meta);
+    const h3 = document.getElementById('content-display').querySelector('h3');
+    expect(h3.textContent).toBe('<script>xss</script>');
+    expect(document.getElementById('content-display').innerHTML).not.toContain('<script>');
+  });
+});
+
+describe('renderContent — inline markdown', () => {
+  const meta = { cefrLevel: 'B1', wordCount: 50, topic: 'test', date: '5/26/2026' };
+
+  it('renders **text** as <strong>', () => {
+    renderContent('El **lobo** corrió.', meta);
+    const strong = document.getElementById('content-display').querySelector('strong');
+    expect(strong).not.toBeNull();
+    expect(strong.textContent).toBe('lobo');
+  });
+
+  it('renders *text* as <em>', () => {
+    renderContent('El *lobo* corrió.', meta);
+    const em = document.getElementById('content-display').querySelector('em');
+    expect(em).not.toBeNull();
+    expect(em.textContent).toBe('lobo');
+  });
+
+  it('does not double-process **bold** as italic', () => {
+    renderContent('**bold**', meta);
+    expect(document.getElementById('content-display').querySelector('strong')).not.toBeNull();
+    expect(document.getElementById('content-display').querySelector('em')).toBeNull();
+  });
+
+  it('escapes HTML inside bold', () => {
+    renderContent('**<script>xss</script>**', meta);
+    const strong = document.getElementById('content-display').querySelector('strong');
+    expect(strong.textContent).toBe('<script>xss</script>');
+    expect(document.getElementById('content-display').innerHTML).not.toContain('<script>');
+  });
+});
+
+describe('renderContent — markdown lists', () => {
+  const meta = { cefrLevel: 'B1', wordCount: 50, topic: 'test', date: '5/26/2026' };
+
+  it('renders a bullet list as <ul><li>', () => {
+    renderContent('- Uno\n- Dos\n- Tres', meta);
+    const ul = document.getElementById('content-display').querySelector('ul');
+    expect(ul).not.toBeNull();
+    expect(ul.querySelectorAll('li')).toHaveLength(3);
+    expect(ul.querySelectorAll('li')[0].textContent).toBe('Uno');
+  });
+
+  it('renders a numbered list as <ol><li>', () => {
+    renderContent('1. Primero\n2. Segundo', meta);
+    const ol = document.getElementById('content-display').querySelector('ol');
+    expect(ol).not.toBeNull();
+    expect(ol.querySelectorAll('li')).toHaveLength(2);
+    expect(ol.querySelectorAll('li')[1].textContent).toBe('Segundo');
+  });
+});
+
 describe('showToast', () => {
   it('creates a toast element with the given message', () => {
     showToast('Saved to vocab');
