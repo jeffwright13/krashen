@@ -175,7 +175,46 @@ describe('profile chip — with active profile', () => {
   });
 });
 
-// ── Tuning tab ─────────────────────────────────────────────────────────────────
+// ── applyVocabEnabled ──────────────────────────────────────────────────────────
+
+describe('applyVocabEnabled', () => {
+  it('hides the Vocab tab button when disabled', () => {
+    window.KrashenUI.applyVocabEnabled(false);
+    expect(document.getElementById('tab-btn-vocab').hidden).toBe(true);
+  });
+
+  it('shows the Vocab tab button when enabled', () => {
+    document.getElementById('tab-btn-vocab').hidden = true;
+    window.KrashenUI.applyVocabEnabled(true);
+    expect(document.getElementById('tab-btn-vocab').hidden).toBe(false);
+  });
+
+  it('redirects to Generate if Vocab tab is active when disabled', () => {
+    window.KrashenUI.activateTab('vocab');
+    expect(document.getElementById('tab-vocab').hidden).toBe(false);
+    window.KrashenUI.applyVocabEnabled(false);
+    expect(document.getElementById('tab-generate').hidden).toBe(false);
+    expect(document.getElementById('tab-vocab').hidden).toBe(true);
+  });
+
+  it('does not redirect when a non-vocab tab is active', () => {
+    window.KrashenUI.activateTab('settings');
+    window.KrashenUI.applyVocabEnabled(false);
+    expect(document.getElementById('tab-settings').hidden).toBe(false);
+  });
+});
+
+// ── Tab order ──────────────────────────────────────────────────────────────────
+
+describe('tab order', () => {
+  it('tab buttons appear in Generate | Settings | Vocab order', () => {
+    const btns = [...document.querySelectorAll('#tab-bar .tab-btn')];
+    const ids  = btns.map(b => b.id);
+    expect(ids).toEqual(['tab-btn-generate', 'tab-btn-settings', 'tab-btn-vocab']);
+  });
+});
+
+// ── Vocab tab — SRS fields ─────────────────────────────────────────────────────
 
 describe('vocab tab — SRS fields', () => {
   it('srs-enabled reflects active profile srsEnabled setting', () => {

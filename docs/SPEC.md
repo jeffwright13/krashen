@@ -112,20 +112,31 @@ All settings are accessed through the tabbed left panel (no separate modal). All
 
 ### 4.1 Tab layout
 
-| Tab | Contents |
-|---|---|
-| Generate | Provider selector; content and linguistic focus parameters |
-| Vocab | Per-profile vocabulary list with mastery breakdown; Clear vocab |
-| Tuning | Per-profile SRS / i+1 parameters |
-| Settings | API keys and model overrides (per provider); theme; column width |
+Tab order is fixed: **Generate | Settings | Vocab**. Generate and Settings are always visible. Vocab appears only when vocabulary features are enabled (see §4.5).
+
+| Tab | Contents | Always visible? |
+|---|---|---|
+| Generate | Provider selector; content and linguistic focus parameters | Yes |
+| Settings | API keys/models (per provider); theme; column width; **vocabulary features toggle** | Yes |
+| Vocab | Per-profile vocabulary list with mastery breakdown; SRS / i+1 parameters; Clear vocab | When vocab enabled |
 
 ### 4.2 Profile chip (always visible)
 
-Above the tab bar: active profile name + cumulative words-read counter. Click to expand for profile management (switch / create / delete).
+Above the tab bar: a small "Profile" label, then the active profile name + cumulative words-read counter. Click to expand for profile management (switch / create / delete / export / import).
 
-### 4.3 Per-profile settings (Tuning tab)
+### 4.3 Per-profile SRS settings (Vocab tab)
 
-Saved immediately on change via `KrashenProfiles.updateSettings()`. See SPEC §1.5 for the full parameter list.
+The lower section of the Vocab tab contains SRS / i+1 parameters. Saved immediately on change via `KrashenProfiles.updateSettings()`. See SPEC §1.5 for the full parameter list.
+
+### 4.5 Vocabulary features toggle
+
+`settings.vocabEnabled` (boolean, per-profile, default `false` for new profiles). When `false`:
+- Vocab tab button is hidden
+- Review and Study toolbar buttons are hidden after generation
+- "Save to vocab" option is suppressed in the Define popup (Define itself still works)
+- New entries are not autosaved
+
+Existing profiles created before v3.11 treat a missing `vocabEnabled` key as `true`. The toggle lives in **Settings → Features**.
 
 ### 4.4 Global settings (Settings tab)
 

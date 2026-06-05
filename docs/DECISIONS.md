@@ -4,6 +4,16 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 
 ---
 
+## 2026-06-05 — Vocabulary features are opt-in, off by default for new profiles
+**Decision:** A per-profile boolean `settings.vocabEnabled` (default `false`) gates the entire vocabulary subsystem. When `false`: the Vocab tab, Review/Study toolbar buttons, and "Save to vocab" in the Define popup are all hidden. Define remains available for occasional lookups. Existing profiles without the key default to `true` (backwards compat). Toggle lives in Settings → Features.  
+**Rationale:** The ALG (Automatic Language Growth) community, including Dreaming Spanish, discourages explicit vocabulary study, flashcards, and word lists as counterproductive to acquisition. Exposing these features by default would generate controversy when presenting the tool to those communities. Hiding them by default makes Krashen safe to demo as a pure reading tool while keeping the full vocabulary workflow accessible to users who want it.
+
+## 2026-06-05 — Tab layout consolidated from 4 tabs to 3; Tuning merged into Vocab; order fixed as Generate | Settings | Vocab
+**Decision:** The four-tab layout (Generate / Vocab / Tuning / Settings) is replaced by three tabs: Generate, Settings, and Vocab. SRS / i+1 parameters move into the lower section of the Vocab tab. Tab order is fixed: Generate and Settings always appear together; Vocab appends to the right only when `vocabEnabled` is true. A small "Profile" label is added above the profile chip.  
+**Rationale:** Tuning was a thin tab whose sole content (SRS parameters) is directly related to vocabulary tracking. Splitting them forced users to context-switch between two tabs to manage related concerns. Merging them into one Vocab tab gives each concern a permanent home without increasing cognitive overhead. Placing Generate and Settings adjacent — rather than separating them with hidden tabs — ensures the two always-visible tabs cluster naturally regardless of vocab state. The Profile label disambiguates the chip for first-time users who might not immediately recognise the name+words row as a profile selector.
+
+---
+
 ## 2026-05-26 — Browser-only, no backend
 **Decision:** Static site only, deployable to GitHub Pages. No server-side component.  
 **Rationale:** Keeps hosting free and simple. User-supplied API keys mean no auth layer needed. Aligns with prior projects (apg-web, HablaBot).
