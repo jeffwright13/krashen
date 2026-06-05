@@ -72,7 +72,7 @@
         <button role="tab" class="tab-btn" id="tab-btn-generate"
           aria-selected="true"  aria-controls="tab-generate" tabindex="0">Generate</button>
         <button role="tab" class="tab-btn" id="tab-btn-vocab"
-          aria-selected="false" aria-controls="tab-vocab"    tabindex="-1">Vocab</button>
+          aria-selected="false" aria-controls="tab-vocab"    tabindex="-1" hidden>Vocab</button>
         <button role="tab" class="tab-btn" id="tab-btn-tuning"
           aria-selected="false" aria-controls="tab-tuning"   tabindex="-1">Tuning</button>
         <button role="tab" class="tab-btn" id="tab-btn-settings"
@@ -254,6 +254,14 @@
       <!-- Settings tab -->
       <div id="tab-settings" class="tab-panel" role="tabpanel"
         aria-labelledby="tab-btn-settings" hidden>
+
+        <div class="tab-section">
+          <p class="tab-section-label">Features</p>
+          <label class="settings-check-label">
+            <input type="checkbox" id="vocab-enabled">
+            Vocabulary features
+          </label>
+        </div>
 
         <div class="tab-section">
           <p class="tab-section-label">Display</p>

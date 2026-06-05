@@ -11,6 +11,14 @@ import { triggerDownload     } from './display.js';
 
   const TAB_IDS = ['generate', 'vocab', 'tuning', 'settings'];
 
+  function applyVocabEnabled(enabled) {
+    const vocabBtn = document.getElementById('tab-btn-vocab');
+    vocabBtn.hidden = !enabled;
+    if (!enabled && vocabBtn.getAttribute('aria-selected') === 'true') {
+      activateTab('generate');
+    }
+  }
+
   function activateTab(tabId) {
     TAB_IDS.forEach(id => {
       const btn   = document.getElementById('tab-btn-' + id);
@@ -26,6 +34,10 @@ import { triggerDownload     } from './display.js';
       document.getElementById('tuning-no-profile').hidden = !!active;
       renderSrsFields(active?.settings ?? {});
     }
+    if (tabId === 'settings') {
+      const settings = window.KrashenProfiles?.getActive()?.settings ?? {};
+      document.getElementById('vocab-enabled').checked = settings.vocabEnabled ?? true;
+    }
   }
 
   TAB_IDS.forEach(id => {
@@ -33,19 +45,22 @@ import { triggerDownload     } from './display.js';
   });
 
   document.getElementById('tab-bar').addEventListener('keydown', e => {
-    const current = TAB_IDS.findIndex(
+    const visibleTabs = TAB_IDS.filter(
+      id => !document.getElementById('tab-btn-' + id).hidden
+    );
+    const current = visibleTabs.findIndex(
       id => document.getElementById('tab-btn-' + id).getAttribute('aria-selected') === 'true'
     );
     if (e.key === 'ArrowRight') {
-      const next = (current + 1) % TAB_IDS.length;
-      activateTab(TAB_IDS[next]);
-      document.getElementById('tab-btn-' + TAB_IDS[next]).focus();
+      const next = (current + 1) % visibleTabs.length;
+      activateTab(visibleTabs[next]);
+      document.getElementById('tab-btn-' + visibleTabs[next]).focus();
       e.preventDefault();
     }
     if (e.key === 'ArrowLeft') {
-      const prev = (current - 1 + TAB_IDS.length) % TAB_IDS.length;
-      activateTab(TAB_IDS[prev]);
-      document.getElementById('tab-btn-' + TAB_IDS[prev]).focus();
+      const prev = (current - 1 + visibleTabs.length) % visibleTabs.length;
+      activateTab(visibleTabs[prev]);
+      document.getElementById('tab-btn-' + visibleTabs[prev]).focus();
       e.preventDefault();
     }
   });
@@ -158,6 +173,7 @@ import { triggerDownload     } from './display.js';
     renderProfileSelect();
     renderChip();
     renderSrsFields(profile.settings);
+    applyVocabEnabled(profile.settings?.vocabEnabled ?? true);
   });
 
   document.getElementById('new-profile-name').addEventListener('keydown', e => {
@@ -243,6 +259,7 @@ import { triggerDownload     } from './display.js';
     renderSrsFields(profile.settings ?? {});
     renderVocabStats();
     document.getElementById('tuning-no-profile').hidden = true;
+    applyVocabEnabled(profile.settings?.vocabEnabled ?? true);
   });
 
   // ── SRS section ───────────────────────────────────────────────────────────
@@ -440,6 +457,6 @@ import { triggerDownload     } from './display.js';
   renderChip();
   renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
 
-  window.KrashenUI = { refreshSettings, refreshChip: renderChip, refreshVocab: renderVocabStats, activateTab };
+  window.KrashenUI = { refreshSettings, refreshChip: renderChip, refreshVocab: renderVocabStats, activateTab, applyVocabEnabled };
 
 })();

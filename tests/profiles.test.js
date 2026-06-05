@@ -181,6 +181,21 @@ module.exports = {
     assert.strictEqual(result, false);
   },
 
+  'create() sets vocabEnabled to false by default': function () {
+    const P = createProfiles(makeMockStorage());
+    const p = P.create('Alice');
+    assert.strictEqual(p.settings.vocabEnabled, false);
+  },
+
+  'updateSettings() persists vocabEnabled': function () {
+    const P = createProfiles(makeMockStorage());
+    const p = P.create('Alice');
+    P.switchTo(p.id);
+    P.updateSettings(p.id, { vocabEnabled: true });
+    const updated = P.getActive();
+    assert.strictEqual(updated.settings.vocabEnabled, true);
+  },
+
   'updateFormDefaults() is backward-compatible for profiles without formDefaults': function () {
     const storage = makeMockStorage();
     const P = createProfiles(storage);
