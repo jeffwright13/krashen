@@ -101,6 +101,15 @@ html, body {
   position: relative;
 }
 
+.chip-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pico-muted-color);
+  margin: 0 0 0.25rem;
+}
+
 #profile-chip-summary {
   display: flex;
   align-items: center;
