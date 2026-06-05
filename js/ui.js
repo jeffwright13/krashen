@@ -12,11 +12,14 @@ import { triggerDownload     } from './display.js';
   const TAB_IDS = ['generate', 'vocab', 'tuning', 'settings'];
 
   function applyVocabEnabled(enabled) {
-    const vocabBtn = document.getElementById('tab-btn-vocab');
-    vocabBtn.hidden = !enabled;
-    if (!enabled && vocabBtn.getAttribute('aria-selected') === 'true') {
-      activateTab('generate');
-    }
+    const vocabBtn  = document.getElementById('tab-btn-vocab');
+    const tuningBtn = document.getElementById('tab-btn-tuning');
+    vocabBtn.hidden  = !enabled;
+    tuningBtn.hidden = !enabled;
+    const activeIsHidden =
+      (vocabBtn.getAttribute('aria-selected')  === 'true' && !enabled) ||
+      (tuningBtn.getAttribute('aria-selected') === 'true' && !enabled);
+    if (activeIsHidden) activateTab('generate');
   }
 
   function activateTab(tabId) {
