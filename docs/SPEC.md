@@ -188,18 +188,18 @@ Implemented in v3. Each profile maintains an independent vocabulary store in loc
 
 ### 6.2 Mastery levels
 
-| Level | Condition |
-|---|---|
-| 0 | Never seen |
-| 1 | seenCount > 0, lookupCount = 0 |
-| 2 | lookupCount = 1 |
-| 3 | lookupCount ≥ 2 |
-| 4 | lookupCount ≥ 1 and seenCount > lookupCount (re-encountered naturally after looking up) |
-| 5 | seenCount ≥ 3 and lookupCount = 0 (acquired through reading alone) |
+Each vocab entry displays a badge **M0–M5** ("M" for Mastery). The level is derived algorithmically from exposure counts and updated on every write. Levels are evaluated highest-first; M4 and M5 take precedence when conditions overlap.
 
-Levels are evaluated highest-first; level 4 and 5 take precedence over lower levels when conditions overlap.
+| Badge | Meaning | Condition |
+|---|---|---|
+| M0 | Never encountered | No seen or lookup events |
+| M1 | Seen in passing | seenCount > 0, lookupCount = 0 |
+| M2 | Looked up once | lookupCount = 1 |
+| M3 | Looked up repeatedly | lookupCount ≥ 2 |
+| M4 | Solidifying | lookupCount ≥ 1 and seenCount > lookupCount (re-encountered naturally after looking up) |
+| M5 | Passively acquired | seenCount ≥ 3 and lookupCount = 0 (absorbed through reading alone, never needed to look up) |
 
-**Effective mastery:** all SRS logic (`getForPrompt`, Vocab tab display, review modal) uses `entry.userMastery ?? entry.mastery`. The algorithmic derivation continues to update `mastery` from counts but never overwrites a user rating.
+**Effective mastery:** all SRS logic (`getForPrompt`, Vocab tab display, Review modal) uses `entry.userMastery ?? entry.mastery`. When a user rates a word in the Review or Study modal, that sets `userMastery` (displayed in accent colour as an override). The algorithmic `mastery` field continues to update from counts but never overwrites a user rating.
 
 ### 6.3 i+1 prompt integration
 
