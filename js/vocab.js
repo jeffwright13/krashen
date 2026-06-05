@@ -38,8 +38,9 @@ function createKrashenVocab({ storage, getProfileId }) {
     return term.toLowerCase().trim();
   }
 
-  function recordLookup(term, translation, context) {
-    const key   = normalizeTerm(term);
+  function recordLookup(lemma, surfaceForm, translation, context) {
+    const key  = normalizeTerm(lemma);
+    const form = normalizeTerm(surfaceForm || lemma);
     if (!key) return null;
     const store = getStore();
     const now   = Date.now();
@@ -47,6 +48,7 @@ function createKrashenVocab({ storage, getProfileId }) {
     if (!store[key]) {
       store[key] = {
         term:         key,
+        forms:        [],
         translations: [],
         firstSeen:    now,
         lastSeen:     now,
@@ -59,6 +61,10 @@ function createKrashenVocab({ storage, getProfileId }) {
     }
 
     const entry = store[key];
+
+    if (form && !entry.forms.includes(form)) {
+      entry.forms.push(form);
+    }
 
     if (translation && !entry.translations.includes(translation)) {
       entry.translations.push(translation);
@@ -82,8 +88,18 @@ function createKrashenVocab({ storage, getProfileId }) {
     const now   = Date.now();
     let changed = false;
 
+    // Build reverse lookup: surface form → lemma key (covers lemma itself and all known forms)
+    const formToKey = {};
+    for (const [key, entry] of Object.entries(store)) {
+      formToKey[key] = key;
+      if (entry.forms) {
+        for (const form of entry.forms) formToKey[form] = key;
+      }
+    }
+
     for (const raw of termList) {
-      const key = normalizeTerm(raw);
+      const normalized = normalizeTerm(raw);
+      const key = formToKey[normalized];
       if (!key || !store[key]) continue;
       store[key].seenCount++;
       store[key].lastSeen = now;

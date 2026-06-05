@@ -1,5 +1,5 @@
 import { validateConfig, DEFAULT_CONFIG } from './config.js';
-import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt } from './prompt.js';
+import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt, parseDefineResponse } from './prompt.js';
 import { generateContent, testApiKey } from './llm.js';
 import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings, appendHistory } from './storage.js';
 import { getHistory, deleteHistoryEntry, clearHistory } from './history.js';
@@ -390,24 +390,34 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
   showDefinePopup(rect.right, rect.bottom, text);
 
   try {
-    const prompts     = buildDefinePrompt(text, context, targetLang, nativeLang);
-    const translation = await generateContent(prompts, provider, apiKey, model);
-    defineResult.textContent = translation.trim();
+    const prompts  = buildDefinePrompt(text, context, targetLang, nativeLang);
+    const raw      = await generateContent(prompts, provider, apiKey, model);
+    const { lemma, translation } = parseDefineResponse(raw);
+
+    defineResult.textContent = translation;
+
+    const defineLemmaEl = document.getElementById('define-lemma');
+    const surfaceForm   = text.toLowerCase();
+    const effectiveLemma = lemma ?? surfaceForm;
+    if (defineLemmaEl) {
+      const showBaseForm = lemma && lemma !== surfaceForm;
+      defineLemmaEl.textContent = showBaseForm ? `base: ${lemma}` : '';
+      defineLemmaEl.hidden      = !showBaseForm;
+    }
 
     const activeProfile = window.KrashenProfiles?.getActive();
     if (window.KrashenVocab && activeProfile && isVocabEnabled()) {
       if (activeProfile.settings?.autosave) {
-        window.KrashenVocab.recordLookup(text, translation.trim(), context);
+        window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
         showToast('Saved to vocab');
         window.KrashenUI?.refreshVocab();
       } else {
-        // Remove any button left by a concurrent lookup before adding ours
         definePopup.querySelector('.define-save-btn')?.remove();
         const saveBtn = document.createElement('button');
         saveBtn.textContent = 'Save to vocab';
         saveBtn.className   = 'define-save-btn';
         saveBtn.addEventListener('click', () => {
-          window.KrashenVocab.recordLookup(text, translation.trim(), context);
+          window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
           showToast('Saved to vocab');
           window.KrashenUI?.refreshVocab();
           saveBtn.remove();

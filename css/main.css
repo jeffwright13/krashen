@@ -502,6 +502,7 @@ html, body {
 .define-word   { font-style: italic; color: var(--pico-muted-color); }
 .define-sep    { color: var(--pico-muted-color); }
 .define-result { font-weight: 600; }
+.define-lemma  { display: block; font-size: 0.75rem; color: var(--pico-muted-color); margin-top: 0.15rem; }
 
 /* ── Settings tab — shared form styles ───────────────────── */
 
@@ -1184,6 +1185,14 @@ html, body {
 .vocab-term {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.vocab-forms {
+  font-size: 0.68rem;
+  color: var(--pico-muted-color);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
