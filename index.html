@@ -35,6 +35,7 @@
 
       <!-- Profile chip — always visible -->
       <div id="profile-chip">
+        <p class="chip-label">Profile</p>
         <div id="profile-chip-summary">
           <span id="chip-profile-name">No profile</span>
           <span id="chip-words-read" class="chip-words-read"></span>
@@ -71,12 +72,10 @@
       <div id="tab-bar" role="tablist">
         <button role="tab" class="tab-btn" id="tab-btn-generate"
           aria-selected="true"  aria-controls="tab-generate" tabindex="0">Generate</button>
-        <button role="tab" class="tab-btn" id="tab-btn-vocab"
-          aria-selected="false" aria-controls="tab-vocab"    tabindex="-1" hidden>Vocab</button>
-        <button role="tab" class="tab-btn" id="tab-btn-tuning"
-          aria-selected="false" aria-controls="tab-tuning"   tabindex="-1" hidden>Tuning</button>
         <button role="tab" class="tab-btn" id="tab-btn-settings"
           aria-selected="false" aria-controls="tab-settings" tabindex="-1">Settings</button>
+        <button role="tab" class="tab-btn" id="tab-btn-vocab"
+          aria-selected="false" aria-controls="tab-vocab"    tabindex="-1" hidden>Vocab</button>
       </div>
 
       <!-- Generate tab -->
@@ -181,7 +180,7 @@
       </form>
       </div><!-- #tab-generate -->
 
-      <!-- Vocab tab -->
+      <!-- Vocab tab (also contains SRS/tuning settings) -->
       <div id="tab-vocab" class="tab-panel" role="tabpanel"
         aria-labelledby="tab-btn-vocab" hidden>
         <div class="tab-section">
@@ -199,16 +198,8 @@
           <button type="button" id="clear-vocab-btn"
             class="outline secondary danger-btn tab-danger-btn" hidden>Clear vocab</button>
         </div>
-      </div>
-
-      <!-- Tuning tab -->
-      <div id="tab-tuning" class="tab-panel" role="tabpanel"
-        aria-labelledby="tab-btn-tuning" hidden>
         <div class="tab-section">
           <p class="tab-section-label">SRS / i+1</p>
-          <p id="tuning-no-profile" class="tab-hint" hidden>
-            Create or select a profile to configure SRS settings.
-          </p>
           <label class="settings-check-label">
             <input type="checkbox" id="srs-enabled">
             Enable i+1 vocabulary constraints

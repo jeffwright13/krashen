@@ -31,19 +31,22 @@ const FIXTURE = `
   <div id="tab-bar" role="tablist">
     <button role="tab" class="tab-btn" id="tab-btn-generate"
       aria-selected="true" tabindex="0">Generate</button>
-    <button role="tab" class="tab-btn" id="tab-btn-vocab"
-      aria-selected="false" tabindex="-1">Vocab</button>
-    <button role="tab" class="tab-btn" id="tab-btn-tuning"
-      aria-selected="false" tabindex="-1">Tuning</button>
     <button role="tab" class="tab-btn" id="tab-btn-settings"
       aria-selected="false" tabindex="-1">Settings</button>
+    <button role="tab" class="tab-btn" id="tab-btn-vocab"
+      aria-selected="false" tabindex="-1">Vocab</button>
   </div>
   <div id="tab-generate" class="tab-panel"></div>
-  <div id="tab-vocab"    class="tab-panel" hidden></div>
-  <div id="tab-tuning"   class="tab-panel" hidden></div>
-  <div id="tab-settings" class="tab-panel" hidden></div>
-  <div id="tab-tuning" class="tab-panel" hidden>
-    <p id="tuning-no-profile" hidden></p>
+  <div id="tab-settings" class="tab-panel" hidden>
+    <input type="checkbox" id="vocab-enabled">
+  </div>
+  <div id="tab-vocab" class="tab-panel" hidden>
+    <span id="vocab-total"></span>
+    <p id="vocab-no-profile" hidden></p>
+    <p id="vocab-empty" hidden></p>
+    <p id="vocab-mastery-breakdown" hidden></p>
+    <div id="vocab-term-list"></div>
+    <button id="clear-vocab-btn" hidden></button>
     <input type="checkbox" id="srs-enabled">
     <input type="checkbox" id="srs-autosave">
     <div id="srs-fields" hidden></div>
@@ -63,17 +66,6 @@ const FIXTURE = `
       <option value="1">1</option><option value="2">2</option>
       <option value="3" selected>3</option><option value="4">4</option>
     </select>
-  </div>
-  <div id="tab-vocab" class="tab-panel" hidden>
-    <span id="vocab-total"></span>
-    <p id="vocab-no-profile" hidden></p>
-    <p id="vocab-empty" hidden></p>
-    <p id="vocab-mastery-breakdown" hidden></p>
-    <div id="vocab-term-list"></div>
-    <button id="clear-vocab-btn" hidden></button>
-  </div>
-  <div id="tab-settings" class="tab-panel" hidden>
-    <input type="checkbox" id="vocab-enabled">
   </div>
 `;
 
@@ -113,7 +105,6 @@ describe('tab switching — initial state', () => {
 
   it('other tabs are hidden on load', () => {
     expect(document.getElementById('tab-vocab').hidden).toBe(true);
-    expect(document.getElementById('tab-tuning').hidden).toBe(true);
     expect(document.getElementById('tab-settings').hidden).toBe(true);
   });
 
@@ -122,7 +113,7 @@ describe('tab switching — initial state', () => {
   });
 
   it('other tab buttons have aria-selected="false"', () => {
-    ['vocab', 'tuning', 'settings'].forEach(id => {
+    ['settings', 'vocab'].forEach(id => {
       expect(document.getElementById('tab-btn-' + id).getAttribute('aria-selected')).toBe('false');
     });
   });
@@ -133,7 +124,6 @@ describe('tab switching — clicking tabs', () => {
     document.getElementById('tab-btn-vocab').click();
     expect(document.getElementById('tab-vocab').hidden).toBe(false);
     expect(document.getElementById('tab-generate').hidden).toBe(true);
-    expect(document.getElementById('tab-tuning').hidden).toBe(true);
     expect(document.getElementById('tab-settings').hidden).toBe(true);
   });
 
@@ -141,12 +131,6 @@ describe('tab switching — clicking tabs', () => {
     document.getElementById('tab-btn-vocab').click();
     expect(document.getElementById('tab-btn-vocab').getAttribute('aria-selected')).toBe('true');
     expect(document.getElementById('tab-btn-generate').getAttribute('aria-selected')).toBe('false');
-  });
-
-  it('clicking Tuning tab shows tuning panel', () => {
-    document.getElementById('tab-btn-tuning').click();
-    expect(document.getElementById('tab-tuning').hidden).toBe(false);
-    expect(document.getElementById('tab-vocab').hidden).toBe(true);
   });
 
   it('clicking Settings tab shows settings panel', () => {
@@ -162,11 +146,11 @@ describe('tab switching — clicking tabs', () => {
   });
 
   it('only one panel is visible at a time', () => {
-    document.getElementById('tab-btn-tuning').click();
-    const panels = ['generate', 'vocab', 'tuning', 'settings'];
+    document.getElementById('tab-btn-vocab').click();
+    const panels = ['generate', 'settings', 'vocab'];
     const visible = panels.filter(id => !document.getElementById('tab-' + id).hidden);
     expect(visible).toHaveLength(1);
-    expect(visible[0]).toBe('tuning');
+    expect(visible[0]).toBe('vocab');
   });
 });
 
@@ -193,14 +177,14 @@ describe('profile chip — with active profile', () => {
 
 // ── Tuning tab ─────────────────────────────────────────────────────────────────
 
-describe('tuning tab — SRS fields', () => {
+describe('vocab tab — SRS fields', () => {
   it('srs-enabled reflects active profile srsEnabled setting', () => {
     window.KrashenProfiles.getActive = () => ({
       name: 'Alice', wordsRead: 0,
       settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
-    window.KrashenUI.activateTab('tuning');
+    window.KrashenUI.activateTab('vocab');
     expect(document.getElementById('srs-enabled').checked).toBe(true);
   });
 
@@ -210,7 +194,7 @@ describe('tuning tab — SRS fields', () => {
       settings: { srsEnabled: false, autosave: false, knownThreshold: 2,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
-    window.KrashenUI.activateTab('tuning');
+    window.KrashenUI.activateTab('vocab');
     expect(document.getElementById('srs-fields').hidden).toBe(true);
   });
 
@@ -220,7 +204,7 @@ describe('tuning tab — SRS fields', () => {
       settings: { srsEnabled: true, autosave: false, knownThreshold: 3,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
-    window.KrashenUI.activateTab('tuning');
+    window.KrashenUI.activateTab('vocab');
     expect(document.getElementById('srs-known-threshold').value).toBe('3');
   });
 
@@ -231,7 +215,7 @@ describe('tuning tab — SRS fields', () => {
       settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
-    window.KrashenUI.activateTab('tuning');
+    window.KrashenUI.activateTab('vocab');
     expect(document.getElementById('srs-fields').hidden).toBe(false);
 
     // Uncheck the toggle
@@ -250,7 +234,7 @@ describe('tuning tab — SRS fields', () => {
     });
     window.KrashenProfiles.updateSettings = mockUpdate;
 
-    window.KrashenUI.activateTab('tuning');
+    window.KrashenUI.activateTab('vocab');
     const sel = document.getElementById('srs-known-threshold');
     sel.value = '4';
     sel.dispatchEvent(new Event('change'));
@@ -260,21 +244,6 @@ describe('tuning tab — SRS fields', () => {
     expect(mockUpdate.mock.calls[0][1].knownThreshold).toBe(4);
   });
 
-  it('shows no-profile hint when no profile is active', () => {
-    window.KrashenProfiles.getActive = () => null;
-    window.KrashenUI.activateTab('tuning');
-    expect(document.getElementById('tuning-no-profile').hidden).toBe(false);
-  });
-
-  it('hides no-profile hint when a profile is active', () => {
-    window.KrashenProfiles.getActive = () => ({
-      name: 'Alice', wordsRead: 0,
-      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
-        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
-    });
-    window.KrashenUI.activateTab('tuning');
-    expect(document.getElementById('tuning-no-profile').hidden).toBe(true);
-  });
 });
 
 // ── Vocab tab ──────────────────────────────────────────────────────────────────

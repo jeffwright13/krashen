@@ -9,17 +9,14 @@ import { triggerDownload     } from './display.js';
 
   // ── Tab switching ─────────────────────────────────────────────────────────
 
-  const TAB_IDS = ['generate', 'vocab', 'tuning', 'settings'];
+  const TAB_IDS = ['generate', 'settings', 'vocab'];
 
   function applyVocabEnabled(enabled) {
-    const vocabBtn  = document.getElementById('tab-btn-vocab');
-    const tuningBtn = document.getElementById('tab-btn-tuning');
-    vocabBtn.hidden  = !enabled;
-    tuningBtn.hidden = !enabled;
-    const activeIsHidden =
-      (vocabBtn.getAttribute('aria-selected')  === 'true' && !enabled) ||
-      (tuningBtn.getAttribute('aria-selected') === 'true' && !enabled);
-    if (activeIsHidden) activateTab('generate');
+    const vocabBtn = document.getElementById('tab-btn-vocab');
+    vocabBtn.hidden = !enabled;
+    if (!enabled && vocabBtn.getAttribute('aria-selected') === 'true') {
+      activateTab('generate');
+    }
   }
 
   function activateTab(tabId) {
@@ -31,11 +28,9 @@ import { triggerDownload     } from './display.js';
       btn.tabIndex = active ? 0 : -1;
       panel.hidden = !active;
     });
-    if (tabId === 'vocab')  renderVocabStats();
-    if (tabId === 'tuning') {
-      const active = window.KrashenProfiles?.getActive();
-      document.getElementById('tuning-no-profile').hidden = !!active;
-      renderSrsFields(active?.settings ?? {});
+    if (tabId === 'vocab') {
+      renderVocabStats();
+      renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
     }
     if (tabId === 'settings') {
       const settings = window.KrashenProfiles?.getActive()?.settings ?? {};
@@ -261,7 +256,6 @@ import { triggerDownload     } from './display.js';
     renderChip();
     renderSrsFields(profile.settings ?? {});
     renderVocabStats();
-    document.getElementById('tuning-no-profile').hidden = true;
     applyVocabEnabled(profile.settings?.vocabEnabled ?? true);
   });
 
