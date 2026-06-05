@@ -1164,6 +1164,40 @@ html, body {
   font-family: monospace;
 }
 
+.mastery-legend {
+  font-size: 0.72rem;
+  color: var(--pico-muted-color);
+  margin: 0.3rem 0 0.5rem;
+}
+
+.mastery-legend summary {
+  cursor: pointer;
+  user-select: none;
+  color: var(--pico-muted-color);
+  font-size: 0.72rem;
+}
+
+.mastery-legend-list {
+  margin: 0.3rem 0 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.5rem;
+}
+
+.mastery-legend-list div {
+  display: contents;
+}
+
+.mastery-legend-list dt {
+  font-family: monospace;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mastery-legend-list dd {
+  margin: 0;
+}
+
 .vocab-term-list {
   border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
