@@ -70,20 +70,18 @@
 
       <!-- Tab bar -->
       <div id="tab-bar" role="tablist">
-        <button role="tab" class="tab-btn" id="tab-btn-generate"
-          aria-selected="true"  aria-controls="tab-generate" tabindex="0">Generate</button>
-        <button role="tab" class="tab-btn" id="tab-btn-settings"
-          aria-selected="false" aria-controls="tab-settings" tabindex="-1">Settings</button>
+        <button role="tab" class="tab-btn" id="tab-btn-configure"
+          aria-selected="true"  aria-controls="tab-configure" tabindex="0">Configure</button>
         <button role="tab" class="tab-btn" id="tab-btn-vocab"
-          aria-selected="false" aria-controls="tab-vocab"    tabindex="-1" hidden>Vocab</button>
+          aria-selected="false" aria-controls="tab-vocab"    tabindex="-1">Vocab</button>
       </div>
 
       <!-- Generate tab -->
-      <div id="tab-generate" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-generate">
+      <div id="tab-configure" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-configure">
       <form id="config-form" novalidate>
 
-        <fieldset class="form-group">
-          <legend>Provider</legend>
+        <details class="form-section" open>
+          <summary>Provider</summary>
           <select id="provider">
             <option value="openai" selected>OpenAI</option>
             <option value="google">Google Gemini</option>
@@ -92,10 +90,21 @@
           <small id="provider-hint" hidden>
             Claude's API blocks browser requests (CORS). Works only via a local proxy.
           </small>
-        </fieldset>
+          <p class="settings-hint">Keys are stored in your browser only and sent only to the selected provider.</p>
+          <label for="api-key">API Key</label>
+          <div class="key-row">
+            <input type="password" id="api-key" autocomplete="off">
+            <button type="button" class="outline secondary key-toggle-btn"
+              data-target="api-key">Show</button>
+            <button type="button" class="outline secondary" id="test-key-btn">Test</button>
+          </div>
+          <small class="test-status" id="test-key-status" hidden></small>
+          <label for="api-model">Model</label>
+          <input type="text" id="api-model">
+        </details>
 
-        <fieldset class="form-group">
-          <legend>Content</legend>
+        <details class="form-section">
+          <summary>Content</summary>
           <label for="topic">Topic <span class="required" aria-hidden="true">*</span></label>
           <textarea id="topic" rows="3"
             placeholder="e.g. a dog and a boy explore a forest"></textarea>
@@ -116,10 +125,10 @@
             <option value="2nd">2nd person (t&#250;)</option>
             <option value="3rd" selected>3rd person</option>
           </select>
-        </fieldset>
+        </details>
 
-        <fieldset class="form-group">
-          <legend>Learner Profile</legend>
+        <details class="form-section">
+          <summary>Learner Profile</summary>
           <label for="target-language">Target language</label>
           <input type="text" id="target-language" value="Spanish">
           <label for="cefr-level">CEFR level</label>
@@ -157,10 +166,10 @@
           </select>
           <label for="native-language">Native language</label>
           <input type="text" id="native-language" value="English">
-        </fieldset>
+        </details>
 
-        <fieldset class="form-group">
-          <legend>Linguistic Focus</legend>
+        <details class="form-section">
+          <summary>Linguistic Focus</summary>
           <label for="tense-focus">Grammar / tense focus</label>
           <input type="text" id="tense-focus" placeholder="e.g. pret&#233;rito, imperfecto">
           <label for="connector-density">Connector density</label>
@@ -175,11 +184,11 @@
           <input type="text" id="include-words" placeholder="comma-separated">
           <label for="exclude-words">Vocabulary to exclude</label>
           <input type="text" id="exclude-words" placeholder="comma-separated">
-        </fieldset>
+        </details>
 
       </form>
 
-      <details id="debug-prompts-section" class="tab-section debug-prompts-details">
+      <details class="form-section debug-prompts-details" id="debug-prompts-section">
         <summary>Last prompt sent to LLM</summary>
         <label for="debug-system-prompt">System</label>
         <textarea id="debug-system-prompt" rows="6" readonly></textarea>
@@ -187,146 +196,99 @@
         <textarea id="debug-user-prompt" rows="4" readonly></textarea>
       </details>
 
-      </div><!-- #tab-generate -->
+      </div><!-- #tab-configure -->
 
-      <!-- Vocab tab (also contains SRS/tuning settings) -->
+      <!-- Vocab tab -->
       <div id="tab-vocab" class="tab-panel" role="tabpanel"
         aria-labelledby="tab-btn-vocab" hidden>
-        <div class="tab-section">
-          <p class="tab-section-label">Vocabulary
-            <span id="vocab-total" class="vocab-count"></span>
-          </p>
-          <p id="vocab-no-profile" class="tab-hint" hidden>
-            Create or select a profile to track vocabulary.
-          </p>
-          <p id="vocab-empty" class="tab-hint" hidden>
-            No vocabulary saved yet. Use Define to look up words.
-          </p>
-          <p id="vocab-mastery-breakdown" class="vocab-breakdown" hidden></p>
-          <details class="mastery-legend">
-            <summary>Mastery levels</summary>
-            <dl class="mastery-legend-list">
-              <div><dt>M0</dt><dd>Never encountered</dd></div>
-              <div><dt>M1</dt><dd>Seen in passing</dd></div>
-              <div><dt>M2</dt><dd>Looked up once</dd></div>
-              <div><dt>M3</dt><dd>Looked up repeatedly</dd></div>
-              <div><dt>M4</dt><dd>Solidifying — re-encountered naturally</dd></div>
-              <div><dt>M5</dt><dd>Passively acquired through reading</dd></div>
-            </dl>
-          </details>
-          <div id="vocab-term-list" class="vocab-term-list"></div>
-          <div class="vocab-actions-row">
-            <button type="button" id="export-anki-btn"
-              class="outline secondary tab-danger-btn" hidden>Anki Export</button>
-            <button type="button" id="clear-vocab-btn"
-              class="outline secondary danger-btn tab-danger-btn" hidden>Clear vocab</button>
-          </div>
-        </div>
-        <div class="tab-section">
-          <p class="tab-section-label">i+1 Vocabulary Hints</p>
-          <label class="settings-check-label">
-            <input type="checkbox" id="srs-enabled">
-            Nudge the LLM with vocabulary context
-          </label>
-          <p class="tab-hint" style="margin:0.15rem 0 0.4rem">When on, the prompt includes your known words and emerging words as soft hints. The LLM may not follow them exactly.</p>
-          <div id="srs-fields">
-            <label class="settings-check-label srs-subfield">
-              <input type="checkbox" id="srs-autosave">
-              Autosave lookups to vocab
-            </label>
-            <div class="srs-grid">
-              <label for="srs-known-threshold">Known threshold</label>
-              <select id="srs-known-threshold">
-                <option value="1">1</option>
-                <option value="2" selected>2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
-              <label for="srs-new-words">New words / session</label>
-              <select id="srs-new-words">
-                <option value="3">3</option>
-                <option value="5" selected>5</option>
-                <option value="8">8</option>
-                <option value="10">10</option>
-              </select>
-              <label for="srs-reexpose-count">Re-expose count</label>
-              <select id="srs-reexpose-count">
-                <option value="5">5</option>
-                <option value="8" selected>8</option>
-                <option value="12">12</option>
-              </select>
-              <label for="srs-reexpose-mastery">Re-expose max mastery</label>
-              <select id="srs-reexpose-mastery">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3" selected>3</option>
-                <option value="4">4</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Settings tab -->
-      <div id="tab-settings" class="tab-panel" role="tabpanel"
-        aria-labelledby="tab-btn-settings" hidden>
-
-        <div class="tab-section">
-          <p class="tab-section-label">Features</p>
+        <div class="vocab-enable-row">
           <label class="settings-check-label">
             <input type="checkbox" id="vocab-enabled">
-            Vocabulary features
+            Enable vocabulary features
           </label>
         </div>
 
+        <div id="vocab-features" hidden>
 
-        <div class="tab-section">
-          <p class="tab-section-label">Display</p>
-          <div class="settings-theme-row">
-            <label for="modal-theme">Theme</label>
-            <select id="modal-theme">
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </div>
-          <div class="settings-maxwidth-row">
+          <details class="form-section" open>
+            <summary>Vocabulary
+              <span id="vocab-total" class="vocab-count"></span>
+            </summary>
+            <p id="vocab-no-profile" class="tab-hint" hidden>
+              Create or select a profile to track vocabulary.
+            </p>
+            <p id="vocab-empty" class="tab-hint" hidden>
+              No vocabulary saved yet. Use Define to look up words.
+            </p>
+            <p id="vocab-mastery-breakdown" class="vocab-breakdown" hidden></p>
+            <details class="mastery-legend">
+              <summary>Mastery levels</summary>
+              <dl class="mastery-legend-list">
+                <div><dt>M0</dt><dd>Never encountered</dd></div>
+                <div><dt>M1</dt><dd>Seen in passing</dd></div>
+                <div><dt>M2</dt><dd>Looked up once</dd></div>
+                <div><dt>M3</dt><dd>Looked up repeatedly</dd></div>
+                <div><dt>M4</dt><dd>Solidifying — re-encountered naturally</dd></div>
+                <div><dt>M5</dt><dd>Passively acquired through reading</dd></div>
+              </dl>
+            </details>
+            <div id="vocab-term-list" class="vocab-term-list"></div>
+            <div class="vocab-actions-row">
+              <button type="button" id="export-anki-btn"
+                class="outline secondary tab-danger-btn" hidden>Anki Export</button>
+              <button type="button" id="clear-vocab-btn"
+                class="outline secondary danger-btn tab-danger-btn" hidden>Clear vocab</button>
+            </div>
+          </details>
+
+          <details class="form-section">
+            <summary>i+1 Vocabulary Hints</summary>
             <label class="settings-check-label">
-              <input type="checkbox" id="modal-maxwidth-enabled" checked>
-              Limit column width to
+              <input type="checkbox" id="srs-enabled">
+              Nudge the LLM with vocabulary context
             </label>
-            <input type="number" id="modal-maxwidth-value"
-              min="40" max="200" step="5" value="70"
-              aria-label="Column width in characters">
-            <span class="settings-unit">ch</span>
-          </div>
-        </div>
+            <p class="tab-hint" style="margin:0.15rem 0 0.4rem">When on, the prompt includes your known words and emerging words as soft hints. The LLM may not follow them exactly.</p>
+            <div id="srs-fields">
+              <label class="settings-check-label srs-subfield">
+                <input type="checkbox" id="srs-autosave">
+                Autosave lookups to vocab
+              </label>
+              <div class="srs-grid">
+                <label for="srs-known-threshold">Known threshold</label>
+                <select id="srs-known-threshold">
+                  <option value="1">1</option>
+                  <option value="2" selected>2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+                <label for="srs-new-words">New words / session</label>
+                <select id="srs-new-words">
+                  <option value="3">3</option>
+                  <option value="5" selected>5</option>
+                  <option value="8">8</option>
+                  <option value="10">10</option>
+                </select>
+                <label for="srs-reexpose-count">Re-expose count</label>
+                <select id="srs-reexpose-count">
+                  <option value="5">5</option>
+                  <option value="8" selected>8</option>
+                  <option value="12">12</option>
+                </select>
+                <label for="srs-reexpose-mastery">Re-expose max mastery</label>
+                <select id="srs-reexpose-mastery">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3" selected>3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+            </div>
+          </details>
 
-        <div class="tab-section">
-          <p class="tab-section-label">API Keys &amp; Models</p>
-          <p class="settings-hint">Keys are stored in your browser only and sent only to the selected provider.</p>
-          <label for="settings-provider">Provider</label>
-          <select id="settings-provider">
-            <option value="openai">OpenAI</option>
-            <option value="google">Google Gemini</option>
-            <option value="claude" class="provider-opt-proxy">Claude (Anthropic) — proxy required</option>
-          </select>
-          <small id="settings-provider-hint" class="settings-hint" hidden>
-            Claude's API blocks browser requests (CORS). Works only via a local proxy.
-          </small>
-          <label for="settings-api-key">API Key</label>
-          <div class="key-row">
-            <input type="password" id="settings-api-key" autocomplete="off">
-            <button type="button" class="outline secondary key-toggle-btn"
-              data-target="settings-api-key">Show</button>
-            <button type="button" class="outline secondary" id="settings-test-btn">Test</button>
-          </div>
-          <small class="test-status" id="settings-test-status" hidden></small>
-          <label for="settings-model">Model</label>
-          <input type="text" id="settings-model">
-        </div>
+        </div><!-- #vocab-features -->
+      </div><!-- #tab-vocab -->
 
-      </div>
 
       <!-- Generate button: always sticky at bottom, submits #config-form -->
       <div class="form-actions">
@@ -347,6 +309,29 @@
           <option value="medium" selected>M</option>
           <option value="large">L</option>
         </select>
+        <div class="display-popover-wrap">
+          <button id="display-settings-btn" class="outline secondary" title="Display settings">⚙</button>
+          <div id="display-popover" hidden>
+            <div class="settings-theme-row">
+              <label for="modal-theme">Theme</label>
+              <select id="modal-theme">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+            <div class="settings-maxwidth-row">
+              <label class="settings-check-label">
+                <input type="checkbox" id="modal-maxwidth-enabled" checked>
+                Limit width to
+              </label>
+              <input type="number" id="modal-maxwidth-value"
+                min="40" max="200" step="5" value="70"
+                aria-label="Column width in characters">
+              <span class="settings-unit">ch</span>
+            </div>
+          </div>
+        </div>
         <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="define-btn" class="outline secondary" aria-pressed="false"
           title="Select a word or phrase to see its translation">Define</button>

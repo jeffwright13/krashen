@@ -9,14 +9,11 @@ import { triggerDownload     } from './display.js';
 
   // ── Tab switching ─────────────────────────────────────────────────────────
 
-  const TAB_IDS = ['generate', 'settings', 'vocab'];
+  const TAB_IDS = ['configure', 'vocab'];
 
   function applyVocabEnabled(enabled) {
-    const vocabBtn = document.getElementById('tab-btn-vocab');
-    vocabBtn.hidden = !enabled;
-    if (!enabled && vocabBtn.getAttribute('aria-selected') === 'true') {
-      activateTab('generate');
-    }
+    document.getElementById('vocab-features').hidden = !enabled;
+    document.getElementById('vocab-enabled').checked = enabled;
   }
 
   function activateTab(tabId) {
@@ -32,10 +29,19 @@ import { triggerDownload     } from './display.js';
       renderVocabStats();
       renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
     }
-    if (tabId === 'settings') {
-      const settings = window.KrashenProfiles?.getActive()?.settings ?? {};
-      document.getElementById('vocab-enabled').checked = settings.vocabEnabled ?? true;
-    }
+  }
+
+  // Accordion: only one <details> open at a time within a container
+  function initAccordion(containerEl) {
+    if (!containerEl) return;
+    containerEl.querySelectorAll(':scope > details, :scope > form > details').forEach(d => {
+      d.addEventListener('toggle', () => {
+        if (!d.open) return;
+        containerEl.querySelectorAll(':scope > details, :scope > form > details').forEach(other => {
+          if (other !== d) other.open = false;
+        });
+      });
+    });
   }
 
   TAB_IDS.forEach(id => {
@@ -43,22 +49,19 @@ import { triggerDownload     } from './display.js';
   });
 
   document.getElementById('tab-bar').addEventListener('keydown', e => {
-    const visibleTabs = TAB_IDS.filter(
-      id => !document.getElementById('tab-btn-' + id).hidden
-    );
-    const current = visibleTabs.findIndex(
+    const current = TAB_IDS.findIndex(
       id => document.getElementById('tab-btn-' + id).getAttribute('aria-selected') === 'true'
     );
     if (e.key === 'ArrowRight') {
-      const next = (current + 1) % visibleTabs.length;
-      activateTab(visibleTabs[next]);
-      document.getElementById('tab-btn-' + visibleTabs[next]).focus();
+      const next = (current + 1) % TAB_IDS.length;
+      activateTab(TAB_IDS[next]);
+      document.getElementById('tab-btn-' + TAB_IDS[next]).focus();
       e.preventDefault();
     }
     if (e.key === 'ArrowLeft') {
-      const prev = (current - 1 + visibleTabs.length) % visibleTabs.length;
-      activateTab(visibleTabs[prev]);
-      document.getElementById('tab-btn-' + visibleTabs[prev]).focus();
+      const prev = (current - 1 + TAB_IDS.length) % TAB_IDS.length;
+      activateTab(TAB_IDS[prev]);
+      document.getElementById('tab-btn-' + TAB_IDS[prev]).focus();
       e.preventDefault();
     }
   });
@@ -501,9 +504,27 @@ import { triggerDownload     } from './display.js';
     renderVocabStats();
   }
 
-  // Initial render on page load
+  // ── vocab-enabled checkbox ────────────────────────────────────────────────
+
+  document.getElementById('vocab-enabled').addEventListener('change', e => {
+    const active = window.KrashenProfiles?.getActive();
+    if (!active) return;
+    const enabled = e.target.checked;
+    window.KrashenProfiles.updateSettings(active.id, { vocabEnabled: enabled });
+    applyVocabEnabled(enabled);
+  });
+
+  // ── Accordion init ────────────────────────────────────────────────────────
+
+  initAccordion(document.getElementById('tab-configure'));
+  initAccordion(document.getElementById('vocab-features'));
+
+  // ── Initial render ────────────────────────────────────────────────────────
+
   renderChip();
-  renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
+  const _activeOnLoad = window.KrashenProfiles?.getActive();
+  renderSrsFields(_activeOnLoad?.settings ?? {});
+  applyVocabEnabled(_activeOnLoad?.settings?.vocabEnabled ?? true);
 
   window.KrashenUI = { refreshSettings, refreshChip: renderChip, refreshVocab: renderVocabStats, activateTab, applyVocabEnabled };
 

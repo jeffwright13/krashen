@@ -324,6 +324,90 @@ html, body {
   padding: 0 0.3rem;
 }
 
+/* Collapsible accordion sections (replaces fieldsets in Configure + Vocab tabs) */
+.form-section {
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  overflow: hidden;
+}
+
+.form-section > summary {
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pico-muted-color);
+  padding: 0.45rem 0.75rem;
+  background: var(--pico-card-sectionning-background-color);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.form-section > summary::before {
+  content: '▶';
+  font-size: 0.55rem;
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.form-section[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.form-section > summary::-webkit-details-marker { display: none; }
+
+.form-section[open] > summary {
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.form-section > :not(summary) {
+  padding: 0.6rem 0.75rem 0;
+}
+
+.form-section > :last-child:not(summary) {
+  padding-bottom: 0.6rem;
+}
+
+/* vocab-count in the Vocabulary summary */
+.form-section > summary .vocab-count {
+  font-size: 0.72rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--pico-muted-color);
+}
+
+/* Display settings popover */
+.display-popover-wrap {
+  position: relative;
+}
+
+#display-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: var(--pico-border-radius);
+  padding: 0.6rem 0.75rem;
+  min-width: 200px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* vocab-enable-row at top of Vocab tab */
+.vocab-enable-row {
+  padding: 0.5rem 0 0.4rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 0.5rem;
+}
+
 .word-cap-hint {
   display: block;
   font-size: 0.72rem;
