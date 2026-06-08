@@ -254,20 +254,23 @@
           </details>
 
           <details class="form-section">
-            <summary>i+1 Vocabulary Hints</summary>
-            <label class="settings-check-label">
+            <summary title="i+1 (Krashen's input hypothesis): acquisition happens fastest when input contains words just slightly beyond your current level. These settings send soft hints to the LLM about your known and emerging vocabulary.">i+1 Vocabulary Hints</summary>
+            <label class="settings-check-label"
+              title="Softly nudges the LLM to reuse words you're still learning and to avoid words you already know well. The LLM treats these as hints, not hard rules.">
               <input type="checkbox" id="srs-enabled"
                 title="Softly nudges the LLM to reuse words you're still learning and to avoid words you already know well. The LLM treats these as hints, not hard rules.">
               Nudge the LLM with vocabulary context
             </label>
             <div id="srs-fields">
-              <label class="settings-check-label srs-subfield">
+              <label class="settings-check-label srs-subfield"
+                title="Automatically save every Define lookup to your vocabulary list without clicking 'Save to vocab'.">
                 <input type="checkbox" id="srs-autosave"
                   title="Automatically save every Define lookup to your vocabulary list without clicking 'Save to vocab'.">
                 Autosave lookups to vocab
               </label>
               <div class="srs-grid">
-                <label for="srs-known-threshold">Known threshold</label>
+                <label for="srs-known-threshold"
+                  title="Mastery level (M0–M5) at or above which a word is considered known and included in the LLM's known-words hint list.">Known threshold</label>
                 <select id="srs-known-threshold"
                   title="Mastery level (M0–M5) at or above which a word is considered known and included in the LLM's known-words hint list.">
                   <option value="1">1</option>
@@ -275,7 +278,8 @@
                   <option value="3">3</option>
                   <option value="4">4</option>
                 </select>
-                <label for="srs-new-words">New words / session</label>
+                <label for="srs-new-words"
+                  title="Target number of new (unseen) words the LLM should try to introduce per generated piece.">New words / session</label>
                 <select id="srs-new-words"
                   title="Target number of new (unseen) words the LLM should try to introduce per generated piece.">
                   <option value="3">3</option>
@@ -283,14 +287,16 @@
                   <option value="8">8</option>
                   <option value="10">10</option>
                 </select>
-                <label for="srs-reexpose-count">Re-expose count</label>
+                <label for="srs-reexpose-count"
+                  title="Maximum number of emerging (low-mastery) words to include in the re-exposure hint sent to the LLM.">Re-expose count</label>
                 <select id="srs-reexpose-count"
                   title="Maximum number of emerging (low-mastery) words to include in the re-exposure hint sent to the LLM.">
                   <option value="5">5</option>
                   <option value="8" selected>8</option>
                   <option value="12">12</option>
                 </select>
-                <label for="srs-reexpose-mastery">Re-expose max mastery</label>
+                <label for="srs-reexpose-mastery"
+                  title="Words at or below this mastery level are candidates for re-exposure. M3 means 'looked up repeatedly but not yet solidified'.">Re-expose max mastery</label>
                 <select id="srs-reexpose-mastery"
                   title="Words at or below this mastery level are candidates for re-exposure. M3 means 'looked up repeatedly but not yet solidified'.">
                   <option value="1">1</option>
