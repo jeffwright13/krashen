@@ -3,7 +3,7 @@ const ACTIVE_KEY   = 'krashen_active_profile';
 
 const DEFAULT_SETTINGS = {
   autosave:           false,
-  srsEnabled:         true,
+  srsEnabled:         false,
   knownThreshold:     2,
   newWordsPerSession: 5,
   reExposeCount:      8,

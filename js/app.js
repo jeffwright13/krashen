@@ -8,7 +8,8 @@ import { parseLibraryJSON } from './import.js';
 import { mergeHistory } from './storage.js';
 import { toggleLoading, renderContent, renderError, showToast, triggerDownload } from './display.js';
 
-let currentEntry = null;
+let currentEntry   = null;
+let lastPrompts    = null;  // { system, user } from most recent generation
 
 function isVocabEnabled() {
   return window.KrashenProfiles?.getActive()?.settings?.vocabEnabled ?? true;
@@ -81,6 +82,8 @@ async function handleGenerate(e) {
       system: buildSystemPrompt(config, vocabContext),
       user:   buildUserPrompt(config),
     };
+    lastPrompts = prompts;
+    updatePromptDebug();
 
     const model    = getModel(config.provider);
     const content  = await generateContent(prompts, config.provider, apiKey, model || undefined);
@@ -97,10 +100,6 @@ async function handleGenerate(e) {
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
-    if (isVocabEnabled()) {
-      document.getElementById('review-btn').hidden = false;
-      document.getElementById('study-btn').hidden = false;
-    }
 
     if (window.KrashenVocab) {
       const words = [...new Set(
@@ -196,6 +195,27 @@ function initSettingsTab() {
     window.KrashenProfiles.updateSettings(active.id, { vocabEnabled: enabled });
     window.KrashenUI?.applyVocabEnabled(enabled);
   });
+
+  const debugToggle = document.getElementById('debug-prompts-enabled');
+  if (debugToggle) {
+    const uiSettings = getSettings().ui;
+    debugToggle.checked = uiSettings.debugPrompts ?? false;
+    document.getElementById('debug-prompts-section').hidden = !debugToggle.checked;
+    debugToggle.addEventListener('change', () => {
+      const s = getSettings();
+      s.ui.debugPrompts = debugToggle.checked;
+      setSettings(s);
+      document.getElementById('debug-prompts-section').hidden = !debugToggle.checked;
+      if (debugToggle.checked) updatePromptDebug();
+    });
+  }
+}
+
+function updatePromptDebug() {
+  const section = document.getElementById('debug-prompts-section');
+  if (!section || section.hidden || !lastPrompts) return;
+  document.getElementById('debug-system-prompt').value = lastPrompts.system;
+  document.getElementById('debug-user-prompt').value   = lastPrompts.user;
 }
 
 async function handleTestKey(provider, keyInput, statusEl, btn) {
@@ -541,10 +561,6 @@ function renderHistoryList() {
         date:      entry.date,
       });
       document.getElementById('export-piece-btn').hidden = false;
-      if (isVocabEnabled()) {
-        document.getElementById('review-btn').hidden = false;
-        document.getElementById('study-btn').hidden = false;
-      }
       document.getElementById('history-modal').close();
     });
 
@@ -626,240 +642,6 @@ document.getElementById('clear-history-btn').addEventListener('click', () => {
 });
 
 // ── Vocabulary study (active recall) ─────────────────────────────────────────
-
-let studyDeck  = [];
-let studyIndex = 0;
-let studyStats = {};
-const studyReaddedTerms = new Set();
-
-function extractSentence(paragraph, term) {
-  const sentences = paragraph.split(/(?<=[.!?¡])\s+/);
-  const hit = sentences.find(s => s.toLowerCase().includes(term.toLowerCase()));
-  return (hit ?? paragraph).trim();
-}
-
-function buildStudyDeck() {
-  if (!currentEntry?.content || !window.KrashenVocab) return [];
-  const store      = window.KrashenVocab.getStore();
-  const storyWords = new Set(
-    currentEntry.content.toLowerCase()
-      .replace(/[¡!¿?.,;:«»"'()\-—]/g, ' ')
-      .split(/\s+/).filter(Boolean)
-  );
-  return Object.values(store)
-    .filter(e => !e.inactive && storyWords.has(e.term))
-    .sort((a, b) => (a.userMastery ?? a.mastery) - (b.userMastery ?? b.mastery));
-}
-
-function showStudyCard(entry) {
-  const total = studyDeck.length;
-  document.getElementById('study-progress').textContent = `${studyIndex + 1} / ${total}`;
-
-  document.getElementById('study-term').textContent       = entry.term;
-  document.getElementById('study-term-back').textContent  = entry.term;
-  document.getElementById('study-context').textContent    =
-    entry.contexts?.length ? `"${extractSentence(entry.contexts[0], entry.term)}"` : '';
-  document.getElementById('study-translation').textContent =
-    entry.translations?.length ? entry.translations[0] : '(no translation recorded)';
-
-  const em = entry.userMastery ?? entry.mastery;
-  const mEl = document.getElementById('study-mastery');
-  mEl.textContent = `M${em}`;
-  mEl.className   = 'review-mastery' + (entry.userMastery !== undefined ? ' review-mastery-user' : '');
-
-  document.getElementById('study-front').hidden   = false;
-  document.getElementById('study-back').hidden    = true;
-  document.getElementById('study-empty').hidden   = true;
-  document.getElementById('study-summary').hidden = true;
-  document.getElementById('study-card').hidden    = false;
-}
-
-function showStudySummary() {
-  document.getElementById('study-card').hidden    = true;
-  document.getElementById('study-summary').hidden = false;
-  document.getElementById('study-progress').textContent = '';
-
-  const total = studyStats.again + studyStats.hard + studyStats.good + studyStats.easy;
-  document.getElementById('study-summary-text').textContent =
-    `Session complete — ${total} card${total !== 1 ? 's' : ''} reviewed.`;
-
-  const statsEl = document.getElementById('study-summary-stats');
-  statsEl.innerHTML = '';
-  [
-    { label: 'Again', key: 'again', cls: 'again' },
-    { label: 'Hard',  key: 'hard',  cls: 'hard'  },
-    { label: 'Good',  key: 'good',  cls: 'good'  },
-    { label: 'Easy',  key: 'easy',  cls: 'easy'  },
-  ].forEach(({ label, key, cls }) => {
-    if (studyStats[key] === 0) return;
-    const chip = document.createElement('span');
-    chip.className   = `study-stat-chip review-btn-${cls}`;
-    chip.textContent = `${label}: ${studyStats[key]}`;
-    statsEl.appendChild(chip);
-  });
-}
-
-function openStudyModal() {
-  studyDeck  = buildStudyDeck();
-  studyIndex = 0;
-  studyStats = { again: 0, hard: 0, good: 0, easy: 0 };
-  studyReaddedTerms.clear();
-
-  const emptyEl = document.getElementById('study-empty');
-  const cardEl  = document.getElementById('study-card');
-
-  if (studyDeck.length === 0) {
-    emptyEl.hidden   = false;
-    cardEl.hidden    = true;
-    document.getElementById('study-summary').hidden = true;
-    document.getElementById('study-progress').textContent = '';
-  } else {
-    emptyEl.hidden = true;
-    showStudyCard(studyDeck[0]);
-  }
-  document.getElementById('study-modal').showModal();
-}
-
-document.getElementById('study-btn').addEventListener('click', openStudyModal);
-
-document.getElementById('study-show-answer').addEventListener('click', () => {
-  document.getElementById('study-front').hidden = true;
-  document.getElementById('study-back').hidden  = false;
-});
-
-document.querySelectorAll('[data-study-delta]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const delta = parseInt(btn.dataset.studyDelta, 10);
-    const label = btn.dataset.studyLabel;
-    const entry = studyDeck[studyIndex];
-
-    const current  = entry.userMastery ?? entry.mastery;
-    const newLevel = Math.max(0, Math.min(5, current + delta));
-    window.KrashenVocab?.setMastery(entry.term, newLevel);
-    entry.userMastery = newLevel;
-    window.KrashenUI?.refreshVocab();
-
-    studyStats[label]++;
-
-    // Re-add "Again" words once per session
-    if (delta < 0 && !studyReaddedTerms.has(entry.term)) {
-      studyReaddedTerms.add(entry.term);
-      studyDeck.push({ ...entry, userMastery: newLevel });
-    }
-
-    studyIndex++;
-    if (studyIndex >= studyDeck.length) {
-      showStudySummary();
-    } else {
-      showStudyCard(studyDeck[studyIndex]);
-    }
-  });
-});
-
-document.getElementById('study-again-btn').addEventListener('click', () => {
-  // Restart the session with the original word set
-  openStudyModal();
-});
-
-document.getElementById('study-done-btn').addEventListener('click', () => {
-  document.getElementById('study-modal').close();
-});
-
-document.getElementById('close-study').addEventListener('click', () => {
-  document.getElementById('study-modal').close();
-});
-
-document.getElementById('study-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) e.currentTarget.close();
-});
-
-// ── Vocabulary review ─────────────────────────────────────────────────────────
-
-function openReviewModal() {
-  if (!currentEntry?.content || !window.KrashenVocab) return;
-
-  const store      = window.KrashenVocab.getStore();
-  const storyWords = new Set(
-    currentEntry.content.toLowerCase()
-      .replace(/[¡!¿?.,;:«»"'()\-—]/g, ' ')
-      .split(/\s+/).filter(Boolean)
-  );
-  const words = Object.values(store)
-    .filter(e => !e.inactive && storyWords.has(e.term))
-    .sort((a, b) => (a.userMastery ?? a.mastery) - (b.userMastery ?? b.mastery));
-
-  const listEl  = document.getElementById('review-list');
-  const emptyEl = document.getElementById('review-empty');
-  listEl.innerHTML = '';
-  emptyEl.hidden   = words.length > 0;
-
-  words.forEach(entry => {
-    const row = document.createElement('div');
-    row.className = 'review-item';
-
-    const left = document.createElement('div');
-    left.className = 'review-item-left';
-
-    const termEl = document.createElement('span');
-    termEl.className   = 'review-term';
-    termEl.textContent = entry.term;
-    left.appendChild(termEl);
-
-    if (entry.translations?.length > 0) {
-      const transEl = document.createElement('span');
-      transEl.className   = 'review-translation';
-      transEl.textContent = entry.translations[0];
-      left.appendChild(transEl);
-    }
-
-    const mastEl = document.createElement('span');
-    mastEl.className = 'review-mastery' + (entry.userMastery !== undefined ? ' review-mastery-user' : '');
-    mastEl.textContent = 'M' + (entry.userMastery ?? entry.mastery);
-
-    const actions = document.createElement('div');
-    actions.className = 'review-actions';
-
-    [
-      { label: 'Again', delta: -1, cls: 'again' },
-      { label: 'Hard',  delta:  0, cls: 'hard'  },
-      { label: 'Good',  delta:  1, cls: 'good'  },
-      { label: 'Easy',  delta:  2, cls: 'easy'  },
-    ].forEach(({ label, delta, cls }) => {
-      const btn = document.createElement('button');
-      btn.textContent = label;
-      btn.className   = `review-btn review-btn-${cls}`;
-      btn.addEventListener('click', () => {
-        const current  = entry.userMastery ?? entry.mastery;
-        const newLevel = Math.max(0, Math.min(5, current + delta));
-        window.KrashenVocab.setMastery(entry.term, newLevel);
-        entry.userMastery  = newLevel;
-        mastEl.textContent = 'M' + newLevel;
-        mastEl.className   = 'review-mastery review-mastery-user';
-        actions.querySelectorAll('.review-btn').forEach(b => b.classList.remove('review-btn-selected'));
-        btn.classList.add('review-btn-selected');
-        window.KrashenUI?.refreshVocab();
-      });
-      actions.appendChild(btn);
-    });
-
-    row.appendChild(left);
-    row.appendChild(mastEl);
-    row.appendChild(actions);
-    listEl.appendChild(row);
-  });
-
-  document.getElementById('review-modal').showModal();
-}
-
-document.getElementById('review-btn').addEventListener('click', openReviewModal);
-
-document.getElementById('close-review').addEventListener('click', () => {
-  document.getElementById('review-modal').close();
-});
-
-document.getElementById('review-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) e.currentTarget.close();
-});
 
 // ── Load user text ────────────────────────────────────────────────────────────
 
@@ -1057,10 +839,6 @@ setTimeout(() => {
       date:       saved.date,
     });
     document.getElementById('export-piece-btn').hidden = false;
-    if (isVocabEnabled()) {
-      document.getElementById('review-btn').hidden = false;
-      document.getElementById('study-btn').hidden = false;
-    }
   } catch (_) {}
 })();
 

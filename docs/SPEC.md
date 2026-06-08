@@ -117,26 +117,29 @@ Tab order is fixed: **Generate | Settings | Vocab**. Generate and Settings are a
 | Tab | Contents | Always visible? |
 |---|---|---|
 | Generate | Provider selector; content and linguistic focus parameters | Yes |
-| Settings | API keys/models (per provider); theme; column width; **vocabulary features toggle** | Yes |
-| Vocab | Per-profile vocabulary list with mastery breakdown; SRS / i+1 parameters; Clear vocab | When vocab enabled |
+| Settings | API keys/models; theme; column width; **vocabulary features toggle**; prompt debug toggle | Yes |
+| Vocab | Vocab list with mastery breakdown; Export for Anki; Clear vocab; i+1 hint parameters | When vocab enabled |
 
 ### 4.2 Profile chip (always visible)
 
 Above the tab bar: a small "Profile" label, then the active profile name + cumulative words-read counter. Click to expand for profile management (switch / create / delete / export / import).
 
-### 4.3 Per-profile SRS settings (Vocab tab)
+### 4.3 i+1 vocabulary hint settings (Vocab tab lower section)
 
-The lower section of the Vocab tab contains SRS / i+1 parameters. Saved immediately on change via `KrashenProfiles.updateSettings()`. See SPEC §1.5 for the full parameter list.
+When `srsEnabled` is true (off by default), `buildSystemPrompt()` appends a soft hint block to the LLM prompt containing known terms, emerging terms, and a new-words ceiling. The LLM is not guaranteed to follow these hints. Parameters: known threshold, new words per session, re-expose count, re-expose max mastery. Saved immediately on change via `KrashenProfiles.updateSettings()`.
 
 ### 4.5 Vocabulary features toggle
 
 `settings.vocabEnabled` (boolean, per-profile, default `false` for new profiles). When `false`:
 - Vocab tab button is hidden
-- Review and Study toolbar buttons are hidden after generation
 - "Save to vocab" option is suppressed in the Define popup (Define itself still works)
 - New entries are not autosaved
 
 Existing profiles created before v3.11 treat a missing `vocabEnabled` key as `true`. The toggle lives in **Settings → Features**.
+
+### 4.6 Prompt debug
+
+`ui.debugPrompts` (boolean, global, default `false`). When `true`, a "Last prompt sent to LLM" section is visible at the bottom of the Settings tab, populated after each generation with the system and user prompts exactly as sent. Useful for understanding how UI fields map to LLM parameters. Toggle lives in **Settings → Features**.
 
 ### 4.4 Global settings (Settings tab)
 
@@ -199,25 +202,15 @@ Each vocab entry displays a badge **M0–M5** ("M" for Mastery). The level is de
 | M4 | Solidifying | lookupCount ≥ 1 and seenCount > lookupCount (re-encountered naturally after looking up) |
 | M5 | Passively acquired | seenCount ≥ 3 and lookupCount = 0 (absorbed through reading alone, never needed to look up) |
 
-**Effective mastery:** all SRS logic (`getForPrompt`, Vocab tab display, Review modal) uses `entry.userMastery ?? entry.mastery`. When a user rates a word in the Review or Study modal, that sets `userMastery` (displayed in accent colour as an override). The algorithmic `mastery` field continues to update from counts but never overwrites a user rating.
+**Effective mastery:** `getForPrompt` and Vocab tab display use `entry.userMastery ?? entry.mastery`. The algorithmic `mastery` field continues to update from counts but never overwrites a stored `userMastery`. Note: `userMastery` can only be set programmatically; the Review and Study modals were removed in v4.0 (see DECISIONS.md).
 
-### 6.3 i+1 prompt integration
+### 6.3 i+1 prompt integration (optional)
 
-When SRS is enabled for the active profile, `buildSystemPrompt()` injects a vocabulary constraints block containing: known terms (mastery ≥ threshold, capped at 50), re-expose terms (mastery 1–maxMastery, most recently seen first, capped at reExposeCount), and a new-words-per-session ceiling.
+When `srsEnabled` is true for the active profile (off by default), `buildSystemPrompt()` injects a soft hint block: known terms (mastery ≥ threshold, capped at 50), re-expose terms (1 ≤ mastery ≤ maxMastery, most recently seen first, capped at reExposeCount), and a new-words-per-session ceiling. The LLM may not follow these hints exactly.
 
-### 6.4 Post-story review (v3.9)
+### 6.4 Anki export
 
-After generating or loading a story, a **Review** button appears in the reading toolbar. Clicking it opens a modal listing every tracked vocab word that appeared in the story, sorted by effective mastery (lowest first). Each row shows:
-
-- Term and first recorded translation (if any)
-- Current effective mastery badge (accent colour when user-rated)
-- Rating buttons: **Again** (−1) · **Hard** (±0) · **Good** (+1) · **Easy** (+2)
-
-Ratings write to `entry.userMastery` and immediately affect the next generation's i+1 constraints. The Vocab tab updates in real time as ratings are applied.
-
-### 6.5 Future work
-
-- Lemmatization: plurals and conjugations currently stored as separate entries (see project notes)
+A **Export for Anki** button in the Vocab tab generates a tab-separated `.txt` file with one row per active entry: `term\ttranslation\tcontext`. Importable directly into Anki via File → Import. The file is named `krashen-{profile-slug}-anki.txt`.
 
 ---
 

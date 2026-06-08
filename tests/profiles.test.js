@@ -21,7 +21,7 @@ module.exports = {
     assert.strictEqual(typeof p.lastActive, 'number');
     assert.strictEqual(typeof p.settings, 'object');
     assert.strictEqual(p.settings.autosave, false);
-    assert.strictEqual(p.settings.srsEnabled, true);
+    assert.strictEqual(p.settings.srsEnabled, false);
   },
 
   'getAll() returns all created profiles': function () {
@@ -151,7 +151,7 @@ module.exports = {
     assert.strictEqual(p.name, 'Imported');
     assert.strictEqual(p.wordsRead, 42);
     assert.strictEqual(p.settings.knownThreshold, 3);
-    assert.strictEqual(p.settings.srsEnabled, true);    // default preserved
+    assert.strictEqual(p.settings.srsEnabled, false);    // default preserved
     assert.strictEqual(p.formDefaults.cefrLevel, 'B2');
     assert.strictEqual(p.formDefaults.provider, 'openai'); // default preserved
     assert.strictEqual(P.getAll().length, 1);

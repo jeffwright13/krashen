@@ -384,6 +384,7 @@ import { triggerDownload     } from './display.js';
     const breakdownEl = document.getElementById('vocab-mastery-breakdown');
     const listEl      = document.getElementById('vocab-term-list');
     const clearBtn    = document.getElementById('clear-vocab-btn');
+    const ankiBtn     = document.getElementById('export-anki-btn');
     const totalEl     = document.getElementById('vocab-total');
 
     const activeProfile = window.KrashenProfiles?.getActive();
@@ -392,6 +393,7 @@ import { triggerDownload     } from './display.js';
       emptyEl.hidden      = true;
       breakdownEl.hidden  = true;
       clearBtn.hidden     = true;
+      if (ankiBtn) ankiBtn.hidden = true;
       listEl.innerHTML    = '';
       totalEl.textContent = '';
       return;
@@ -407,6 +409,7 @@ import { triggerDownload     } from './display.js';
       emptyEl.hidden      = false;
       breakdownEl.hidden  = true;
       clearBtn.hidden     = true;
+      if (ankiBtn) ankiBtn.hidden = true;
       listEl.innerHTML    = '';
       totalEl.textContent = '';
       return;
@@ -418,8 +421,9 @@ import { triggerDownload     } from './display.js';
     if (inactive.length > 0) totalLabel += ` · ${inactive.length} hidden`;
     totalEl.textContent = totalLabel;
 
-    // Breakdown reflects active entries only; clear button available whenever any entry exists
+    // Breakdown reflects active entries only; action buttons available whenever any entry exists
     clearBtn.hidden = false;
+    if (ankiBtn) ankiBtn.hidden = false;
     if (active.length > 0) {
       const byMastery = [0, 0, 0, 0, 0, 0];
       active.forEach(e => { const m = e.userMastery ?? e.mastery; byMastery[m] = (byMastery[m] || 0) + 1; });
@@ -454,6 +458,23 @@ import { triggerDownload     } from './display.js';
       }
     }
   }
+
+  document.getElementById('export-anki-btn').addEventListener('click', () => {
+    const store = window.KrashenVocab?.getStore() ?? {};
+    const entries = Object.values(store).filter(e => !e.inactive);
+    if (entries.length === 0) return;
+
+    const rows = entries.map(e => {
+      const term        = e.term;
+      const translation = e.translations?.[0] ?? '';
+      const context     = e.contexts?.[0]?.replace(/\t|\n/g, ' ') ?? '';
+      return `${term}\t${translation}\t${context}`;
+    });
+
+    const profile = window.KrashenProfiles?.getActive();
+    const slug    = (profile?.name ?? 'vocab').replace(/[^a-z0-9]+/gi, '-').toLowerCase().slice(0, 40);
+    triggerDownload(`krashen-${slug}-anki.txt`, rows.join('\n'), 'text/plain');
+  });
 
   document.getElementById('clear-vocab-btn').addEventListener('click', () => {
     if (!confirm('Clear all vocabulary for this profile?')) return;
