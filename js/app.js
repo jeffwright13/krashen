@@ -283,18 +283,12 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
   });
 })();
 
-// ── Provider hint ─────────────────────────────────────────────────────────────
+// ── Provider change ───────────────────────────────────────────────────────────
 
 const providerSelect = document.getElementById('provider');
-const providerHint   = document.getElementById('provider-hint');
-function updateProviderHint() {
-  providerHint.hidden = providerSelect.value !== 'claude';
-}
 providerSelect.addEventListener('change', () => {
-  updateProviderHint();
   saveFormDefault('provider', providerSelect.value);
 });
-updateProviderHint();
 
 // ── Show/hide key toggles ─────────────────────────────────────────────────────
 
@@ -762,7 +756,6 @@ function restoreFormDefaults(profile) {
   document.getElementById('target-dialect').value  = fd.targetDialect;
   document.getElementById('target-language').value = fd.targetLanguage;
   document.getElementById('native-language').value = fd.nativeLanguage;
-  updateProviderHint();
 }
 
 (function initFormDefaults() {
