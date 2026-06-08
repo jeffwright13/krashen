@@ -326,6 +326,9 @@ import { triggerDownload     } from './display.js';
 
     const termName = document.createElement('span');
     termName.textContent = entry.term;
+    if (entry.translations?.length) {
+      termName.title = entry.translations.join(' · ');
+    }
     termEl.appendChild(termName);
 
     const otherForms = (entry.forms ?? []).filter(f => f !== entry.term);
@@ -333,6 +336,7 @@ import { triggerDownload     } from './display.js';
       const formsEl = document.createElement('span');
       formsEl.className   = 'vocab-forms';
       formsEl.textContent = otherForms.join(', ');
+      formsEl.title       = 'Other forms of this word you have looked up';
       termEl.appendChild(formsEl);
     }
 
@@ -350,6 +354,7 @@ import { triggerDownload     } from './display.js';
       const resumeBtn = document.createElement('button');
       resumeBtn.textContent = 'Resume';
       resumeBtn.className   = 'vocab-action-btn vocab-resume-btn';
+      resumeBtn.title       = 'Restore this word to the active list so it appears in the i+1 hint again';
       resumeBtn.addEventListener('click', () => {
         window.KrashenVocab.setActive(entry.term, true);
         renderVocabStats();
@@ -359,6 +364,7 @@ import { triggerDownload     } from './display.js';
       const skipBtn = document.createElement('button');
       skipBtn.textContent = 'Skip';
       skipBtn.className   = 'vocab-action-btn vocab-skip-btn';
+      skipBtn.title       = 'Hide this word from the i+1 hint list without deleting it — useful when a word is not relevant to your current topic';
       skipBtn.addEventListener('click', () => {
         window.KrashenVocab.setActive(entry.term, false);
         renderVocabStats();
@@ -369,6 +375,7 @@ import { triggerDownload     } from './display.js';
     const delBtn = document.createElement('button');
     delBtn.textContent = '×';
     delBtn.className   = 'vocab-action-btn vocab-delete-btn';
+    delBtn.title       = 'Permanently delete this word from your vocabulary. You can re-save it via Define.';
     delBtn.addEventListener('click', () => {
       window.KrashenVocab.deleteTerm(entry.term);
       renderVocabStats();
