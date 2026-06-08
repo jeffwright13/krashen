@@ -179,13 +179,13 @@
 
       </form>
 
-      <div id="debug-prompts-section" class="tab-section" hidden>
-        <p class="tab-section-label">Last prompt sent to LLM</p>
+      <details id="debug-prompts-section" class="tab-section debug-prompts-details">
+        <summary>Last prompt sent to LLM</summary>
         <label for="debug-system-prompt">System</label>
         <textarea id="debug-system-prompt" rows="6" readonly></textarea>
         <label for="debug-user-prompt">User</label>
         <textarea id="debug-user-prompt" rows="4" readonly></textarea>
-      </div>
+      </details>
 
       </div><!-- #tab-generate -->
 
@@ -276,10 +276,6 @@
           <label class="settings-check-label">
             <input type="checkbox" id="vocab-enabled">
             Vocabulary features
-          </label>
-          <label class="settings-check-label">
-            <input type="checkbox" id="debug-prompts-enabled">
-            Show prompt debug
           </label>
         </div>
 

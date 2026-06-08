@@ -265,6 +265,16 @@ html, body {
   flex-wrap: wrap;
 }
 
+.debug-prompts-details summary {
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.72rem;
+  color: var(--pico-muted-color);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 #debug-system-prompt,
 #debug-user-prompt {
   font-family: monospace;
@@ -272,6 +282,7 @@ html, body {
   resize: vertical;
   width: 100%;
   white-space: pre;
+  margin-top: 0.3rem;
 }
 
 .tab-hint {
