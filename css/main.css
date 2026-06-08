@@ -258,6 +258,22 @@ html, body {
   margin-top: 0.5rem;
 }
 
+.vocab-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#debug-system-prompt,
+#debug-user-prompt {
+  font-family: monospace;
+  font-size: 0.72rem;
+  resize: vertical;
+  width: 100%;
+  white-space: pre;
+}
+
 .tab-hint {
   font-size: 0.82rem;
   color: var(--pico-muted-color);
@@ -618,209 +634,7 @@ html, body {
 
 /* ── History modal ───────────────────────────────────────── */
 
-/* ── Study modal ─────────────────────────────────────────── */
-
-#study-modal article {
-  max-width: 460px;
-  width: 100%;
-}
-
-#study-modal header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.study-progress {
-  font-size: 0.78rem;
-  color: var(--pico-muted-color);
-  font-family: monospace;
-  flex-shrink: 0;
-}
-
-.study-title {
-  flex: 1;
-  margin: 0;
-  font-size: 1rem;
-  text-align: center;
-}
-
-#study-front,
-#study-back {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0 1rem;
-}
-
-.study-term {
-  font-size: 1.6rem;
-  font-weight: 700;
-  text-align: center;
-  margin: 0.25rem 0;
-}
-
-.study-context {
-  font-size: 0.82rem;
-  color: var(--pico-muted-color);
-  font-style: italic;
-  text-align: center;
-  margin: 0;
-  max-width: 36ch;
-}
-
-.study-translation {
-  font-size: 1.05rem;
-  color: var(--pico-primary);
-  text-align: center;
-  margin: 0;
-}
-
-.study-rating-row {
-  justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.25rem;
-}
-
-.study-rating-row .review-btn {
-  font-size: 0.82rem;
-  padding: 0.3rem 0.8rem;
-}
-
-.study-summary-text {
-  text-align: center;
-  font-size: 1rem;
-  margin: 1rem 0 0.5rem;
-}
-
-.study-summary-stats {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1.25rem;
-}
-
-.study-stat-chip {
-  font-size: 0.78rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 99px;
-  border: 1px solid currentColor;
-}
-
-.study-summary-actions {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-/* ── Review modal ────────────────────────────────────────── */
-
-#review-modal article {
-  max-width: 620px;
-  max-height: 80vh;
-  display: flex;
-  flex-direction: column;
-}
-
-#review-modal header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  flex-shrink: 0;
-}
-
-#review-modal header h2 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.review-hint {
-  font-size: 0.82rem;
-  color: var(--pico-muted-color);
-  margin-bottom: 0.75rem;
-  flex-shrink: 0;
-}
-
-#review-list {
-  overflow-y: auto;
-  flex: 1;
-}
-
-.review-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid var(--pico-muted-border-color);
-}
-
-.review-item:last-child {
-  border-bottom: none;
-}
-
-.review-item-left {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.review-term {
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.review-translation {
-  font-size: 0.78rem;
-  color: var(--pico-muted-color);
-}
-
-.review-mastery {
-  font-size: 0.72rem;
-  font-family: monospace;
-  color: var(--pico-muted-color);
-  flex-shrink: 0;
-  min-width: 2rem;
-  text-align: center;
-}
-
-.review-mastery-user {
-  color: var(--pico-primary);
-  font-weight: 700;
-}
-
-.review-actions {
-  display: flex;
-  gap: 0.25rem;
-  flex-shrink: 0;
-}
-
-.review-btn {
-  all: unset;
-  cursor: pointer;
-  font-size: 0.72rem;
-  padding: 0.15rem 0.45rem;
-  border-radius: 3px;
-  border: 1px solid var(--pico-muted-border-color);
-  color: var(--pico-muted-color);
-  white-space: nowrap;
-}
-
-.review-btn:hover           { color: var(--pico-color); border-color: var(--pico-color); }
-.review-btn-again           { border-color: #c0392b33; color: #c0392b; }
-.review-btn-again:hover     { background: #c0392b18; }
-.review-btn-hard:hover      { background: var(--pico-card-sectionning-background-color); }
-.review-btn-good            { border-color: #27ae6033; color: #27ae60; }
-.review-btn-good:hover      { background: #27ae6018; }
-.review-btn-easy            { border-color: #2980b933; color: #2980b9; }
-.review-btn-easy:hover      { background: #2980b918; }
-.review-btn-selected        { font-weight: 700; outline: 2px solid currentColor; outline-offset: 1px; }
+/* ── Load-text modal (study/review removed in v4.0) ─────── */
 
 /* ── Load-text modal ─────────────────────────────────────── */
 

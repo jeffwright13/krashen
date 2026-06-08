@@ -5,26 +5,30 @@ A browser-based reading tool built around Stephen Krashen's
 language fastest when input is just slightly beyond your current level — comprehensible,
 but with a handful of new words to stretch you.
 
-Krashen puts that loop into practice. It generates graded Spanish reading content via LLM,
-tuned to your CEFR level, vocabulary cap, dialect, and grammar focus. Then it tracks every
-word you look up. The next piece you generate is automatically constrained to reintroduce
-words you're still learning and avoid flooding you with unknowns. Over time the reading
-gets harder as your vocabulary grows — because it actually knows what you know.
+Krashen generates graded Spanish reading content via LLM, tuned to your CEFR level,
+vocabulary cap, dialect, and grammar focus. It tracks the words you look up and lets
+you export them for use in Anki or any other SRS tool you already use.
 
 **What's in the box:**
 
 - **Generate** — stories, articles, dialogues, or scripts at any CEFR level (A0–C2),
   with configurable word-frequency cap, dialect, tense focus, narrative person, and length
 - **Define** — select any word or phrase to get an instant inline translation from the same
-  LLM; save to your vocab store in one click, or enable autosave per profile
-- **Vocab tracking** — SRS mastery levels (0–5) derived from how often you've seen and
-  looked up each word; Skip words that don't fit the current topic; Resume them later
-- **i+1 constraints** — known vocabulary is suppressed from the prompt; words still being
-  learned are reintroduced; new words per session is configurable
+  LLM; the base/dictionary form (lemma) is stored automatically; save to vocab in one click
+  or enable autosave per profile
+- **Vocab tracking** — entries keyed by lemma with surface forms recorded; mastery levels
+  M0–M5 as an exposure indicator; Skip words to suppress them from the i+1 hint list
+- **Export for Anki** — export your vocab list as a tab-separated `.txt` file
+  (term, translation, context) importable directly into Anki
+- **i+1 vocabulary hints** (optional, off by default) — softly nudges the LLM to
+  reintroduce emerging words and avoid known ones; configurable in the Vocab tab
 - **Profiles** — separate learner configurations with their own vocab store, CEFR level,
-  dialect, provider preference, and SRS settings; import/export for backup or transfer
+  dialect, provider preference, and settings; import/export for backup or transfer
 - **History** — every generated piece saved with metadata, filterable by profile,
   exportable as JSON or Markdown
+- **Prompt debug** (optional, off by default) — shows the exact system and user prompts
+  sent to the LLM after each generation; useful for understanding how UI fields map to
+  prompt knobs
 
 No backend. No accounts. API keys live in your browser and go only to the provider you
 choose.
@@ -93,45 +97,16 @@ require a DOM.
 | Test file | Runner | What it covers |
 |---|---|---|
 | `config.test.js` | Vitest | `DEFAULT_CONFIG` constants, `validateConfig` |
-| `prompt.test.js` | Vitest | `buildSystemPrompt`, `buildUserPrompt`, `buildI1Constraints` |
+| `prompt.test.js` | Vitest | `buildSystemPrompt`, `buildUserPrompt`, `buildDefinePrompt`, `parseDefineResponse` |
 | `storage.test.js` | Vitest | localStorage read/write, settings deep-merge, history CRUD |
 | `history.test.js` | Vitest | `getHistory`, `deleteHistoryEntry`, `clearHistory`, profile stamp |
 | `llm.test.js` | Vitest | Endpoint, headers, and response parsing per provider |
-| `display.test.js` | Vitest | DOM rendering, toast, `triggerDownload` |
+| `display.test.js` | Vitest | DOM rendering, markdown blocks, toast, `triggerDownload` |
 | `security.test.js` | Vitest | API key storage and transmission guarantees |
 | `import.test.js` | Vitest | `parseLibraryJSON`, `parseProfileBundle` |
 | `profileIO.test.js` | Vitest | `exportProfileBundle`, `parseProfileBundle` round-trip |
-| `ui.test.js` | Vitest | Tab switching, profile chip, SRS fields, vocab tab |
+| `ui.test.js` | Vitest | Tab switching, profile chip, vocab-enabled toggle, SRS fields, vocab tab |
 | `profiles.test.js` | Node CJS | Profile CRUD, `createFromBundle`, `importProfileVocab` |
-| `vocab.test.js` | Node CJS | `recordLookup`, `recordSeen`, `getForPrompt`, `deleteTerm`, `setActive` |
+| `vocab.test.js` | Node CJS | `recordLookup` (lemma/forms), `recordSeen`, `getForPrompt`, `deleteTerm`, `setActive` |
 
 The orchestration layer (`app.js`) is verified by manual in-browser testing.
-
----
-
-## Project docs
-
-| File | Contents |
-|---|---|
-| `docs/BRIEF.md` | What it is, who it's for, hard constraints |
-| `docs/SPEC.md` | Feature-by-feature design (living document) |
-| `docs/DECISIONS.md` | Architectural choices and rationale (append-only) |
-| `docs/PLAN.md` | Implementation plan and done criteria per version |
-
----
-
-## Versioning
-
-Version is tracked in `package.json` and displayed in the app UI. Use `npm version` to
-bump and tag:
-
-```bash
-npm version patch     # x.y.Z — bug fixes, copy changes
-npm version minor     # x.Y.0 — new features
-npm version major     # X.0.0 — breaking changes or major redesigns
-
-git push origin main --tags
-```
-
-`npm version` updates `package.json`, commits the change, and creates a git tag
-automatically. Push with `--tags` to publish the tag to GitHub.

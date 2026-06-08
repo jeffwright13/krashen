@@ -206,15 +206,20 @@
             </dl>
           </details>
           <div id="vocab-term-list" class="vocab-term-list"></div>
-          <button type="button" id="clear-vocab-btn"
-            class="outline secondary danger-btn tab-danger-btn" hidden>Clear vocab</button>
+          <div class="vocab-actions-row">
+            <button type="button" id="export-anki-btn"
+              class="outline secondary" hidden>Export for Anki</button>
+            <button type="button" id="clear-vocab-btn"
+              class="outline secondary danger-btn tab-danger-btn" hidden>Clear vocab</button>
+          </div>
         </div>
         <div class="tab-section">
-          <p class="tab-section-label">SRS / i+1</p>
+          <p class="tab-section-label">i+1 Vocabulary Hints</p>
           <label class="settings-check-label">
             <input type="checkbox" id="srs-enabled">
-            Enable i+1 vocabulary constraints
+            Nudge the LLM with vocabulary context
           </label>
+          <p class="tab-hint" style="margin:0.15rem 0 0.4rem">When on, the prompt includes your known words and emerging words as soft hints. The LLM may not follow them exactly.</p>
           <div id="srs-fields">
             <label class="settings-check-label srs-subfield">
               <input type="checkbox" id="srs-autosave">
@@ -263,6 +268,19 @@
             <input type="checkbox" id="vocab-enabled">
             Vocabulary features
           </label>
+          <label class="settings-check-label">
+            <input type="checkbox" id="debug-prompts-enabled">
+            Show prompt debug
+          </label>
+        </div>
+
+        <div id="debug-prompts-section" class="tab-section" hidden>
+          <p class="tab-section-label">Last prompt sent to LLM</p>
+          <p class="tab-hint">Updated after each generation. Generate a story to populate.</p>
+          <label for="debug-system-prompt">System</label>
+          <textarea id="debug-system-prompt" rows="6" readonly></textarea>
+          <label for="debug-user-prompt">User</label>
+          <textarea id="debug-user-prompt" rows="4" readonly></textarea>
         </div>
 
         <div class="tab-section">
@@ -341,10 +359,6 @@
           title="Copy all content to clipboard">Copy</button>
         <button id="export-piece-btn" class="outline secondary" hidden
           title="Export this piece as Markdown">Export ↓</button>
-        <button id="review-btn" class="outline secondary" hidden
-          title="Rate vocabulary words that appeared in this story">Review</button>
-        <button id="study-btn" class="outline secondary" hidden
-          title="Active recall study session for vocabulary in this story">Study</button>
         <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="load-text-btn" class="outline secondary"
           title="Load your own Spanish text into the reading panel">Load Text</button>
@@ -427,64 +441,6 @@
     <span id="define-result" class="define-result"></span>
     <span id="define-lemma" class="define-lemma" hidden></span>
   </div>
-
-  <dialog id="study-modal" aria-labelledby="study-modal-title">
-    <article>
-      <header>
-        <span id="study-progress" class="study-progress"></span>
-        <h2 id="study-modal-title" class="study-title">Study</h2>
-        <button id="close-study" class="outline secondary" aria-label="End session">✕</button>
-      </header>
-
-      <!-- Active card -->
-      <div id="study-card">
-        <div id="study-front">
-          <p id="study-term" class="study-term"></p>
-          <p id="study-context" class="study-context"></p>
-          <button id="study-show-answer" type="button">Show Answer</button>
-        </div>
-        <div id="study-back" hidden>
-          <p id="study-term-back" class="study-term"></p>
-          <p id="study-translation" class="study-translation"></p>
-          <span id="study-mastery" class="review-mastery"></span>
-          <div class="review-actions study-rating-row">
-            <button type="button" class="review-btn review-btn-again" data-study-delta="-1" data-study-label="again">Again</button>
-            <button type="button" class="review-btn review-btn-hard"  data-study-delta="0"  data-study-label="hard">Hard</button>
-            <button type="button" class="review-btn review-btn-good"  data-study-delta="1"  data-study-label="good">Good</button>
-            <button type="button" class="review-btn review-btn-easy"  data-study-delta="2"  data-study-label="easy">Easy</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <p id="study-empty" class="review-hint" hidden>
-        No tracked vocabulary appeared in this story.</p>
-
-      <!-- Summary -->
-      <div id="study-summary" hidden>
-        <p id="study-summary-text" class="study-summary-text"></p>
-        <div class="study-summary-stats" id="study-summary-stats"></div>
-        <div class="study-summary-actions">
-          <button id="study-again-btn" type="button" class="outline secondary">Study Again</button>
-          <button id="study-done-btn" type="button">Done</button>
-        </div>
-      </div>
-    </article>
-  </dialog>
-
-  <dialog id="review-modal" aria-labelledby="review-modal-title">
-    <article>
-      <header>
-        <h2 id="review-modal-title">Vocabulary Review</h2>
-        <button id="close-review" class="outline secondary" aria-label="Done">Done</button>
-      </header>
-      <p class="review-hint">Rate each word based on how well you knew it in this story.
-        Ratings override the algorithm and persist until you rate again.</p>
-      <p id="review-empty" class="review-hint" hidden>
-        No tracked vocabulary appeared in this story.</p>
-      <div id="review-list"></div>
-    </article>
-  </dialog>
 
   <dialog id="load-text-modal" aria-labelledby="load-text-modal-title">
     <article>

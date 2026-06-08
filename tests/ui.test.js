@@ -46,6 +46,7 @@ const FIXTURE = `
     <p id="vocab-empty" hidden></p>
     <p id="vocab-mastery-breakdown" hidden></p>
     <div id="vocab-term-list"></div>
+    <button id="export-anki-btn" hidden></button>
     <button id="clear-vocab-btn" hidden></button>
     <input type="checkbox" id="srs-enabled">
     <input type="checkbox" id="srs-autosave">
