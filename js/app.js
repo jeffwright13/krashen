@@ -55,7 +55,7 @@ async function handleGenerate(e) {
 
   const apiKey = getApiKey(config.provider);
   if (!apiKey) {
-    renderError(`No API key set for ${config.provider}. Add one in the Settings tab.`);
+    renderError(`No API key set for ${config.provider}. Add one in the Provider section of the Configure tab.`);
     return;
   }
 
@@ -124,78 +124,70 @@ const MODEL_PLACEHOLDERS = {
   claude: 'claude-opus-4-5', openai: 'gpt-4o', google: 'gemini-2.5-flash',
 };
 
-function initSettingsTab() {
-  const providerSel = document.getElementById('settings-provider');
-  const keyEl       = document.getElementById('settings-api-key');
-  const modelEl     = document.getElementById('settings-model');
-  const hintEl      = document.getElementById('settings-provider-hint');
-  const testBtn     = document.getElementById('settings-test-btn');
-  const testStatus  = document.getElementById('settings-test-status');
-  const toggleBtn   = document.querySelector('.key-toggle-btn[data-target="settings-api-key"]');
+function initProviderSection() {
+  const keyEl      = document.getElementById('api-key');
+  const modelEl    = document.getElementById('api-model');
+  const testBtn    = document.getElementById('test-key-btn');
+  const testStatus = document.getElementById('test-key-status');
+  const toggleBtn  = document.querySelector('.key-toggle-btn[data-target="api-key"]');
 
   function loadProvider(p) {
     keyEl.value         = getApiKey(p);
     keyEl.placeholder   = KEY_PLACEHOLDERS[p]   ?? '';
     modelEl.value       = getModel(p);
     modelEl.placeholder = MODEL_PLACEHOLDERS[p] ?? '';
-    hintEl.hidden       = p !== 'claude';
     testStatus.hidden   = true;
     keyEl.type          = 'password';
     if (toggleBtn) toggleBtn.textContent = 'Show';
   }
 
-  providerSel.value = document.getElementById('provider').value;
-  loadProvider(providerSel.value);
-
-  providerSel.addEventListener('change', () => loadProvider(providerSel.value));
-  keyEl.addEventListener('blur',   () => setApiKey(providerSel.value, keyEl.value.trim()));
+  loadProvider(providerSelect.value);
+  providerSelect.addEventListener('change', () => loadProvider(providerSelect.value));
+  keyEl.addEventListener('blur',   () => setApiKey(providerSelect.value, keyEl.value.trim()));
   modelEl.addEventListener('blur', () => {
-    if (modelEl.value.trim()) setModel(providerSel.value, modelEl.value.trim());
+    if (modelEl.value.trim()) setModel(providerSelect.value, modelEl.value.trim());
   });
   testBtn.addEventListener('click', () =>
-    handleTestKey(providerSel.value, keyEl, testStatus, testBtn)
+    handleTestKey(providerSelect.value, keyEl, testStatus, testBtn)
   );
+}
 
+function initDisplayPopover() {
+  const btn      = document.getElementById('display-settings-btn');
+  const popover  = document.getElementById('display-popover');
   const uiSettings = getSettings().ui;
-  const themeEl    = document.getElementById('modal-theme');
-  const enabledEl  = document.getElementById('modal-maxwidth-enabled');
-  const valueEl    = document.getElementById('modal-maxwidth-value');
+  const themeEl  = document.getElementById('modal-theme');
+  const enabledEl = document.getElementById('modal-maxwidth-enabled');
+  const valueEl  = document.getElementById('modal-maxwidth-value');
 
   themeEl.value      = uiSettings.theme || 'system';
   enabledEl.checked  = uiSettings.maxWidth !== false;
   valueEl.value      = uiSettings.maxWidthValue ?? 70;
   valueEl.disabled   = !enabledEl.checked;
 
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    popover.hidden = !popover.hidden;
+  });
+  document.addEventListener('click', e => {
+    if (!popover.hidden && !popover.contains(e.target) && e.target !== btn) {
+      popover.hidden = true;
+    }
+  });
+
   themeEl.addEventListener('change', () => {
-    const s = getSettings();
-    s.ui.theme = themeEl.value;
-    setSettings(s);
+    const s = getSettings(); s.ui.theme = themeEl.value; setSettings(s);
     applyTheme(themeEl.value);
   });
-
   enabledEl.addEventListener('change', () => {
     valueEl.disabled = !enabledEl.checked;
-    const s = getSettings();
-    s.ui.maxWidth = enabledEl.checked;
-    setSettings(s);
+    const s = getSettings(); s.ui.maxWidth = enabledEl.checked; setSettings(s);
     applyMaxWidth(enabledEl.checked, parseInt(valueEl.value, 10) || 70);
   });
-
   valueEl.addEventListener('change', () => {
-    const s = getSettings();
-    s.ui.maxWidthValue = parseInt(valueEl.value, 10) || 70;
-    setSettings(s);
+    const s = getSettings(); s.ui.maxWidthValue = parseInt(valueEl.value, 10) || 70; setSettings(s);
     applyMaxWidth(enabledEl.checked, s.ui.maxWidthValue);
   });
-
-  document.getElementById('vocab-enabled').addEventListener('change', e => {
-    const active = window.KrashenProfiles?.getActive();
-    if (!active) return;
-    const enabled = e.target.checked;
-    window.KrashenProfiles.updateSettings(active.id, { vocabEnabled: enabled });
-    window.KrashenUI?.applyVocabEnabled(enabled);
-  });
-
 }
 
 function updatePromptDebug() {
@@ -804,12 +796,8 @@ function restoreFormDefaults(profile) {
 // ── Main event wiring ─────────────────────────────────────────────────────────
 
 document.getElementById('config-form').addEventListener('submit', handleGenerate);
-initSettingsTab();
-
-// Apply vocab-enabled state on initial load (deferred so KrashenUI is ready)
-setTimeout(() => {
-  window.KrashenUI?.applyVocabEnabled(isVocabEnabled());
-}, 0);
+initProviderSection();
+initDisplayPopover();
 
 // ── Restore last content after page reload ────────────────────────────────────
 

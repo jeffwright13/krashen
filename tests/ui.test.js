@@ -29,44 +29,42 @@ const FIXTURE = `
     </div>
   </div>
   <div id="tab-bar" role="tablist">
-    <button role="tab" class="tab-btn" id="tab-btn-generate"
-      aria-selected="true" tabindex="0">Generate</button>
-    <button role="tab" class="tab-btn" id="tab-btn-settings"
-      aria-selected="false" tabindex="-1">Settings</button>
+    <button role="tab" class="tab-btn" id="tab-btn-configure"
+      aria-selected="true" tabindex="0">Configure</button>
     <button role="tab" class="tab-btn" id="tab-btn-vocab"
       aria-selected="false" tabindex="-1">Vocab</button>
   </div>
-  <div id="tab-generate" class="tab-panel"></div>
-  <div id="tab-settings" class="tab-panel" hidden>
-    <input type="checkbox" id="vocab-enabled">
-  </div>
+  <div id="tab-configure" class="tab-panel"></div>
   <div id="tab-vocab" class="tab-panel" hidden>
-    <span id="vocab-total"></span>
-    <p id="vocab-no-profile" hidden></p>
-    <p id="vocab-empty" hidden></p>
-    <p id="vocab-mastery-breakdown" hidden></p>
-    <div id="vocab-term-list"></div>
-    <button id="export-anki-btn" hidden></button>
-    <button id="clear-vocab-btn" hidden></button>
-    <input type="checkbox" id="srs-enabled">
-    <input type="checkbox" id="srs-autosave">
-    <div id="srs-fields" hidden></div>
-    <select id="srs-known-threshold">
-      <option value="1">1</option><option value="2" selected>2</option>
-      <option value="3">3</option><option value="4">4</option>
-    </select>
-    <select id="srs-new-words">
-      <option value="3">3</option><option value="5" selected>5</option>
-      <option value="8">8</option><option value="10">10</option>
-    </select>
-    <select id="srs-reexpose-count">
-      <option value="5">5</option><option value="8" selected>8</option>
-      <option value="12">12</option>
-    </select>
-    <select id="srs-reexpose-mastery">
-      <option value="1">1</option><option value="2">2</option>
-      <option value="3" selected>3</option><option value="4">4</option>
-    </select>
+    <input type="checkbox" id="vocab-enabled">
+    <div id="vocab-features" hidden>
+      <span id="vocab-total"></span>
+      <p id="vocab-no-profile" hidden></p>
+      <p id="vocab-empty" hidden></p>
+      <p id="vocab-mastery-breakdown" hidden></p>
+      <div id="vocab-term-list"></div>
+      <button id="export-anki-btn" hidden></button>
+      <button id="clear-vocab-btn" hidden></button>
+      <input type="checkbox" id="srs-enabled">
+      <input type="checkbox" id="srs-autosave">
+      <div id="srs-fields" hidden></div>
+      <select id="srs-known-threshold">
+        <option value="1">1</option><option value="2" selected>2</option>
+        <option value="3">3</option><option value="4">4</option>
+      </select>
+      <select id="srs-new-words">
+        <option value="3">3</option><option value="5" selected>5</option>
+        <option value="8">8</option><option value="10">10</option>
+      </select>
+      <select id="srs-reexpose-count">
+        <option value="5">5</option><option value="8" selected>8</option>
+        <option value="12">12</option>
+      </select>
+      <select id="srs-reexpose-mastery">
+        <option value="1">1</option><option value="2">2</option>
+        <option value="3" selected>3</option><option value="4">4</option>
+      </select>
+    </div>
   </div>
 `;
 
@@ -100,55 +98,46 @@ beforeAll(async () => {
 // ── Tab switching ──────────────────────────────────────────────────────────────
 
 describe('tab switching — initial state', () => {
-  it('Generate tab is visible on load', () => {
-    expect(document.getElementById('tab-generate').hidden).toBe(false);
+  it('Configure tab is visible on load', () => {
+    expect(document.getElementById('tab-configure').hidden).toBe(false);
   });
 
-  it('other tabs are hidden on load', () => {
+  it('Vocab tab is hidden on load', () => {
     expect(document.getElementById('tab-vocab').hidden).toBe(true);
-    expect(document.getElementById('tab-settings').hidden).toBe(true);
   });
 
-  it('Generate tab button has aria-selected="true"', () => {
-    expect(document.getElementById('tab-btn-generate').getAttribute('aria-selected')).toBe('true');
+  it('Configure tab button has aria-selected="true"', () => {
+    expect(document.getElementById('tab-btn-configure').getAttribute('aria-selected')).toBe('true');
   });
 
-  it('other tab buttons have aria-selected="false"', () => {
-    ['settings', 'vocab'].forEach(id => {
-      expect(document.getElementById('tab-btn-' + id).getAttribute('aria-selected')).toBe('false');
-    });
+  it('Vocab tab button has aria-selected="false"', () => {
+    expect(document.getElementById('tab-btn-vocab').getAttribute('aria-selected')).toBe('false');
   });
 });
 
 describe('tab switching — clicking tabs', () => {
-  it('clicking Vocab tab shows vocab panel and hides others', () => {
+  it('clicking Vocab tab shows vocab panel and hides Configure', () => {
     document.getElementById('tab-btn-vocab').click();
     expect(document.getElementById('tab-vocab').hidden).toBe(false);
-    expect(document.getElementById('tab-generate').hidden).toBe(true);
-    expect(document.getElementById('tab-settings').hidden).toBe(true);
+    expect(document.getElementById('tab-configure').hidden).toBe(true);
   });
 
   it('clicking Vocab tab sets its button aria-selected="true"', () => {
     document.getElementById('tab-btn-vocab').click();
     expect(document.getElementById('tab-btn-vocab').getAttribute('aria-selected')).toBe('true');
-    expect(document.getElementById('tab-btn-generate').getAttribute('aria-selected')).toBe('false');
+    expect(document.getElementById('tab-btn-configure').getAttribute('aria-selected')).toBe('false');
   });
 
-  it('clicking Settings tab shows settings panel', () => {
-    document.getElementById('tab-btn-settings').click();
-    expect(document.getElementById('tab-settings').hidden).toBe(false);
-  });
-
-  it('clicking Generate tab returns to generate panel', () => {
-    document.getElementById('tab-btn-settings').click();
-    document.getElementById('tab-btn-generate').click();
-    expect(document.getElementById('tab-generate').hidden).toBe(false);
-    expect(document.getElementById('tab-settings').hidden).toBe(true);
+  it('clicking Configure tab returns to configure panel', () => {
+    document.getElementById('tab-btn-vocab').click();
+    document.getElementById('tab-btn-configure').click();
+    expect(document.getElementById('tab-configure').hidden).toBe(false);
+    expect(document.getElementById('tab-vocab').hidden).toBe(true);
   });
 
   it('only one panel is visible at a time', () => {
     document.getElementById('tab-btn-vocab').click();
-    const panels = ['generate', 'settings', 'vocab'];
+    const panels = ['configure', 'vocab'];
     const visible = panels.filter(id => !document.getElementById('tab-' + id).hidden);
     expect(visible).toHaveLength(1);
     expect(visible[0]).toBe('vocab');
@@ -179,39 +168,31 @@ describe('profile chip — with active profile', () => {
 // ── applyVocabEnabled ──────────────────────────────────────────────────────────
 
 describe('applyVocabEnabled', () => {
-  it('hides the Vocab tab button when disabled', () => {
+  it('hides #vocab-features when disabled', () => {
     window.KrashenUI.applyVocabEnabled(false);
-    expect(document.getElementById('tab-btn-vocab').hidden).toBe(true);
+    expect(document.getElementById('vocab-features').hidden).toBe(true);
   });
 
-  it('shows the Vocab tab button when enabled', () => {
-    document.getElementById('tab-btn-vocab').hidden = true;
+  it('shows #vocab-features when enabled', () => {
     window.KrashenUI.applyVocabEnabled(true);
-    expect(document.getElementById('tab-btn-vocab').hidden).toBe(false);
+    expect(document.getElementById('vocab-features').hidden).toBe(false);
   });
 
-  it('redirects to Generate if Vocab tab is active when disabled', () => {
-    window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('tab-vocab').hidden).toBe(false);
+  it('syncs the vocab-enabled checkbox', () => {
+    window.KrashenUI.applyVocabEnabled(true);
+    expect(document.getElementById('vocab-enabled').checked).toBe(true);
     window.KrashenUI.applyVocabEnabled(false);
-    expect(document.getElementById('tab-generate').hidden).toBe(false);
-    expect(document.getElementById('tab-vocab').hidden).toBe(true);
-  });
-
-  it('does not redirect when a non-vocab tab is active', () => {
-    window.KrashenUI.activateTab('settings');
-    window.KrashenUI.applyVocabEnabled(false);
-    expect(document.getElementById('tab-settings').hidden).toBe(false);
+    expect(document.getElementById('vocab-enabled').checked).toBe(false);
   });
 });
 
 // ── Tab order ──────────────────────────────────────────────────────────────────
 
 describe('tab order', () => {
-  it('tab buttons appear in Generate | Settings | Vocab order', () => {
+  it('tab buttons appear in Configure | Vocab order', () => {
     const btns = [...document.querySelectorAll('#tab-bar .tab-btn')];
     const ids  = btns.map(b => b.id);
-    expect(ids).toEqual(['tab-btn-generate', 'tab-btn-settings', 'tab-btn-vocab']);
+    expect(ids).toEqual(['tab-btn-configure', 'tab-btn-vocab']);
   });
 });
 
