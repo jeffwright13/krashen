@@ -110,3 +110,32 @@ require a DOM.
 | `vocab.test.js` | Node CJS | `recordLookup` (lemma/forms), `recordSeen`, `getForPrompt`, `deleteTerm`, `setActive` |
 
 The orchestration layer (`app.js`) is verified by manual in-browser testing.
+
+---
+
+## Project docs
+
+| File | Contents |
+|---|---|
+| `docs/BRIEF.md` | What it is, who it's for, hard constraints |
+| `docs/SPEC.md` | Feature-by-feature design (living document) |
+| `docs/DECISIONS.md` | Architectural choices and rationale (append-only) |
+| `docs/PLAN.md` | Implementation plan and done criteria per version |
+
+---
+
+## Versioning
+
+Version is tracked in `package.json` and displayed in the app UI. Use `npm version` to
+bump and tag:
+
+```bash
+npm version patch     # x.y.Z — bug fixes, copy changes
+npm version minor     # x.Y.0 — new features
+npm version major     # X.0.0 — breaking changes or major redesigns
+
+git push origin main --tags
+```
+
+`npm version` updates `package.json`, commits the change, and creates a git tag
+automatically. Push with `--tags` to publish the tag to GitHub.
