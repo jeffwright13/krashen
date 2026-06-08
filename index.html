@@ -82,34 +82,36 @@
 
         <details class="form-section" open>
           <summary>Provider</summary>
-          <select id="provider">
+          <select id="provider"
+            title="Select your LLM provider. Claude requires a local proxy due to browser CORS restrictions; OpenAI and Google work directly in-browser.">
             <option value="openai" selected>OpenAI</option>
             <option value="google">Google Gemini</option>
             <option value="claude" class="provider-opt-proxy">Claude (Anthropic) — proxy required</option>
           </select>
-          <small id="provider-hint" hidden>
-            Claude's API blocks browser requests (CORS). Works only via a local proxy.
-          </small>
-          <p class="settings-hint">Keys are stored in your browser only and sent only to the selected provider.</p>
           <label for="api-key">API Key</label>
           <div class="key-row">
-            <input type="password" id="api-key" autocomplete="off">
+            <input type="password" id="api-key" autocomplete="off"
+              title="Your API key — stored only in this browser and sent only to the selected provider. Never transmitted elsewhere.">
             <button type="button" class="outline secondary key-toggle-btn"
-              data-target="api-key">Show</button>
-            <button type="button" class="outline secondary" id="test-key-btn">Test</button>
+              data-target="api-key" title="Show or hide the API key">Show</button>
+            <button type="button" class="outline secondary" id="test-key-btn"
+              title="Send a minimal test request to verify the key is valid">Test</button>
           </div>
           <small class="test-status" id="test-key-status" hidden></small>
           <label for="api-model">Model</label>
-          <input type="text" id="api-model">
+          <input type="text" id="api-model"
+            title="Model name override. Leave blank to use the provider default (e.g. gpt-4o for OpenAI, gemini-2.5-flash for Google). Only change this if you know you want a specific model.">
         </details>
 
         <details class="form-section">
           <summary>Content</summary>
           <label for="topic">Topic <span class="required" aria-hidden="true">*</span></label>
           <textarea id="topic" rows="3"
-            placeholder="e.g. a dog and a boy explore a forest"></textarea>
+            placeholder="e.g. a dog and a boy explore a forest"
+            title="The subject or theme for the generated piece. Can be a scene, situation, concept, or any prompt. Be as specific or broad as you like."></textarea>
           <label for="output-format">Format</label>
-          <select id="output-format">
+          <select id="output-format"
+            title="The structural form of the generated piece. Each format shapes how the LLM constructs the content — hover the options for details.">
             <option value="Single story" selected title="Continuous prose narrative — best for reading flow and immersion">Single story</option>
             <option value="Article" title="Expository informational prose — no characters or story arc, educational register">Article</option>
             <option value="Dialogue only" title="Conversation between characters only, no prose — good for natural speech patterns">Dialogue only</option>
@@ -118,9 +120,11 @@
           </select>
           <label for="output-length">Length (words)</label>
           <input type="text" id="output-length" value="700"
-            placeholder="e.g. 700 (50–3000)">
+            placeholder="e.g. 700 (50–3000)"
+            title="Approximate word count for the generated piece. Practical range: 50–3000. The LLM treats this as a target, not a hard limit.">
           <label for="narrative-person">Narrative person</label>
-          <select id="narrative-person">
+          <select id="narrative-person"
+            title="Point of view for the narrative. 1st = I/we; 2nd = you (tú); 3rd = he/she/they. Has no effect on Article format.">
             <option value="1st">1st person</option>
             <option value="2nd">2nd person (t&#250;)</option>
             <option value="3rd" selected>3rd person</option>
@@ -130,9 +134,11 @@
         <details class="form-section">
           <summary>Learner Profile</summary>
           <label for="target-language">Target language</label>
-          <input type="text" id="target-language" value="Spanish">
+          <input type="text" id="target-language" value="Spanish"
+            title="The language you are learning. Used in the system prompt and Define feature.">
           <label for="cefr-level">CEFR level</label>
-          <select id="cefr-level">
+          <select id="cefr-level"
+            title="Proficiency level for the generated content. A0–A2: beginner; B1–B2: intermediate; C1–C2: advanced. A0 is a Krashen extension for absolute beginners below A1. Auto-paired with a vocabulary cap — override the cap independently if needed.">
             <option>A0</option>
             <option>A1</option>
             <option selected>A2</option>
@@ -142,7 +148,8 @@
             <option>C2</option>
           </select>
           <label for="word-cap">Vocabulary cap</label>
-          <select id="word-cap">
+          <select id="word-cap"
+            title="Restricts the LLM to the N most common words in the target language. Auto-paired with CEFR (A0/A1→550, A2→1k, B1→2k, B2→3k, C1→5k, C2→unrestricted). Lower cap + higher CEFR = complex grammar with familiar words. Higher cap + lower CEFR = broader vocabulary at a comfortable grammar level.">
             <option value="550">Top 550 words</option>
             <option value="1000" selected>Top 1,000 words</option>
             <option value="2000">Top 2,000 words</option>
@@ -150,14 +157,9 @@
             <option value="5000">Top 5,000 words</option>
             <option value="7500">Top 7,500 words</option>
           </select>
-          <small class="word-cap-hint">
-            Auto-paired with CEFR level (A0/A1→550, A2→1k, B1→2k, B2→3k,
-            C1→5k, C2→unrestricted). Override to tune independently:
-            lower cap = familiar words with complex grammar;
-            higher cap = broader vocabulary at a comfortable grammar level.
-          </small>
           <label for="target-dialect">Dialect</label>
-          <select id="target-dialect">
+          <select id="target-dialect"
+            title="Regional variety of the target language. Affects vocabulary choices, expressions, and some grammar (e.g. voseo in Rioplatense, vosotros in Castilian). Neutral avoids region-specific forms.">
             <option>Mexican</option>
             <option>Rioplatense</option>
             <option>Castilian</option>
@@ -165,25 +167,31 @@
             <option value="Neutral" selected>Neutral</option>
           </select>
           <label for="native-language">Native language</label>
-          <input type="text" id="native-language" value="English">
+          <input type="text" id="native-language" value="English"
+            title="Your native language. Used for translations shown by the Define feature.">
         </details>
 
         <details class="form-section">
           <summary>Linguistic Focus</summary>
           <label for="tense-focus">Grammar / tense focus</label>
-          <input type="text" id="tense-focus" placeholder="e.g. pret&#233;rito, imperfecto">
+          <input type="text" id="tense-focus" placeholder="e.g. pret&#233;rito, imperfecto"
+            title="Comma-separated tenses or grammar points the LLM should emphasize. Examples: pretérito, imperfecto, subjuntivo, ser vs. estar. Leave blank for no specific focus.">
           <label for="connector-density">Connector density</label>
-          <select id="connector-density">
+          <select id="connector-density"
+            title="Controls how many discourse connectors appear in the text (porque, sin embargo, aunque, por lo tanto…). High density = more complex, cohesive prose; Low = simpler, shorter sentences.">
             <option>Low</option>
             <option selected>Normal</option>
             <option>High</option>
           </select>
           <label for="sentence-length">Max sentence length (words)</label>
-          <input type="number" id="sentence-length" placeholder="e.g. 15" min="1" max="100">
+          <input type="number" id="sentence-length" placeholder="e.g. 15" min="1" max="100"
+            title="Hard upper limit on sentence length in words. Useful for beginners who benefit from shorter, clearer sentences. Leave blank for no limit.">
           <label for="include-words">Vocabulary to include</label>
-          <input type="text" id="include-words" placeholder="comma-separated">
+          <input type="text" id="include-words" placeholder="comma-separated"
+            title="Words or phrases the LLM must weave into the generated piece naturally. Useful for targeting specific vocabulary you want to practice.">
           <label for="exclude-words">Vocabulary to exclude</label>
-          <input type="text" id="exclude-words" placeholder="comma-separated">
+          <input type="text" id="exclude-words" placeholder="comma-separated"
+            title="Words or phrases the LLM should avoid. Useful for excluding regional variants (e.g. ordenador → use computadora instead) or overused words.">
         </details>
 
       </form>
@@ -204,7 +212,8 @@
 
         <div class="vocab-enable-row">
           <label class="settings-check-label">
-            <input type="checkbox" id="vocab-enabled">
+            <input type="checkbox" id="vocab-enabled"
+              title="Enable vocabulary tracking, the Define lookup feature, and the i+1 hint system. When off, reading is the only activity — no word lists, no tracking.">
             Enable vocabulary features
           </label>
         </div>
@@ -245,38 +254,43 @@
           <details class="form-section">
             <summary>i+1 Vocabulary Hints</summary>
             <label class="settings-check-label">
-              <input type="checkbox" id="srs-enabled">
+              <input type="checkbox" id="srs-enabled"
+                title="Softly nudges the LLM to reuse words you're still learning and to avoid words you already know well. The LLM treats these as hints, not hard rules.">
               Nudge the LLM with vocabulary context
             </label>
-            <p class="tab-hint" style="margin:0.15rem 0 0.4rem">When on, the prompt includes your known words and emerging words as soft hints. The LLM may not follow them exactly.</p>
             <div id="srs-fields">
               <label class="settings-check-label srs-subfield">
-                <input type="checkbox" id="srs-autosave">
+                <input type="checkbox" id="srs-autosave"
+                  title="Automatically save every Define lookup to your vocabulary list without clicking 'Save to vocab'.">
                 Autosave lookups to vocab
               </label>
               <div class="srs-grid">
                 <label for="srs-known-threshold">Known threshold</label>
-                <select id="srs-known-threshold">
+                <select id="srs-known-threshold"
+                  title="Mastery level (M0–M5) at or above which a word is considered known and included in the LLM's known-words hint list.">
                   <option value="1">1</option>
                   <option value="2" selected>2</option>
                   <option value="3">3</option>
                   <option value="4">4</option>
                 </select>
                 <label for="srs-new-words">New words / session</label>
-                <select id="srs-new-words">
+                <select id="srs-new-words"
+                  title="Target number of new (unseen) words the LLM should try to introduce per generated piece.">
                   <option value="3">3</option>
                   <option value="5" selected>5</option>
                   <option value="8">8</option>
                   <option value="10">10</option>
                 </select>
                 <label for="srs-reexpose-count">Re-expose count</label>
-                <select id="srs-reexpose-count">
+                <select id="srs-reexpose-count"
+                  title="Maximum number of emerging (low-mastery) words to include in the re-exposure hint sent to the LLM.">
                   <option value="5">5</option>
                   <option value="8" selected>8</option>
                   <option value="12">12</option>
                 </select>
                 <label for="srs-reexpose-mastery">Re-expose max mastery</label>
-                <select id="srs-reexpose-mastery">
+                <select id="srs-reexpose-mastery"
+                  title="Words at or below this mastery level are candidates for re-exposure. M3 means 'looked up repeatedly but not yet solidified'.">
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3" selected>3</option>
@@ -314,7 +328,8 @@
           <div id="display-popover" hidden>
             <div class="settings-theme-row">
               <label for="modal-theme">Theme</label>
-              <select id="modal-theme">
+              <select id="modal-theme"
+                title="Color scheme. System follows your OS dark/light mode setting.">
                 <option value="system">System</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -322,12 +337,14 @@
             </div>
             <div class="settings-maxwidth-row">
               <label class="settings-check-label">
-                <input type="checkbox" id="modal-maxwidth-enabled" checked>
+                <input type="checkbox" id="modal-maxwidth-enabled" checked
+                  title="Cap the reading panel text column at a fixed character width for comfortable line lengths.">
                 Limit width to
               </label>
               <input type="number" id="modal-maxwidth-value"
                 min="40" max="200" step="5" value="70"
-                aria-label="Column width in characters">
+                aria-label="Column width in characters"
+                title="Column width in characters (ch units). 60–80 is typically comfortable for reading.">
               <span class="settings-unit">ch</span>
             </div>
           </div>
