@@ -196,24 +196,10 @@ function initSettingsTab() {
     window.KrashenUI?.applyVocabEnabled(enabled);
   });
 
-  const debugToggle = document.getElementById('debug-prompts-enabled');
-  if (debugToggle) {
-    const uiSettings = getSettings().ui;
-    debugToggle.checked = uiSettings.debugPrompts ?? false;
-    document.getElementById('debug-prompts-section').hidden = !debugToggle.checked;
-    debugToggle.addEventListener('change', () => {
-      const s = getSettings();
-      s.ui.debugPrompts = debugToggle.checked;
-      setSettings(s);
-      document.getElementById('debug-prompts-section').hidden = !debugToggle.checked;
-      if (debugToggle.checked) updatePromptDebug();
-    });
-  }
 }
 
 function updatePromptDebug() {
-  const section = document.getElementById('debug-prompts-section');
-  if (!section || section.hidden || !lastPrompts) return;
+  if (!lastPrompts) return;
   document.getElementById('debug-system-prompt').value = lastPrompts.system;
   document.getElementById('debug-user-prompt').value   = lastPrompts.user;
 }
