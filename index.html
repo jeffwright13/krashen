@@ -178,6 +178,15 @@
         </fieldset>
 
       </form>
+
+      <div id="debug-prompts-section" class="tab-section" hidden>
+        <p class="tab-section-label">Last prompt sent to LLM</p>
+        <label for="debug-system-prompt">System</label>
+        <textarea id="debug-system-prompt" rows="6" readonly></textarea>
+        <label for="debug-user-prompt">User</label>
+        <textarea id="debug-user-prompt" rows="4" readonly></textarea>
+      </div>
+
       </div><!-- #tab-generate -->
 
       <!-- Vocab tab (also contains SRS/tuning settings) -->
@@ -208,7 +217,7 @@
           <div id="vocab-term-list" class="vocab-term-list"></div>
           <div class="vocab-actions-row">
             <button type="button" id="export-anki-btn"
-              class="outline secondary" hidden>Export for Anki</button>
+              class="outline secondary tab-danger-btn" hidden>Anki Export</button>
             <button type="button" id="clear-vocab-btn"
               class="outline secondary danger-btn tab-danger-btn" hidden>Clear vocab</button>
           </div>
@@ -274,14 +283,6 @@
           </label>
         </div>
 
-        <div id="debug-prompts-section" class="tab-section" hidden>
-          <p class="tab-section-label">Last prompt sent to LLM</p>
-          <p class="tab-hint">Updated after each generation. Generate a story to populate.</p>
-          <label for="debug-system-prompt">System</label>
-          <textarea id="debug-system-prompt" rows="6" readonly></textarea>
-          <label for="debug-user-prompt">User</label>
-          <textarea id="debug-user-prompt" rows="4" readonly></textarea>
-        </div>
 
         <div class="tab-section">
           <p class="tab-section-label">Display</p>
