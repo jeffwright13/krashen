@@ -1,11 +1,10 @@
 import { validateConfig, DEFAULT_CONFIG } from './config.js';
 import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt, parseDefineResponse } from './prompt.js';
 import { generateContent, testApiKey } from './llm.js';
-import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings, appendHistory } from './storage.js';
-import { getHistory, deleteHistoryEntry, clearHistory } from './history.js';
+import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings } from './storage.js';
+import { getHistory, appendHistory, deleteHistoryEntry, clearHistory, mergeHistory } from './history.js';
 import { exportPieceAsMarkdown, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
-import { mergeHistory } from './storage.js';
 import { toggleLoading, renderContent, renderError, showToast, triggerDownload } from './display.js';
 
 let currentEntry   = null;
@@ -64,7 +63,7 @@ async function handleGenerate(e) {
   try {
     const activeProfile = window.KrashenProfiles?.getActive();
     const srsSettings   = activeProfile?.settings;
-    const srsEnabled    = srsSettings?.srsEnabled !== false;
+    const srsEnabled    = srsSettings?.srsEnabled === true;
 
     let vocabContext = null;
     if (srsEnabled && window.KrashenVocab) {
@@ -121,7 +120,7 @@ const KEY_PLACEHOLDERS = {
   claude: 'sk-ant-…', openai: 'sk-…', google: 'AIza…',
 };
 const MODEL_PLACEHOLDERS = {
-  claude: 'claude-opus-4-5', openai: 'gpt-4o', google: 'gemini-2.5-flash',
+  claude: 'claude-opus-4-8', openai: 'gpt-4o', google: 'gemini-2.5-flash',
 };
 
 function initProviderSection() {
@@ -612,8 +611,6 @@ document.getElementById('clear-history-btn').addEventListener('click', () => {
   clearHistory();
   renderHistoryList();
 });
-
-// ── Vocabulary study (active recall) ─────────────────────────────────────────
 
 // ── Load user text ────────────────────────────────────────────────────────────
 

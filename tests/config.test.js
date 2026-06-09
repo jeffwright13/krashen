@@ -6,8 +6,8 @@ describe('DEFAULT_CONFIG', () => {
     expect(DEFAULT_CONFIG.targetLanguage).toBe('Spanish');
   });
 
-  it('defaults provider to claude', () => {
-    expect(DEFAULT_CONFIG.provider).toBe('claude');
+  it('defaults provider to openai', () => {
+    expect(DEFAULT_CONFIG.provider).toBe('openai');
   });
 
   it('defaults cefrLevel to A2', () => {

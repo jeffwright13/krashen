@@ -1,17 +1,13 @@
 const KEYS = {
   settings: 'krashen_settings',
   history:  'krashen_history',
-  vocab:    'krashen_vocab',
 };
 
 const DEFAULT_SETTINGS = {
   apiKeys: { claude: '', openai: '', google: '' },
-  models:  { claude: 'claude-opus-4-5', openai: 'gpt-4o', google: 'gemini-2.5-flash' },
-  defaultProfile: {},
+  models:  { claude: 'claude-opus-4-8', openai: 'gpt-4o', google: 'gemini-2.5-flash' },
   ui: { fontSize: 'medium', theme: 'system', maxWidth: true, maxWidthValue: 70 },
 };
-
-const DEFAULT_VOCAB = { seenWords: [], sessions: [] };
 
 function read(key, fallback) {
   try {
@@ -96,6 +92,3 @@ export function mergeHistory(entries) {
   return { imported: incoming.length, skipped: entries.length - incoming.length };
 }
 
-export function getVocab() {
-  return read(KEYS.vocab, DEFAULT_VOCAB);
-}
