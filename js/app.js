@@ -332,7 +332,7 @@ defineBtn.addEventListener('click', () => {
   if (!defineEnabled) hideDefinePopup();
 });
 
-document.getElementById('content-display').addEventListener('mouseup', async () => {
+document.addEventListener('mouseup', async () => {
   if (!defineEnabled) return;
   const sel  = window.getSelection();
   const text = sel?.toString().trim();
@@ -340,6 +340,8 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
 
   const range       = sel.getRangeAt(0);
   const anchorNode  = range.commonAncestorContainer;
+  const contentEl   = document.getElementById('content-display');
+  if (!contentEl.contains(anchorNode)) return;
   const anchorEl    = anchorNode.nodeType === Node.TEXT_NODE
     ? anchorNode.parentElement : anchorNode;
   const context     = (anchorEl?.closest('p, h1, h2, h3') ?? anchorEl)?.textContent ?? '';
