@@ -335,14 +335,19 @@ defineBtn.addEventListener('click', () => {
 document.addEventListener('mouseup', () => {
   if (!defineEnabled) return;
   const mySeq = ++defineSeq;
+  console.log(`[define] mouseup seq=${mySeq}`);
 
   // Defer 50ms so the browser finishes updating the selection (triple-click
   // fires three mouseup events; the last one wins via the seq check).
   setTimeout(async () => {
-    if (mySeq !== defineSeq) return;
+    if (mySeq !== defineSeq) {
+      console.log(`[define] seq=${mySeq} stale (current=${defineSeq}), discarding`);
+      return;
+    }
 
     const sel  = window.getSelection();
     const text = sel?.toString().trim();
+    console.log(`[define] seq=${mySeq} text="${text}"`);
     if (!text) { hideDefinePopup(); return; }
 
     const range      = sel.getRangeAt(0);
@@ -369,11 +374,16 @@ document.addEventListener('mouseup', () => {
     showDefinePopup(rect.right, rect.bottom, text);
 
     try {
+      console.log(`[define] seq=${mySeq} calling API for "${text}"`);
       const prompts  = buildDefinePrompt(text, context, targetLang, nativeLang);
       const raw      = await generateContent(prompts, provider, apiKey, model);
-      if (mySeq !== defineSeq) return;
+      if (mySeq !== defineSeq) {
+        console.log(`[define] seq=${mySeq} API response stale, discarding`);
+        return;
+      }
 
       const { lemma, translation } = parseDefineResponse(raw);
+      console.log(`[define] seq=${mySeq} result: lemma="${lemma}" translation="${translation}"`);
 
       defineResult.textContent = translation;
 
@@ -798,5 +808,6 @@ fetch('./package.json')
   .then(pkg => {
     const el = document.getElementById('app-version');
     if (el && pkg.version) el.textContent = `v${pkg.version}`;
+    console.log(`[krashen] v${pkg.version} loaded`);
   })
   .catch(() => {});
