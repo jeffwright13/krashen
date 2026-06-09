@@ -305,6 +305,7 @@ document.getElementById('copy-btn').addEventListener('click', async () => {
 // ── Define feature ───────────────────────────────────────────────────────────
 
 let defineEnabled = false;
+let defineSeq     = 0;
 const defineBtn   = document.getElementById('define-btn');
 const definePopup = document.getElementById('define-popup');
 const defineWord  = document.getElementById('define-word');
@@ -341,7 +342,7 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
   const anchorNode  = range.commonAncestorContainer;
   const anchorEl    = anchorNode.nodeType === Node.TEXT_NODE
     ? anchorNode.parentElement : anchorNode;
-  const context     = (anchorEl?.closest('p, h1') ?? anchorEl)?.textContent ?? '';
+  const context     = (anchorEl?.closest('p, h1, h2, h3') ?? anchorEl)?.textContent ?? '';
   const rect    = range.getBoundingClientRect();
 
   const provider      = document.getElementById('provider').value;
@@ -357,10 +358,13 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
   }
 
   showDefinePopup(rect.right, rect.bottom, text);
+  const mySeq = ++defineSeq;
 
   try {
     const prompts  = buildDefinePrompt(text, context, targetLang, nativeLang);
     const raw      = await generateContent(prompts, provider, apiKey, model);
+    if (mySeq !== defineSeq) return;
+
     const { lemma, translation } = parseDefineResponse(raw);
 
     defineResult.textContent = translation;
@@ -395,6 +399,7 @@ document.getElementById('content-display').addEventListener('mouseup', async () 
       }
     }
   } catch (err) {
+    if (mySeq !== defineSeq) return;
     defineResult.textContent = err.message ?? 'Error';
   }
 });
