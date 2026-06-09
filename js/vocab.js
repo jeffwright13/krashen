@@ -22,7 +22,7 @@ function createKrashenVocab({ storage, getProfileId }) {
   }
 
   function normalizeTerm(term) {
-    return term.toLowerCase().trim();
+    return term.toLowerCase().trim().replace(/^[.,;:!?¿¡"'«»…]+|[.,;:!?¿¡"'«»…]+$/g, '');
   }
 
   function recordLookup(lemma, surfaceForm, translation, context) {
