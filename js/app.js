@@ -332,78 +332,85 @@ defineBtn.addEventListener('click', () => {
   if (!defineEnabled) hideDefinePopup();
 });
 
-document.addEventListener('mouseup', async () => {
+document.addEventListener('mouseup', () => {
   if (!defineEnabled) return;
-  const sel  = window.getSelection();
-  const text = sel?.toString().trim();
-  if (!text) { hideDefinePopup(); return; }
-
-  const range       = sel.getRangeAt(0);
-  const anchorNode  = range.commonAncestorContainer;
-  const contentEl   = document.getElementById('content-display');
-  if (!contentEl.contains(anchorNode)) return;
-  const anchorEl    = anchorNode.nodeType === Node.TEXT_NODE
-    ? anchorNode.parentElement : anchorNode;
-  const context     = (anchorEl?.closest('p, h1, h2, h3') ?? anchorEl)?.textContent ?? '';
-  const rect    = range.getBoundingClientRect();
-
-  const provider      = document.getElementById('provider').value;
-  const apiKey        = getApiKey(provider);
-  const model         = getModel(provider) || undefined;
-  const targetLang    = document.getElementById('target-language').value.trim();
-  const nativeLang    = document.getElementById('native-language').value.trim();
-
-  if (!apiKey) {
-    showDefinePopup(rect.right, rect.bottom, text);
-    defineResult.textContent = 'No API key set';
-    return;
-  }
-
-  showDefinePopup(rect.right, rect.bottom, text);
   const mySeq = ++defineSeq;
 
-  try {
-    const prompts  = buildDefinePrompt(text, context, targetLang, nativeLang);
-    const raw      = await generateContent(prompts, provider, apiKey, model);
+  // Defer 50ms so the browser finishes updating the selection (triple-click
+  // fires three mouseup events; the last one wins via the seq check).
+  setTimeout(async () => {
     if (mySeq !== defineSeq) return;
 
-    const { lemma, translation } = parseDefineResponse(raw);
+    const sel  = window.getSelection();
+    const text = sel?.toString().trim();
+    if (!text) { hideDefinePopup(); return; }
 
-    defineResult.textContent = translation;
+    const range      = sel.getRangeAt(0);
+    const anchorNode = range.commonAncestorContainer;
+    const contentEl  = document.getElementById('content-display');
+    if (!contentEl.contains(anchorNode)) return;
+    const anchorEl   = anchorNode.nodeType === Node.TEXT_NODE
+      ? anchorNode.parentElement : anchorNode;
+    const context    = (anchorEl?.closest('p, h1, h2, h3') ?? anchorEl)?.textContent ?? '';
+    const rect       = range.getBoundingClientRect();
 
-    const defineLemmaEl = document.getElementById('define-lemma');
-    const surfaceForm   = text.toLowerCase();
-    const effectiveLemma = lemma ?? surfaceForm;
-    if (defineLemmaEl) {
-      const showBaseForm = lemma && lemma !== surfaceForm;
-      defineLemmaEl.textContent = showBaseForm ? `base: ${lemma}` : '';
-      defineLemmaEl.hidden      = !showBaseForm;
+    const provider   = document.getElementById('provider').value;
+    const apiKey     = getApiKey(provider);
+    const model      = getModel(provider) || undefined;
+    const targetLang = document.getElementById('target-language').value.trim();
+    const nativeLang = document.getElementById('native-language').value.trim();
+
+    if (!apiKey) {
+      showDefinePopup(rect.right, rect.bottom, text);
+      defineResult.textContent = 'No API key set';
+      return;
     }
 
-    const activeProfile = window.KrashenProfiles?.getActive();
-    if (window.KrashenVocab && activeProfile && isVocabEnabled()) {
-      if (activeProfile.settings?.autosave) {
-        window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
-        showToast('Saved to vocab');
-        window.KrashenUI?.refreshVocab();
-      } else {
-        definePopup.querySelector('.define-save-btn')?.remove();
-        const saveBtn = document.createElement('button');
-        saveBtn.textContent = 'Save to vocab';
-        saveBtn.className   = 'define-save-btn';
-        saveBtn.addEventListener('click', () => {
+    showDefinePopup(rect.right, rect.bottom, text);
+
+    try {
+      const prompts  = buildDefinePrompt(text, context, targetLang, nativeLang);
+      const raw      = await generateContent(prompts, provider, apiKey, model);
+      if (mySeq !== defineSeq) return;
+
+      const { lemma, translation } = parseDefineResponse(raw);
+
+      defineResult.textContent = translation;
+
+      const defineLemmaEl = document.getElementById('define-lemma');
+      const surfaceForm   = text.toLowerCase();
+      const effectiveLemma = lemma ?? surfaceForm;
+      if (defineLemmaEl) {
+        const showBaseForm = lemma && lemma !== surfaceForm;
+        defineLemmaEl.textContent = showBaseForm ? `base: ${lemma}` : '';
+        defineLemmaEl.hidden      = !showBaseForm;
+      }
+
+      const activeProfile = window.KrashenProfiles?.getActive();
+      if (window.KrashenVocab && activeProfile && isVocabEnabled()) {
+        if (activeProfile.settings?.autosave) {
           window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
           showToast('Saved to vocab');
           window.KrashenUI?.refreshVocab();
-          saveBtn.remove();
-        });
-        definePopup.appendChild(saveBtn);
+        } else {
+          definePopup.querySelector('.define-save-btn')?.remove();
+          const saveBtn = document.createElement('button');
+          saveBtn.textContent = 'Save to vocab';
+          saveBtn.className   = 'define-save-btn';
+          saveBtn.addEventListener('click', () => {
+            window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
+            showToast('Saved to vocab');
+            window.KrashenUI?.refreshVocab();
+            saveBtn.remove();
+          });
+          definePopup.appendChild(saveBtn);
+        }
       }
+    } catch (err) {
+      if (mySeq !== defineSeq) return;
+      defineResult.textContent = err.message ?? 'Error';
     }
-  } catch (err) {
-    if (mySeq !== defineSeq) return;
-    defineResult.textContent = err.message ?? 'Error';
-  }
+  }, 50);
 });
 
 document.addEventListener('selectionchange', () => {
