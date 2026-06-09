@@ -22,7 +22,7 @@ no server.
 
 ## The Core Loop
 
-1. User selects an active profile (learner identity + SRS settings)
+1. User selects an active profile (learner identity + vocab hint settings)
 2. User configures a content request (topic, format, difficulty, linguistic focus)
 3. Tool assembles an LLM prompt incorporating vocabulary constraints from the active
    profile's vocab store (i+1 block: known words, re-expose candidates, new-word cap)

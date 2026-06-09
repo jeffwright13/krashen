@@ -1,4 +1,4 @@
-// Left-panel UI: profile chip, SRS parameters, vocab list.
+// Left-panel UI: profile chip, vocab hint parameters, vocab list.
 // Loaded as <script type="module">; exposes window.KrashenUI.
 
 import { exportProfileBundle } from './export.js';
@@ -27,7 +27,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     });
     if (tabId === 'vocab') {
       renderVocabStats();
-      renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
+      renderVocabHintFields(window.KrashenProfiles?.getActive()?.settings ?? {});
     }
   }
 
@@ -147,7 +147,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     if (!e.target.value) return;
     window.KrashenProfiles?.switchTo(e.target.value);
     const active = window.KrashenProfiles?.getActive();
-    renderSrsFields(active?.settings ?? {});
+    renderVocabHintFields(active?.settings ?? {});
     renderVocabStats();
     document.getElementById('delete-profile-btn').disabled = !active;
     renderChip();
@@ -173,7 +173,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     document.getElementById('new-profile-name').value  = '';
     renderProfileSelect();
     renderChip();
-    renderSrsFields(profile.settings);
+    renderVocabHintFields(profile.settings);
     applyVocabEnabled(profile.settings?.vocabEnabled ?? true);
   });
 
@@ -191,7 +191,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     if (remaining.length > 0) window.KrashenProfiles.switchTo(remaining[0].id);
     renderProfileSelect();
     renderChip();
-    renderSrsFields(window.KrashenProfiles.getActive()?.settings ?? {});
+    renderVocabHintFields(window.KrashenProfiles.getActive()?.settings ?? {});
     renderVocabStats();
     closeChipPanel();
   });
@@ -253,55 +253,55 @@ import { triggerDownload, extractContextSentence } from './display.js';
     reader.readAsText(file);
   });
 
-  // Keep chip, SRS fields, and vocab in sync on profile switch
+  // Keep chip, vocab hint fields, and vocab in sync on profile switch
   window.KrashenProfiles?.onSwitch(profile => {
     showInactive = false;
     renderChip();
-    renderSrsFields(profile.settings ?? {});
+    renderVocabHintFields(profile.settings ?? {});
     renderVocabStats();
     applyVocabEnabled(profile.settings?.vocabEnabled ?? true);
   });
 
-  // ── SRS section ───────────────────────────────────────────────────────────
+  // ── Vocab hints section ───────────────────────────────────────────────────
 
-  function renderSrsFields(settings) {
+  function renderVocabHintFields(settings) {
     const s = Object.assign({}, window.KrashenProfiles?.DEFAULT_SETTINGS, settings);
-    document.getElementById('srs-enabled').checked        = s.srsEnabled;
-    document.getElementById('srs-autosave').checked       = s.autosave;
-    document.getElementById('srs-known-threshold').value  = String(s.knownThreshold);
-    document.getElementById('srs-new-words').value        = String(s.newWordsPerSession);
-    document.getElementById('srs-reexpose-count').value   = String(s.reExposeCount);
-    document.getElementById('srs-reexpose-mastery').value = String(s.reExposeMaxMastery);
-    document.getElementById('srs-fields').hidden = !s.srsEnabled;
+    document.getElementById('vocab-hint-enabled').checked        = s.vocabHintsEnabled;
+    document.getElementById('vocab-hint-autosave').checked       = s.autosave;
+    document.getElementById('vocab-hint-known-threshold').value  = String(s.knownThreshold);
+    document.getElementById('vocab-hint-new-words').value        = String(s.newWordsPerSession);
+    document.getElementById('vocab-hint-reexpose-count').value   = String(s.reExposeCount);
+    document.getElementById('vocab-hint-reexpose-mastery').value = String(s.reExposeMaxMastery);
+    document.getElementById('vocab-hint-fields').hidden = !s.vocabHintsEnabled;
   }
 
-  function saveSrsFields() {
+  function saveVocabHintFields() {
     const active = window.KrashenProfiles?.getActive();
     if (!active) return;
     const patch = {
-      srsEnabled:         document.getElementById('srs-enabled').checked,
-      autosave:           document.getElementById('srs-autosave').checked,
-      knownThreshold:     parseInt(document.getElementById('srs-known-threshold').value, 10),
-      newWordsPerSession: parseInt(document.getElementById('srs-new-words').value, 10),
-      reExposeCount:      parseInt(document.getElementById('srs-reexpose-count').value, 10),
-      reExposeMaxMastery: parseInt(document.getElementById('srs-reexpose-mastery').value, 10),
+      vocabHintsEnabled:  document.getElementById('vocab-hint-enabled').checked,
+      autosave:           document.getElementById('vocab-hint-autosave').checked,
+      knownThreshold:     parseInt(document.getElementById('vocab-hint-known-threshold').value, 10),
+      newWordsPerSession: parseInt(document.getElementById('vocab-hint-new-words').value, 10),
+      reExposeCount:      parseInt(document.getElementById('vocab-hint-reexpose-count').value, 10),
+      reExposeMaxMastery: parseInt(document.getElementById('vocab-hint-reexpose-mastery').value, 10),
     };
     window.KrashenProfiles.updateSettings(active.id, patch);
     // Re-render from the saved patch so the visual state is always authoritative,
     // guarding against browser rendering glitches with custom checkbox styles.
-    renderSrsFields(patch);
+    renderVocabHintFields(patch);
   }
 
-  document.getElementById('srs-enabled').addEventListener('change', e => {
-    document.getElementById('srs-fields').hidden = !e.target.checked;
-    saveSrsFields();
+  document.getElementById('vocab-hint-enabled').addEventListener('change', e => {
+    document.getElementById('vocab-hint-fields').hidden = !e.target.checked;
+    saveVocabHintFields();
   });
 
-  ['srs-autosave'].forEach(id =>
-    document.getElementById(id).addEventListener('change', saveSrsFields)
+  ['vocab-hint-autosave'].forEach(id =>
+    document.getElementById(id).addEventListener('change', saveVocabHintFields)
   );
-  ['srs-known-threshold', 'srs-new-words', 'srs-reexpose-count', 'srs-reexpose-mastery'].forEach(id =>
-    document.getElementById(id).addEventListener('change', saveSrsFields)
+  ['vocab-hint-known-threshold', 'vocab-hint-new-words', 'vocab-hint-reexpose-count', 'vocab-hint-reexpose-mastery'].forEach(id =>
+    document.getElementById(id).addEventListener('change', saveVocabHintFields)
   );
 
   // ── Vocab section ─────────────────────────────────────────────────────────
@@ -498,7 +498,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
   function refreshSettings() {
     renderChip();
     renderProfileSelect();
-    renderSrsFields(window.KrashenProfiles?.getActive()?.settings ?? {});
+    renderVocabHintFields(window.KrashenProfiles?.getActive()?.settings ?? {});
     renderVocabStats();
   }
 
@@ -521,7 +521,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
 
   renderChip();
   const _activeOnLoad = window.KrashenProfiles?.getActive();
-  renderSrsFields(_activeOnLoad?.settings ?? {});
+  renderVocabHintFields(_activeOnLoad?.settings ?? {});
   applyVocabEnabled(_activeOnLoad?.settings?.vocabEnabled ?? true);
 
   window.KrashenUI = { refreshSettings, refreshChip: renderChip, refreshVocab: renderVocabStats, activateTab, applyVocabEnabled };

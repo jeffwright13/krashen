@@ -7,7 +7,7 @@ const sampleProfile = {
   created:      1000000,
   lastActive:   2000000,
   wordsRead:    350,
-  settings:     { srsEnabled: true, knownThreshold: 2 },
+  settings:     { vocabHintsEnabled: true, knownThreshold: 2 },
   formDefaults: { provider: 'openai', cefrLevel: 'B1' },
 };
 
