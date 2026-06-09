@@ -64,11 +64,11 @@ only; they are not exposed in the UI and will not be implemented.
 | Pause marking | On/Off | When on, prompt instructs LLM to use punctuation to mark natural pauses |
 | Avoid TTS-tricky words | On/Off | Prompt instructs LLM to avoid words TTS engines commonly mispronounce |
 
-### 1.5 Progression / SRS Parameters
+### 1.5 Vocab Hint Parameters
 
 | Parameter | Options / Format | Notes |
 |---|---|---|
-| SRS enabled | Toggle (per profile) | When off, vocab is still tracked but no i+1 block is injected into the prompt |
+| Vocab hints enabled (`vocabHintsEnabled`) | Toggle (per profile) | When off, vocab is still tracked but no i+1 block is injected into the prompt |
 | Autosave lookups | Toggle (per profile) | When on, Define lookups are saved automatically; when off, a "Save to vocab" button appears |
 | Known word threshold | Select 1–4 (default 2) | Mastery level at which a word is considered known and fed to the "use naturally" list |
 | New words per session | Select 3/5/8/10 (default 5) | Cap on new vocabulary the LLM is asked to introduce |
@@ -117,7 +117,7 @@ Two tabs, both always visible: **Configure** and **Vocab**.
 | Tab | Contents |
 |---|---|
 | Configure | Four collapsible accordion sections: Provider (+ API key/model), Content, Learner Profile, Linguistic Focus. Prompt debug `<details>` at bottom. |
-| Vocab | `vocabEnabled` checkbox at top; when enabled, two collapsible sections: Vocabulary (word list, Anki export) and i+1 Vocabulary Hints (SRS parameters). |
+| Vocab | `vocabEnabled` checkbox at top; when enabled, two collapsible sections: Vocabulary (word list, Anki export) and i+1 Vocabulary Hints (vocab hint parameters). |
 
 Accordion behavior: only one section can be open at a time within each tab. The first section opens by default.
 
@@ -147,7 +147,7 @@ Theme and column width live in a small popover triggered by the ⚙ button in th
 
 ### 4.6 i+1 vocabulary hint settings (Vocab → i+1 Vocabulary Hints section)
 
-When `srsEnabled` is true (off by default), `buildSystemPrompt()` appends a soft hint block: known terms (mastery ≥ threshold), emerging terms (low mastery, most recently seen), and a new-words ceiling. Parameters saved immediately via `KrashenProfiles.updateSettings()`.
+When `vocabHintsEnabled` is true (off by default), `buildSystemPrompt()` appends a soft hint block: known terms (mastery ≥ threshold), emerging terms (low mastery, most recently seen), and a new-words ceiling. Parameters saved immediately via `KrashenProfiles.updateSettings()`.
 
 ### 4.7 Prompt debug
 
@@ -188,7 +188,7 @@ Implemented in v3. Each profile maintains an independent vocabulary store in loc
 | lastLookup | timestamp | |
 | contexts | string[] | Up to 3 most recent surrounding paragraph texts |
 | mastery | 0–5 | Algorithmically derived and cached on every write (see below) |
-| userMastery | 0–5 \| undefined | Explicitly set by user rating; overrides `mastery` in all SRS logic when present |
+| userMastery | 0–5 \| undefined | Explicitly set by user rating; overrides `mastery` in all vocab hint logic when present |
 | inactive | boolean \| undefined | When true, excluded from i+1 prompt constraints; shown in Vocab tab only via "Show hidden" |
 
 **Lemma normalisation:** `recordLookup(lemma, surfaceForm, translation, context)` stores entries under the lemma key. The LLM returns the base form via the Define prompt (`LEMMA: ...` / `TRANSLATION: ...` format). `recordSeen` builds a reverse form→lemma index at runtime so seen counts credit the lemma entry when a known surface form appears in a story. Unknown inflections (not previously looked up) are silently skipped — a known limitation of not running per-word LLM calls post-generation.
@@ -212,7 +212,7 @@ Each vocab entry displays a badge **M0–M5** ("M" for Mastery). The level is de
 
 ### 6.3 i+1 prompt integration (optional)
 
-When `srsEnabled` is true for the active profile (off by default), `buildSystemPrompt()` injects a soft hint block: known terms (mastery ≥ threshold, capped at 50), re-expose terms (1 ≤ mastery ≤ maxMastery, most recently seen first, capped at reExposeCount), and a new-words-per-session ceiling. The LLM may not follow these hints exactly.
+When `vocabHintsEnabled` is true for the active profile (off by default), `buildSystemPrompt()` injects a soft hint block: known terms (mastery ≥ threshold, capped at 50), re-expose terms (1 ≤ mastery ≤ maxMastery, most recently seen first, capped at reExposeCount), and a new-words-per-session ceiling. The LLM may not follow these hints exactly.
 
 ### 6.4 Anki export
 

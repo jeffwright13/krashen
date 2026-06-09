@@ -291,7 +291,7 @@ html, body {
   margin-bottom: 0.6rem;
 }
 
-.srs-subfield {
+.vocab-hint-subfield {
   margin-top: 0.5rem;
 }
 
@@ -1037,7 +1037,7 @@ html, body {
   border-color: var(--pico-del-color);
 }
 
-.srs-grid {
+.vocab-hint-grid {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.3rem 0.75rem;
@@ -1045,12 +1045,12 @@ html, body {
   margin-top: 0.5rem;
 }
 
-.srs-grid label {
+.vocab-hint-grid label {
   font-size: 0.82rem;
   margin: 0;
 }
 
-.srs-grid select {
+.vocab-hint-grid select {
   margin: 0;
   font-size: 0.82rem;
   padding: 0.2rem 1.5rem 0.2rem 0.4rem;

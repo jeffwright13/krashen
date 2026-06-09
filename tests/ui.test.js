@@ -45,22 +45,22 @@ const FIXTURE = `
       <div id="vocab-term-list"></div>
       <button id="export-anki-btn" hidden></button>
       <button id="clear-vocab-btn" hidden></button>
-      <input type="checkbox" id="srs-enabled">
-      <input type="checkbox" id="srs-autosave">
-      <div id="srs-fields" hidden></div>
-      <select id="srs-known-threshold">
+      <input type="checkbox" id="vocab-hint-enabled">
+      <input type="checkbox" id="vocab-hint-autosave">
+      <div id="vocab-hint-fields" hidden></div>
+      <select id="vocab-hint-known-threshold">
         <option value="1">1</option><option value="2" selected>2</option>
         <option value="3">3</option><option value="4">4</option>
       </select>
-      <select id="srs-new-words">
+      <select id="vocab-hint-new-words">
         <option value="3">3</option><option value="5" selected>5</option>
         <option value="8">8</option><option value="10">10</option>
       </select>
-      <select id="srs-reexpose-count">
+      <select id="vocab-hint-reexpose-count">
         <option value="5">5</option><option value="8" selected>8</option>
         <option value="12">12</option>
       </select>
-      <select id="srs-reexpose-mastery">
+      <select id="vocab-hint-reexpose-mastery">
         <option value="1">1</option><option value="2">2</option>
         <option value="3" selected>3</option><option value="4">4</option>
       </select>
@@ -81,7 +81,7 @@ beforeAll(async () => {
     importProfileVocab: vi.fn().mockReturnValue(true),
     createFromBundle:   vi.fn().mockReturnValue({ id: 'new', name: 'Imported', settings: {}, formDefaults: {} }),
     DEFAULT_SETTINGS: {
-      autosave: false, srsEnabled: true, knownThreshold: 2,
+      autosave: false, vocabHintsEnabled: true, knownThreshold: 2,
       newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3,
     },
     DEFAULT_FORM_DEFAULTS: {
@@ -198,65 +198,65 @@ describe('tab order', () => {
 
 // ── Vocab tab — SRS fields ─────────────────────────────────────────────────────
 
-describe('vocab tab — SRS fields', () => {
-  it('srs-enabled reflects active profile srsEnabled setting', () => {
+describe('vocab tab — vocab hint fields', () => {
+  it('vocab-hint-enabled reflects active profile vocabHintsEnabled setting', () => {
     window.KrashenProfiles.getActive = () => ({
       name: 'Alice', wordsRead: 0,
-      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
+      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 2,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
     window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('srs-enabled').checked).toBe(true);
+    expect(document.getElementById('vocab-hint-enabled').checked).toBe(true);
   });
 
-  it('srs-fields is hidden when srsEnabled is false', () => {
+  it('vocab-hint-fields is hidden when vocabHintsEnabled is false', () => {
     window.KrashenProfiles.getActive = () => ({
       name: 'Alice', wordsRead: 0,
-      settings: { srsEnabled: false, autosave: false, knownThreshold: 2,
+      settings: { vocabHintsEnabled: false, autosave: false, knownThreshold: 2,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
     window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('srs-fields').hidden).toBe(true);
+    expect(document.getElementById('vocab-hint-fields').hidden).toBe(true);
   });
 
   it('known threshold select reflects profile setting', () => {
     window.KrashenProfiles.getActive = () => ({
       name: 'Alice', wordsRead: 0,
-      settings: { srsEnabled: true, autosave: false, knownThreshold: 3,
+      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 3,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
     window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('srs-known-threshold').value).toBe('3');
+    expect(document.getElementById('vocab-hint-known-threshold').value).toBe('3');
   });
 
-  it('toggling srs-enabled unchecked hides srs-fields', () => {
-    // Start with srsEnabled true (fields visible)
+  it('toggling vocab-hint-enabled unchecked hides vocab-hint-fields', () => {
+    // Start with vocabHintsEnabled true (fields visible)
     window.KrashenProfiles.getActive = () => ({
       name: 'Alice', wordsRead: 0,
-      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
+      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 2,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
     window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('srs-fields').hidden).toBe(false);
+    expect(document.getElementById('vocab-hint-fields').hidden).toBe(false);
 
     // Uncheck the toggle
-    const chk = document.getElementById('srs-enabled');
+    const chk = document.getElementById('vocab-hint-enabled');
     chk.checked = false;
     chk.dispatchEvent(new Event('change'));
-    expect(document.getElementById('srs-fields').hidden).toBe(true);
+    expect(document.getElementById('vocab-hint-fields').hidden).toBe(true);
   });
 
   it('changing a field calls updateSettings with correct values', () => {
     const mockUpdate = vi.fn();
     window.KrashenProfiles.getActive = () => ({
       id: 'p1', name: 'Alice', wordsRead: 0,
-      settings: { srsEnabled: true, autosave: false, knownThreshold: 2,
+      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 2,
         newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
     });
     window.KrashenProfiles.updateSettings = mockUpdate;
 
     window.KrashenUI.activateTab('vocab');
-    const sel = document.getElementById('srs-known-threshold');
+    const sel = document.getElementById('vocab-hint-known-threshold');
     sel.value = '4';
     sel.dispatchEvent(new Event('change'));
 

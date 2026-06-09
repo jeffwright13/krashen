@@ -62,18 +62,18 @@ async function handleGenerate(e) {
 
   try {
     const activeProfile = window.KrashenProfiles?.getActive();
-    const srsSettings   = activeProfile?.settings;
-    const srsEnabled    = srsSettings?.srsEnabled === true;
+    const hintSettings       = activeProfile?.settings;
+    const vocabHintsEnabled  = hintSettings?.vocabHintsEnabled === true;
 
     let vocabContext = null;
-    if (srsEnabled && window.KrashenVocab) {
+    if (vocabHintsEnabled && window.KrashenVocab) {
       vocabContext = {
         ...window.KrashenVocab.getForPrompt({
-          knownThreshold:     srsSettings?.knownThreshold     ?? 2,
-          reExposeMaxMastery: srsSettings?.reExposeMaxMastery ?? 3,
-          reExposeCount:      srsSettings?.reExposeCount      ?? 8,
+          knownThreshold:     hintSettings?.knownThreshold     ?? 2,
+          reExposeMaxMastery: hintSettings?.reExposeMaxMastery ?? 3,
+          reExposeCount:      hintSettings?.reExposeCount      ?? 8,
         }),
-        newWordsPerSession: srsSettings?.newWordsPerSession ?? 5,
+        newWordsPerSession: hintSettings?.newWordsPerSession ?? 5,
       };
     }
 
