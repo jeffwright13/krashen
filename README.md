@@ -11,24 +11,27 @@ you export them for use in Anki or any other SRS tool you already use.
 
 **What's in the box:**
 
-- **Generate** — stories, articles, dialogues, or scripts at any CEFR level (A0–C2),
-  with configurable word-frequency cap, dialect, tense focus, narrative person, and length
-- **Define** — select any word or phrase to get an instant inline translation from the same
-  LLM; the base/dictionary form (lemma) is stored automatically; save to vocab in one click
+- **Configure** — collapsible accordion panel with four sections: Provider (with API key),
+  Content (topic, format, length), Learner Profile (CEFR, dialect, vocab cap), and
+  Linguistic Focus (tense, connectors, sentence length). Every control has a tooltip.
+- **Generate** — stories, articles, dialogues, or scripts at any CEFR level (A0–C2);
+  the Generate button is always accessible at the bottom of the left panel
+- **Define** — select any word or phrase to get an instant inline translation; the LLM
+  returns the base/dictionary form (lemma) automatically; save to vocab in one click
   or enable autosave per profile
 - **Vocab tracking** — entries keyed by lemma with surface forms recorded; mastery levels
-  M0–M5 as an exposure indicator; Skip words to suppress them from the i+1 hint list
-- **Export for Anki** — export your vocab list as a tab-separated `.txt` file
-  (term, translation, context) importable directly into Anki
+  M0–M5 as an exposure indicator; Skip words to suppress them from the i+1 hint list;
+  off by default (enable in the Vocab tab)
+- **Anki export** — download your vocab list as a `.tsv` file (term, translation, context
+  sentence) importable directly into Anki via File → Import
 - **i+1 vocabulary hints** (optional, off by default) — softly nudges the LLM to
   reintroduce emerging words and avoid known ones; configurable in the Vocab tab
 - **Profiles** — separate learner configurations with their own vocab store, CEFR level,
   dialect, provider preference, and settings; import/export for backup or transfer
 - **History** — every generated piece saved with metadata, filterable by profile,
   exportable as JSON or Markdown
-- **Prompt debug** (optional, off by default) — shows the exact system and user prompts
-  sent to the LLM after each generation; useful for understanding how UI fields map to
-  prompt knobs
+- **Prompt debug** — collapsible "Last prompt sent to LLM" panel in the Configure tab;
+  shows the exact system and user prompts after each generation
 
 No backend. No accounts. API keys live in your browser and go only to the provider you
 choose.

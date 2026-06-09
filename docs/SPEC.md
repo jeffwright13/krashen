@@ -108,52 +108,58 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 
 ## 4. Settings & Persistence
 
-All settings are accessed through the tabbed left panel (no separate modal). All fields save on change — there is no Save button.
+All settings save on change — there is no Save button.
 
 ### 4.1 Tab layout
 
-Tab order is fixed: **Generate | Settings | Vocab**. Generate and Settings are always visible. Vocab appears only when vocabulary features are enabled (see §4.5).
+Two tabs, both always visible: **Configure** and **Vocab**.
 
-| Tab | Contents | Always visible? |
-|---|---|---|
-| Generate | Provider selector; content and linguistic focus parameters | Yes |
-| Settings | API keys/models; theme; column width; **vocabulary features toggle**; prompt debug toggle | Yes |
-| Vocab | Vocab list with mastery breakdown; Export for Anki; Clear vocab; i+1 hint parameters | When vocab enabled |
+| Tab | Contents |
+|---|---|
+| Configure | Four collapsible accordion sections: Provider (+ API key/model), Content, Learner Profile, Linguistic Focus. Prompt debug `<details>` at bottom. |
+| Vocab | `vocabEnabled` checkbox at top; when enabled, two collapsible sections: Vocabulary (word list, Anki export) and i+1 Vocabulary Hints (SRS parameters). |
+
+Accordion behavior: only one section can be open at a time within each tab. The first section opens by default.
 
 ### 4.2 Profile chip (always visible)
 
 Above the tab bar: a small "Profile" label, then the active profile name + cumulative words-read counter. Click to expand for profile management (switch / create / delete / export / import).
 
-### 4.3 i+1 vocabulary hint settings (Vocab tab lower section)
+### 4.3 Provider and API credentials (Configure → Provider section)
 
-When `srsEnabled` is true (off by default), `buildSystemPrompt()` appends a soft hint block to the LLM prompt containing known terms, emerging terms, and a new-words ceiling. The LLM is not guaranteed to follow these hints. Parameters: known threshold, new words per session, re-expose count, re-expose max mastery. Saved immediately on change via `KrashenProfiles.updateSettings()`.
+The Provider accordion section contains: provider selector (`#provider`), API key (`#api-key`), model override (`#api-model`), and a Test button. Changing the provider select loads the stored key and model for that provider. Keys and models are stored globally in `krashen_settings` (not per-profile) and saved on blur.
 
-### 4.5 Vocabulary features toggle
+### 4.4 Global display settings (toolbar ⚙ popover)
 
-`settings.vocabEnabled` (boolean, per-profile, default `false` for new profiles). When `false`:
-- Vocab tab button is hidden
-- "Save to vocab" option is suppressed in the Define popup (Define itself still works)
-- New entries are not autosaved
-
-Existing profiles created before v3.11 treat a missing `vocabEnabled` key as `true`. The toggle lives in **Settings → Features**.
-
-### 4.6 Prompt debug
-
-`ui.debugPrompts` (boolean, global, default `false`). When `true`, a "Last prompt sent to LLM" section is visible at the bottom of the Settings tab, populated after each generation with the system and user prompts exactly as sent. Useful for understanding how UI fields map to LLM parameters. Toggle lives in **Settings → Features**.
-
-### 4.4 Global settings (Settings tab)
+Theme and column width live in a small popover triggered by the ⚙ button in the reading toolbar.
 
 | Setting | Storage | Notes |
 |---|---|---|
-| API keys | `krashen_settings.apiKeys` | Saved on blur |
-| Model overrides | `krashen_settings.models` | Saved on blur |
+| API keys | `krashen_settings.apiKeys` | Per provider; saved on blur |
+| Model overrides | `krashen_settings.models` | Per provider; saved on blur |
 | Theme | `krashen_settings.ui.theme` | Saved on change; applied immediately |
 | Column width | `krashen_settings.ui.maxWidth` / `maxWidthValue` | Saved on change |
-| Font size | `krashen_settings.ui.fontSize` | Controlled from reading toolbar |
+| Font size | `krashen_settings.ui.fontSize` | Controlled from reading toolbar font-size select |
 
-### 4.5 Export / import
+### 4.5 Vocabulary features toggle
 
-History export (JSON / Markdown) and import are available from the History modal. Profile import/export is deferred — see PLAN.md §v3.1.
+`settings.vocabEnabled` (boolean, per-profile, default `false` for new profiles). Lives at the top of the Vocab tab. When `false`, the `#vocab-features` div is hidden — no word list, no i+1 hints, no Save to vocab. Define still works for occasional lookups. Existing profiles without the key default to `true`.
+
+### 4.6 i+1 vocabulary hint settings (Vocab → i+1 Vocabulary Hints section)
+
+When `srsEnabled` is true (off by default), `buildSystemPrompt()` appends a soft hint block: known terms (mastery ≥ threshold), emerging terms (low mastery, most recently seen), and a new-words ceiling. Parameters saved immediately via `KrashenProfiles.updateSettings()`.
+
+### 4.7 Prompt debug
+
+A collapsible `<details>` element ("Last prompt sent to LLM") at the bottom of the Configure tab. Populated after every generation with the exact system and user prompts sent. No persistent toggle — collapsed by default, resets on reload.
+
+### 4.8 Tooltips
+
+Every form control (inputs, selects, checkboxes, buttons) carries a `title` attribute with a plain-language description. Labels mirror the same tooltip so hovering anywhere on a row shows help text. Inline hint paragraphs and `<small>` blocks are not used — all supplementary text lives in tooltips.
+
+### 4.9 Export / import
+
+History export (JSON / Markdown) and import are available from the History modal. Profile import/export lives in the profile chip panel.
 
 ---
 
