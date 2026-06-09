@@ -128,13 +128,17 @@ export function buildUserPrompt(config) {
 }
 
 export function buildDefinePrompt(selection, context, targetLanguage, nativeLanguage) {
+  const isPhrase   = selection.trim().includes(' ');
   const hasContext = context && context.trim() && context.trim() !== selection.trim();
+  const lemmaNote  = isPhrase
+    ? `the full phrase in canonical form in ${targetLanguage} (keep all words; do not reduce to a single headword)`
+    : `the base/dictionary form of the word in ${targetLanguage}`;
   return {
     system:
       `You are a ${targetLanguage}–${nativeLanguage} dictionary. ` +
       `Reply in exactly this format (two lines, no other text):\n` +
-      `LEMMA: <the base/dictionary form of the word or phrase in ${targetLanguage}>\n` +
-      `TRANSLATION: <the ${nativeLanguage} translation>`,
+      `LEMMA: <${lemmaNote}>\n` +
+      `TRANSLATION: <the ${nativeLanguage} translation of the entire selection>`,
     user: hasContext
       ? `"${selection}" (context: "${context.trim()}")`
       : `"${selection}"`,
