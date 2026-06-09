@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { toggleLoading, renderError, renderContent, showToast } from '../js/display.js';
+import { toggleLoading, renderError, renderContent, showToast, extractContextSentence } from '../js/display.js';
 
 const FIXTURE = `
   <button id="generate-btn"></button>
@@ -362,5 +362,41 @@ describe('renderContent — state cleanup', () => {
     toggleLoading(true);
     renderContent(text, meta);
     expect(document.getElementById('generate-btn').disabled).toBe(false);
+  });
+});
+
+describe('extractContextSentence', () => {
+  it('returns the sentence containing the term', () => {
+    const para = 'El perro corrió. El gato durmió. La luna brilló.';
+    expect(extractContextSentence(para, 'gato')).toBe('El gato durmió.');
+  });
+
+  it('is case-insensitive when matching the term', () => {
+    const para = 'Hablar es fácil. Hablé con ella ayer.';
+    expect(extractContextSentence(para, 'hablé')).toBe('Hablé con ella ayer.');
+  });
+
+  it('falls back to first 120 chars when no sentence boundary found', () => {
+    const para = 'Una frase sin puntuación que continúa y continúa sin parar';
+    const result = extractContextSentence(para, 'gato');
+    expect(result).toBe(para.slice(0, 120).trim());
+  });
+
+  it('falls back to first 120 chars when term not in any sentence', () => {
+    const para = 'El perro corrió. La luna brilló.';
+    const result = extractContextSentence(para, 'gato');
+    // No sentence contains 'gato', so falls back to full text (< 120 chars)
+    expect(result).toBe(para);
+  });
+
+  it('returns empty string for empty paragraph', () => {
+    expect(extractContextSentence('', 'gato')).toBe('');
+  });
+
+  it('strips tabs and newlines from the result', () => {
+    const para = 'El gato\tdurmió bien.\nOtra frase.';
+    const result = extractContextSentence(para, 'gato');
+    expect(result).not.toContain('\t');
+    expect(result).not.toContain('\n');
   });
 });

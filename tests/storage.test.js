@@ -5,7 +5,6 @@ import {
   getModel, setModel,
   getSettings, setSettings,
   getHistory, appendHistory,
-  getVocab,
 } from '../js/storage.js';
 
 beforeEach(() => {
@@ -92,7 +91,7 @@ describe('history', () => {
 
 describe('models', () => {
   it('returns default model for claude', () => {
-    expect(getModel('claude')).toBe('claude-opus-4-5');
+    expect(getModel('claude')).toBe('claude-opus-4-8');
   });
 
   it('returns default model for openai', () => {
@@ -118,4 +117,3 @@ describe('models', () => {
 });
 
 // Vocab tracking is handled by js/vocab.js (per-profile) — see tests/vocab.test.js.
-// getVocab() in storage.js is a v1 scaffold stub retained for backwards compatibility.

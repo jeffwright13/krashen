@@ -3,7 +3,7 @@
 
 import { exportProfileBundle } from './export.js';
 import { parseProfileBundle  } from './import.js';
-import { triggerDownload     } from './display.js';
+import { triggerDownload, extractContextSentence } from './display.js';
 
 (function () {
 
@@ -469,15 +469,6 @@ import { triggerDownload     } from './display.js';
     }
   }
 
-  function ankiContext(paragraph, term) {
-    if (!paragraph) return '';
-    const sentences = paragraph.split(/(?<=[.!?¡])\s+/);
-    const hit = sentences.find(s => s.toLowerCase().includes(term.toLowerCase()));
-    if (hit) return hit.trim().replace(/\t|\n/g, ' ');
-    // Sentence not found or paragraph has no punctuation — return first 120 chars
-    return paragraph.slice(0, 120).replace(/\t|\n/g, ' ').trim();
-  }
-
   document.getElementById('export-anki-btn').addEventListener('click', () => {
     const store = window.KrashenVocab?.getStore() ?? {};
     const entries = Object.values(store).filter(e => !e.inactive);
@@ -486,7 +477,7 @@ import { triggerDownload     } from './display.js';
     const rows = entries.map(e => {
       const term        = e.term;
       const translation = e.translations?.[0] ?? '';
-      const context     = ankiContext(e.contexts?.[0] ?? '', e.term);
+      const context     = extractContextSentence(e.contexts?.[0] ?? '', e.term);
       return `${term}\t${translation}\t${context}`;
     });
 

@@ -76,6 +76,14 @@ function renderBlock(block) {
   return `<p>${inlineMarkdown(block.replace(/\n/g, ' ').trim())}</p>`;
 }
 
+export function extractContextSentence(paragraph, term) {
+  if (!paragraph) return '';
+  const sentences = paragraph.split(/(?<=[.!?¡])\s+/);
+  const hit = sentences.find(s => s.toLowerCase().includes(term.toLowerCase()));
+  if (hit) return hit.trim().replace(/\t|\n/g, ' ');
+  return paragraph.slice(0, 120).replace(/\t|\n/g, ' ').trim();
+}
+
 export function renderContent(text, { cefrLevel, wordCount, topic, date }) {
   toggleLoading(false);
   document.getElementById('error-display').hidden = true;

@@ -302,4 +302,23 @@ describe('parseDefineResponse', () => {
     expect(lemma).toBe('perro');
     expect(translation).toBe('dog');
   });
+
+  it('parses correctly when response is wrapped in a markdown code fence', () => {
+    const raw = '```\nLEMMA: hablar\nTRANSLATION: to speak\n```';
+    const { lemma, translation } = parseDefineResponse(raw);
+    expect(lemma).toBe('hablar');
+    expect(translation).toBe('to speak');
+  });
+
+  it('falls back gracefully when TRANSLATION line is missing', () => {
+    const { lemma, translation } = parseDefineResponse('LEMMA: hablar');
+    expect(lemma).toBeNull();
+    expect(translation).toBe('LEMMA: hablar');
+  });
+
+  it('falls back gracefully when LEMMA line is missing', () => {
+    const { lemma, translation } = parseDefineResponse('TRANSLATION: to speak');
+    expect(lemma).toBeNull();
+    expect(translation).toBe('TRANSLATION: to speak');
+  });
 });
