@@ -27,7 +27,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     });
     if (tabId === 'vocab') {
       renderVocabStats();
-      renderVocabHintFields(window.KrashenProfiles?.getActive()?.settings ?? {});
+      renderAutosave(window.KrashenProfiles?.getActive()?.settings ?? {});
     }
   }
 
@@ -147,7 +147,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     if (!e.target.value) return;
     window.KrashenProfiles?.switchTo(e.target.value);
     const active = window.KrashenProfiles?.getActive();
-    renderVocabHintFields(active?.settings ?? {});
+    renderAutosave(active?.settings ?? {});
     renderVocabStats();
     document.getElementById('delete-profile-btn').disabled = !active;
     renderChip();
@@ -173,7 +173,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     document.getElementById('new-profile-name').value  = '';
     renderProfileSelect();
     renderChip();
-    renderVocabHintFields(profile.settings);
+    renderAutosave(profile.settings);
     applyVocabEnabled(profile.settings?.vocabEnabled ?? true);
   });
 
@@ -191,7 +191,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     if (remaining.length > 0) window.KrashenProfiles.switchTo(remaining[0].id);
     renderProfileSelect();
     renderChip();
-    renderVocabHintFields(window.KrashenProfiles.getActive()?.settings ?? {});
+    renderAutosave(window.KrashenProfiles.getActive()?.settings ?? {});
     renderVocabStats();
     closeChipPanel();
   });
@@ -253,67 +253,29 @@ import { triggerDownload, extractContextSentence } from './display.js';
     reader.readAsText(file);
   });
 
-  // Keep chip, vocab hint fields, and vocab in sync on profile switch
+  // Keep chip and vocab in sync on profile switch
   window.KrashenProfiles?.onSwitch(profile => {
     showInactive = false;
     renderChip();
-    renderVocabHintFields(profile.settings ?? {});
+    renderAutosave(profile.settings ?? {});
     renderVocabStats();
     applyVocabEnabled(profile.settings?.vocabEnabled ?? true);
   });
 
-  // ── Vocab hints section ───────────────────────────────────────────────────
+  // ── Autosave setting ──────────────────────────────────────────────────────
 
-  function renderVocabHintFields(settings) {
+  function renderAutosave(settings) {
     const s = Object.assign({}, window.KrashenProfiles?.DEFAULT_SETTINGS, settings);
-    document.getElementById('vocab-hint-enabled').checked        = s.vocabHintsEnabled;
-    document.getElementById('vocab-hint-autosave').checked       = s.autosave;
-    document.getElementById('vocab-hint-known-threshold').value  = String(s.knownThreshold);
-    document.getElementById('vocab-hint-new-words').value        = String(s.newWordsPerSession);
-    document.getElementById('vocab-hint-reexpose-count').value   = String(s.reExposeCount);
-    document.getElementById('vocab-hint-reexpose-mastery').value = String(s.reExposeMaxMastery);
-    document.getElementById('vocab-hint-fields').hidden = !s.vocabHintsEnabled;
+    document.getElementById('vocab-autosave').checked = s.autosave;
   }
 
-  function saveVocabHintFields() {
+  document.getElementById('vocab-autosave').addEventListener('change', e => {
     const active = window.KrashenProfiles?.getActive();
     if (!active) return;
-    const patch = {
-      vocabHintsEnabled:  document.getElementById('vocab-hint-enabled').checked,
-      autosave:           document.getElementById('vocab-hint-autosave').checked,
-      knownThreshold:     parseInt(document.getElementById('vocab-hint-known-threshold').value, 10),
-      newWordsPerSession: parseInt(document.getElementById('vocab-hint-new-words').value, 10),
-      reExposeCount:      parseInt(document.getElementById('vocab-hint-reexpose-count').value, 10),
-      reExposeMaxMastery: parseInt(document.getElementById('vocab-hint-reexpose-mastery').value, 10),
-    };
-    window.KrashenProfiles.updateSettings(active.id, patch);
-    // Re-render from the saved patch so the visual state is always authoritative,
-    // guarding against browser rendering glitches with custom checkbox styles.
-    renderVocabHintFields(patch);
-  }
-
-  document.getElementById('vocab-hint-enabled').addEventListener('change', e => {
-    document.getElementById('vocab-hint-fields').hidden = !e.target.checked;
-    saveVocabHintFields();
+    window.KrashenProfiles.updateSettings(active.id, { autosave: e.target.checked });
   });
 
-  ['vocab-hint-autosave'].forEach(id =>
-    document.getElementById(id).addEventListener('change', saveVocabHintFields)
-  );
-  ['vocab-hint-known-threshold', 'vocab-hint-new-words', 'vocab-hint-reexpose-count', 'vocab-hint-reexpose-mastery'].forEach(id =>
-    document.getElementById(id).addEventListener('change', saveVocabHintFields)
-  );
-
   // ── Vocab section ─────────────────────────────────────────────────────────
-
-  const MASTERY_LABELS = [
-    'M0 — Never encountered',
-    'M1 — Seen in passing (not yet looked up)',
-    'M2 — Looked up once',
-    'M3 — Looked up repeatedly',
-    'M4 — Solidifying (re-encountered naturally after looking up)',
-    'M5 — Passively acquired (absorbed through reading alone)',
-  ];
 
   let showInactive = false;
 
@@ -340,12 +302,10 @@ import { triggerDownload, extractContextSentence } from './display.js';
       termEl.appendChild(formsEl);
     }
 
-    const em = entry.userMastery ?? entry.mastery;
-    const mastEl = document.createElement('span');
-    mastEl.className   = 'vocab-mastery' + (entry.userMastery !== undefined ? ' vocab-mastery-user' : '');
-    mastEl.textContent = 'M' + em;
-    mastEl.title       = (MASTERY_LABELS[em] ?? `M${em}`) +
-      (entry.userMastery !== undefined ? ' (user-rated)' : ' (algorithm-derived)');
+    const lookupEl = document.createElement('span');
+    lookupEl.className   = 'vocab-lookup-count';
+    lookupEl.textContent = `×${entry.lookupCount ?? 0}`;
+    lookupEl.title       = `Looked up ${entry.lookupCount ?? 0} time${(entry.lookupCount ?? 0) !== 1 ? 's' : ''} via Define`;
 
     const actions = document.createElement('span');
     actions.className = 'vocab-item-actions';
@@ -354,7 +314,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
       const resumeBtn = document.createElement('button');
       resumeBtn.textContent = 'Resume';
       resumeBtn.className   = 'vocab-action-btn vocab-resume-btn';
-      resumeBtn.title       = 'Restore this word to the active list so it appears in the i+1 hint again';
+      resumeBtn.title       = 'Restore this word to the active list';
       resumeBtn.addEventListener('click', () => {
         window.KrashenVocab.setActive(entry.term, true);
         renderVocabStats();
@@ -364,7 +324,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
       const skipBtn = document.createElement('button');
       skipBtn.textContent = 'Skip';
       skipBtn.className   = 'vocab-action-btn vocab-skip-btn';
-      skipBtn.title       = 'Hide this word from the i+1 hint list without deleting it — useful when a word is not relevant to your current topic';
+      skipBtn.title       = 'Hide this word from the list without deleting it — use Resume to bring it back';
       skipBtn.addEventListener('click', () => {
         window.KrashenVocab.setActive(entry.term, false);
         renderVocabStats();
@@ -383,7 +343,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
     actions.appendChild(delBtn);
 
     row.appendChild(termEl);
-    row.appendChild(mastEl);
+    row.appendChild(lookupEl);
     row.appendChild(actions);
     return row;
   }
@@ -391,7 +351,6 @@ import { triggerDownload, extractContextSentence } from './display.js';
   function renderVocabStats() {
     const noProfileEl = document.getElementById('vocab-no-profile');
     const emptyEl     = document.getElementById('vocab-empty');
-    const breakdownEl = document.getElementById('vocab-mastery-breakdown');
     const listEl      = document.getElementById('vocab-term-list');
     const clearBtn    = document.getElementById('clear-vocab-btn');
     const ankiBtn     = document.getElementById('export-anki-btn');
@@ -401,7 +360,6 @@ import { triggerDownload, extractContextSentence } from './display.js';
     if (!activeProfile) {
       noProfileEl.hidden  = false;
       emptyEl.hidden      = true;
-      breakdownEl.hidden  = true;
       clearBtn.hidden     = true;
       if (ankiBtn) ankiBtn.hidden = true;
       listEl.innerHTML    = '';
@@ -417,7 +375,6 @@ import { triggerDownload, extractContextSentence } from './display.js';
 
     if (allEntries.length === 0) {
       emptyEl.hidden      = false;
-      breakdownEl.hidden  = true;
       clearBtn.hidden     = true;
       if (ankiBtn) ankiBtn.hidden = true;
       listEl.innerHTML    = '';
@@ -426,22 +383,12 @@ import { triggerDownload, extractContextSentence } from './display.js';
     }
     emptyEl.hidden = true;
 
-    // Total label
     let totalLabel = `${active.length} word${active.length !== 1 ? 's' : ''}`;
     if (inactive.length > 0) totalLabel += ` · ${inactive.length} hidden`;
     totalEl.textContent = totalLabel;
 
-    // Breakdown reflects active entries only; action buttons available whenever any entry exists
     clearBtn.hidden = false;
     if (ankiBtn) ankiBtn.hidden = false;
-    if (active.length > 0) {
-      const byMastery = [0, 0, 0, 0, 0, 0];
-      active.forEach(e => { const m = e.userMastery ?? e.mastery; byMastery[m] = (byMastery[m] || 0) + 1; });
-      breakdownEl.textContent = byMastery.map((n, i) => `${n}×M${i}`).join('  ');
-      breakdownEl.hidden = false;
-    } else {
-      breakdownEl.hidden = true;
-    }
 
     listEl.innerHTML = '';
 
@@ -498,7 +445,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
   function refreshSettings() {
     renderChip();
     renderProfileSelect();
-    renderVocabHintFields(window.KrashenProfiles?.getActive()?.settings ?? {});
+    renderAutosave(window.KrashenProfiles?.getActive()?.settings ?? {});
     renderVocabStats();
   }
 
@@ -521,7 +468,7 @@ import { triggerDownload, extractContextSentence } from './display.js';
 
   renderChip();
   const _activeOnLoad = window.KrashenProfiles?.getActive();
-  renderVocabHintFields(_activeOnLoad?.settings ?? {});
+  renderAutosave(_activeOnLoad?.settings ?? {});
   applyVocabEnabled(_activeOnLoad?.settings?.vocabEnabled ?? true);
 
   window.KrashenUI = { refreshSettings, refreshChip: renderChip, refreshVocab: renderVocabStats, activateTab, applyVocabEnabled };

@@ -64,16 +64,11 @@ only; they are not exposed in the UI and will not be implemented.
 | Pause marking | On/Off | When on, prompt instructs LLM to use punctuation to mark natural pauses |
 | Avoid TTS-tricky words | On/Off | Prompt instructs LLM to avoid words TTS engines commonly mispronounce |
 
-### 1.5 Vocab Hint Parameters
+### 1.5 Vocab Parameters
 
 | Parameter | Options / Format | Notes |
 |---|---|---|
-| Vocab hints enabled (`vocabHintsEnabled`) | Toggle (per profile) | When off, vocab is still tracked but no i+1 block is injected into the prompt |
 | Autosave lookups | Toggle (per profile) | When on, Define lookups are saved automatically; when off, a "Save to vocab" button appears |
-| Known word threshold | Select 1–4 (default 2) | Mastery level at which a word is considered known and fed to the "use naturally" list |
-| New words per session | Select 3/5/8/10 (default 5) | Cap on new vocabulary the LLM is asked to introduce |
-| Re-expose count | Select 5/8/12 (default 8) | How many still-acquiring words to include in the re-expose list |
-| Re-expose max mastery | Select 1–4 (default 3) | Upper mastery bound for the re-expose list |
 
 ---
 
@@ -83,7 +78,6 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 
 - System prompt: establishes the LLM's role as a graded content generator, sets hard constraints (CEFR level, word cap, sentence length, grammar focus, dialect)
 - User prompt: the content request (topic, format, length, specific includes/excludes)
-- Parameters not yet active (TTS, SRS) should still be architecturally wired — just not exposed in the UI until ready
 
 ### Prompt design notes
 - CEFR level alone is fuzzy; pairing it with a common-word cap produces significantly more calibrated output
@@ -117,7 +111,7 @@ Two tabs, both always visible: **Configure** and **Vocab**.
 | Tab | Contents |
 |---|---|
 | Configure | Four collapsible accordion sections: Provider (+ API key/model), Content, Learner Profile, Linguistic Focus. Prompt debug `<details>` at bottom. |
-| Vocab | `vocabEnabled` checkbox at top; when enabled, two collapsible sections: Vocabulary (word list, Anki export) and i+1 Vocabulary Hints (vocab hint parameters). |
+| Vocab | `vocabEnabled` checkbox at top; when enabled: word list, Anki export, autosave toggle, Clear vocab. |
 
 Accordion behavior: only one section can be open at a time within each tab. The first section opens by default.
 
@@ -143,21 +137,17 @@ Theme and column width live in a small popover triggered by the ⚙ button in th
 
 ### 4.5 Vocabulary features toggle
 
-`settings.vocabEnabled` (boolean, per-profile, default `false` for new profiles). Lives at the top of the Vocab tab. When `false`, the `#vocab-features` div is hidden — no word list, no i+1 hints, no Save to vocab. Define still works for occasional lookups. Existing profiles without the key default to `true`.
+`settings.vocabEnabled` (boolean, per-profile, default `false` for new profiles). Lives at the top of the Vocab tab. When `false`, the `#vocab-features` div is hidden — no word list, no Save to vocab. Define still works for occasional lookups. Existing profiles without the key default to `true`.
 
-### 4.6 i+1 vocabulary hint settings (Vocab → i+1 Vocabulary Hints section)
-
-When `vocabHintsEnabled` is true (off by default), `buildSystemPrompt()` appends a soft hint block: known terms (mastery ≥ threshold), emerging terms (low mastery, most recently seen), and a new-words ceiling. Parameters saved immediately via `KrashenProfiles.updateSettings()`.
-
-### 4.7 Prompt debug
+### 4.6 Prompt debug
 
 A collapsible `<details>` element ("Last prompt sent to LLM") at the bottom of the Configure tab. Populated after every generation with the exact system and user prompts sent. No persistent toggle — collapsed by default, resets on reload.
 
-### 4.8 Tooltips
+### 4.7 Tooltips
 
 Every form control (inputs, selects, checkboxes, buttons) carries a `title` attribute with a plain-language description. Labels mirror the same tooltip so hovering anywhere on a row shows help text. Inline hint paragraphs and `<small>` blocks are not used — all supplementary text lives in tooltips.
 
-### 4.9 Export / import
+### 4.8 Export / import
 
 History export (JSON / Markdown) and import are available from the History modal. Profile import/export lives in the profile chip panel.
 
@@ -183,38 +173,16 @@ Implemented in v3. Each profile maintains an independent vocabulary store in loc
 | forms | string[] | Surface forms encountered via Define (e.g. `["hablé","hablas"]`). Shown in Vocab tab when >1. |
 | translations | string[] | Captures variation across lookups |
 | firstSeen / lastSeen | timestamp | |
-| seenCount | number | Incremented when the word (or a known surface form) appears in generated content |
 | lookupCount | number | Incremented when the user explicitly uses Define |
 | lastLookup | timestamp | |
 | contexts | string[] | Up to 3 most recent surrounding paragraph texts |
-| mastery | 0–5 | Algorithmically derived and cached on every write (see below) |
-| userMastery | 0–5 \| undefined | Explicitly set by user rating; overrides `mastery` in all vocab hint logic when present |
-| inactive | boolean \| undefined | When true, excluded from i+1 prompt constraints; shown in Vocab tab only via "Show hidden" |
+| inactive | boolean \| undefined | When true, hidden from the default list view; shown only via "Show hidden" toggle |
 
-**Lemma normalisation:** `recordLookup(lemma, surfaceForm, translation, context)` stores entries under the lemma key. The LLM returns the base form via the Define prompt (`LEMMA: ...` / `TRANSLATION: ...` format). `recordSeen` builds a reverse form→lemma index at runtime so seen counts credit the lemma entry when a known surface form appears in a story. Unknown inflections (not previously looked up) are silently skipped — a known limitation of not running per-word LLM calls post-generation.
+**Lemma normalisation:** `recordLookup(lemma, surfaceForm, translation, context)` stores entries under the lemma key. The LLM returns the base form via the Define prompt (`LEMMA: ...` / `TRANSLATION: ...` format).
 
 **Legacy entries** (pre-v3.13) keyed by surface form remain valid and display normally; they are not automatically migrated. Users can Clear vocab to start fresh with lemma-keyed entries.
 
-### 6.2 Mastery levels
-
-Each vocab entry displays a badge **M0–M5** ("M" for Mastery). The level is derived algorithmically from exposure counts and updated on every write. Levels are evaluated highest-first; M4 and M5 take precedence when conditions overlap.
-
-| Badge | Meaning | Condition |
-|---|---|---|
-| M0 | Never encountered | No seen or lookup events |
-| M1 | Seen in passing | seenCount > 0, lookupCount = 0 |
-| M2 | Looked up once | lookupCount = 1 |
-| M3 | Looked up repeatedly | lookupCount ≥ 2 |
-| M4 | Solidifying | lookupCount ≥ 1 and seenCount > lookupCount (re-encountered naturally after looking up) |
-| M5 | Passively acquired | seenCount ≥ 3 and lookupCount = 0 (absorbed through reading alone, never needed to look up) |
-
-**Effective mastery:** `getForPrompt` and Vocab tab display use `entry.userMastery ?? entry.mastery`. The algorithmic `mastery` field continues to update from counts but never overwrites a stored `userMastery`. Note: `userMastery` can only be set programmatically; the Review and Study modals were removed in v4.0 (see DECISIONS.md).
-
-### 6.3 i+1 prompt integration (optional)
-
-When `vocabHintsEnabled` is true for the active profile (off by default), `buildSystemPrompt()` injects a soft hint block: known terms (mastery ≥ threshold, capped at 50), re-expose terms (1 ≤ mastery ≤ maxMastery, most recently seen first, capped at reExposeCount), and a new-words-per-session ceiling. The LLM may not follow these hints exactly.
-
-### 6.4 Anki export
+### 6.2 Anki export
 
 A **Export for Anki** button in the Vocab tab generates a tab-separated `.txt` file with one row per active entry: `term\ttranslation\tcontext`. Importable directly into Anki via File → Import. The file is named `krashen-{profile-slug}-anki.txt`.
 

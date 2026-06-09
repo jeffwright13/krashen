@@ -62,23 +62,8 @@ async function handleGenerate(e) {
 
   try {
     const activeProfile = window.KrashenProfiles?.getActive();
-    const hintSettings       = activeProfile?.settings;
-    const vocabHintsEnabled  = hintSettings?.vocabHintsEnabled === true;
-
-    let vocabContext = null;
-    if (vocabHintsEnabled && window.KrashenVocab) {
-      vocabContext = {
-        ...window.KrashenVocab.getForPrompt({
-          knownThreshold:     hintSettings?.knownThreshold     ?? 2,
-          reExposeMaxMastery: hintSettings?.reExposeMaxMastery ?? 3,
-          reExposeCount:      hintSettings?.reExposeCount      ?? 8,
-        }),
-        newWordsPerSession: hintSettings?.newWordsPerSession ?? 5,
-      };
-    }
-
     const prompts = {
-      system: buildSystemPrompt(config, vocabContext),
+      system: buildSystemPrompt(config),
       user:   buildUserPrompt(config),
     };
     lastPrompts = prompts;
@@ -99,13 +84,6 @@ async function handleGenerate(e) {
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
-
-    if (window.KrashenVocab) {
-      const words = [...new Set(
-        content.toLowerCase().replace(/[¡!¿?.,;:«»"'()\-—]/g, ' ').split(/\s+/).filter(Boolean)
-      )];
-      window.KrashenVocab.recordSeen(words);
-    }
 
     if (activeProfile) {
       window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);
@@ -665,13 +643,6 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
     profileName: activeProfile?.name ?? null,
   });
   appendHistory(currentEntry);
-
-  if (window.KrashenVocab) {
-    const words = [...new Set(
-      rawText.toLowerCase().replace(/[¡!¿?.,;:«»"'()\-—]/g, ' ').split(/\s+/).filter(Boolean)
-    )];
-    window.KrashenVocab.recordSeen(words);
-  }
 
   if (activeProfile) {
     window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);

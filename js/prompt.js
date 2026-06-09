@@ -29,29 +29,7 @@ const NARRATIVE_PERSON_LABELS = {
   '3rd': 'third person',
 };
 
-export function buildI1Constraints({ knownTerms, reExposeTerms, newWordsPerSession }) {
-  const parts = [];
-
-  if (knownTerms.length > 0) {
-    parts.push(
-      `Known vocabulary (use naturally, don't over-explain):\n` +
-      knownTerms.slice(0, 50).join(', ')
-    );
-  }
-
-  if (reExposeTerms.length > 0) {
-    parts.push(
-      `Re-expose these words the learner is still acquiring:\n` +
-      reExposeTerms.join(', ')
-    );
-  }
-
-  parts.push(`Introduce at most ${newWordsPerSession} new vocabulary words not on either list.`);
-
-  return parts.join('\n\n');
-}
-
-export function buildSystemPrompt(config, vocabContext = null) {
+export function buildSystemPrompt(config) {
   const parts = [];
 
   parts.push(
@@ -73,10 +51,6 @@ export function buildSystemPrompt(config, vocabContext = null) {
     vocabCapLine + `\n` +
     `- Learner's native language: ${config.nativeLanguage} — watch for false cognates and interference patterns`
   );
-
-  if (vocabContext) {
-    parts.push(`## Vocabulary Constraints (i+1)\n${buildI1Constraints(vocabContext)}`);
-  }
 
   if (config.tenseFocus && config.tenseFocus.length > 0) {
     parts.push(

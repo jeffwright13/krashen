@@ -213,7 +213,7 @@
         <div class="vocab-enable-row">
           <label class="settings-check-label">
             <input type="checkbox" id="vocab-enabled"
-              title="Unlocks: Define (inline word lookup), vocab list, mastery tracking, Anki export, and the i+1 vocabulary hints option. Does NOT change how the LLM generates content by itself — only the i+1 hints toggle (inside this tab) does that. When off, the app is a pure reading tool with no vocabulary tracking.">
+              title="Unlocks Define (inline word lookup), the vocab list, lookup tracking, and Anki export. Does not change how the LLM generates content. When off, the app is a pure reading tool with no vocabulary tracking.">
             Enable vocabulary features
           </label>
         </div>
@@ -230,20 +230,14 @@
             <p id="vocab-empty" class="tab-hint" hidden>
               No vocabulary saved yet. Use Define to look up words.
             </p>
-            <p id="vocab-mastery-breakdown" class="vocab-breakdown" hidden></p>
-            <details class="mastery-legend">
-              <summary title="M0–M5 exposure-based mastery levels. Click to expand the key.">Mastery levels</summary>
-              <dl class="mastery-legend-list">
-                <div><dt>M0</dt><dd>Never encountered</dd></div>
-                <div><dt>M1</dt><dd>Seen in passing</dd></div>
-                <div><dt>M2</dt><dd>Looked up once</dd></div>
-                <div><dt>M3</dt><dd>Looked up repeatedly</dd></div>
-                <div><dt>M4</dt><dd>Solidifying — re-encountered naturally</dd></div>
-                <div><dt>M5</dt><dd>Passively acquired through reading</dd></div>
-              </dl>
-            </details>
             <div id="vocab-term-list" class="vocab-term-list"></div>
             <div class="vocab-actions-row">
+              <label class="settings-check-label vocab-autosave-label"
+                title="Automatically save every Define lookup to your vocabulary list without needing to click 'Save to vocab'.">
+                <input type="checkbox" id="vocab-autosave"
+                  title="Automatically save every Define lookup to your vocabulary list without needing to click 'Save to vocab'.">
+                Autosave lookups
+              </label>
               <button type="button" id="export-anki-btn"
                 class="outline secondary tab-danger-btn" hidden
                 title="Download your active vocabulary as a tab-separated file (term, translation, context sentence) that Anki can import directly via File → Import.">Anki Export</button>
@@ -251,62 +245,6 @@
                 class="outline secondary danger-btn tab-danger-btn" hidden
                 title="Permanently delete all vocabulary for this profile. This cannot be undone — export first if you want a backup.">Clear vocab</button>
             </div>
-          </details>
-
-          <details class="form-section">
-            <summary title="i+1 (Krashen's input hypothesis): acquisition happens fastest when input contains words just slightly beyond your current level. These settings send soft hints to the LLM about your known and emerging vocabulary.">i+1 Vocabulary Hints</summary>
-            <label class="settings-check-label"
-              title="Softly nudges the LLM to reuse words you're still learning and to avoid words you already know well. The LLM treats these as hints, not hard rules.">
-              <input type="checkbox" id="vocab-hint-enabled"
-                title="Softly nudges the LLM to reuse words you're still learning and to avoid words you already know well. The LLM treats these as hints, not hard rules.">
-              Nudge the LLM with vocabulary context
-            </label>
-            <div id="vocab-hint-fields">
-              <label class="settings-check-label vocab-hint-subfield"
-                title="Automatically save every Define lookup to your vocabulary list without clicking 'Save to vocab'.">
-                <input type="checkbox" id="vocab-hint-autosave"
-                  title="Automatically save every Define lookup to your vocabulary list without clicking 'Save to vocab'.">
-                Autosave lookups to vocab
-              </label>
-              <div class="vocab-hint-grid">
-                <label for="vocab-hint-known-threshold"
-                  title="Mastery level (M0–M5) at or above which a word is considered known and included in the LLM's known-words hint list.">Known threshold</label>
-                <select id="vocab-hint-known-threshold"
-                  title="Mastery level (M0–M5) at or above which a word is considered known and included in the LLM's known-words hint list.">
-                  <option value="1">1</option>
-                  <option value="2" selected>2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                </select>
-                <label for="vocab-hint-new-words"
-                  title="Target number of new (unseen) words the LLM should try to introduce per generated piece.">New words / session</label>
-                <select id="vocab-hint-new-words"
-                  title="Target number of new (unseen) words the LLM should try to introduce per generated piece.">
-                  <option value="3">3</option>
-                  <option value="5" selected>5</option>
-                  <option value="8">8</option>
-                  <option value="10">10</option>
-                </select>
-                <label for="vocab-hint-reexpose-count"
-                  title="Maximum number of emerging (low-mastery) words to include in the re-exposure hint sent to the LLM.">Re-expose count</label>
-                <select id="vocab-hint-reexpose-count"
-                  title="Maximum number of emerging (low-mastery) words to include in the re-exposure hint sent to the LLM.">
-                  <option value="5">5</option>
-                  <option value="8" selected>8</option>
-                  <option value="12">12</option>
-                </select>
-                <label for="vocab-hint-reexpose-mastery"
-                  title="Words at or below this mastery level are candidates for re-exposure. M3 means 'looked up repeatedly but not yet solidified'.">Re-expose max mastery</label>
-                <select id="vocab-hint-reexpose-mastery"
-                  title="Words at or below this mastery level are candidates for re-exposure. M3 means 'looked up repeatedly but not yet solidified'.">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3" selected>3</option>
-                  <option value="4">4</option>
-                </select>
-              </div>
-            </div>
-          </details>
 
         </div><!-- #vocab-features -->
       </div><!-- #tab-vocab -->

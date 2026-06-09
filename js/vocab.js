@@ -1,16 +1,3 @@
-function effectiveMastery(entry) {
-  return entry.userMastery ?? entry.mastery;
-}
-
-function deriveMastery({ seenCount, lookupCount }) {
-  if (seenCount >= 3 && lookupCount === 0) return 5;
-  if (lookupCount >= 1 && seenCount > lookupCount) return 4;
-  if (lookupCount >= 2) return 3;
-  if (lookupCount === 1) return 2;
-  if (seenCount > 0) return 1;
-  return 0;
-}
-
 function createKrashenVocab({ storage, getProfileId }) {
 
   function vocabKey() {
@@ -52,11 +39,9 @@ function createKrashenVocab({ storage, getProfileId }) {
         translations: [],
         firstSeen:    now,
         lastSeen:     now,
-        seenCount:    0,
         lookupCount:  0,
         lastLookup:   null,
         contexts:     [],
-        mastery:      0,
       };
     }
 
@@ -78,36 +63,8 @@ function createKrashenVocab({ storage, getProfileId }) {
       entry.contexts = [context.trim(), ...entry.contexts].slice(0, 3);
     }
 
-    entry.mastery = deriveMastery(entry);
     saveStore(store);
     return entry;
-  }
-
-  function recordSeen(termList) {
-    const store = getStore();
-    const now   = Date.now();
-    let changed = false;
-
-    // Build reverse lookup: surface form → lemma key (covers lemma itself and all known forms)
-    const formToKey = {};
-    for (const [key, entry] of Object.entries(store)) {
-      formToKey[key] = key;
-      if (entry.forms) {
-        for (const form of entry.forms) formToKey[form] = key;
-      }
-    }
-
-    for (const raw of termList) {
-      const normalized = normalizeTerm(raw);
-      const key = formToKey[normalized];
-      if (!key || !store[key]) continue;
-      store[key].seenCount++;
-      store[key].lastSeen = now;
-      store[key].mastery  = deriveMastery(store[key]);
-      changed = true;
-    }
-
-    if (changed) saveStore(store);
   }
 
   function deleteTerm(term) {
@@ -115,14 +72,6 @@ function createKrashenVocab({ storage, getProfileId }) {
     const store = getStore();
     if (!store[key]) return;
     delete store[key];
-    saveStore(store);
-  }
-
-  function setMastery(term, level) {
-    const key   = normalizeTerm(term);
-    const store = getStore();
-    if (!store[key]) return;
-    store[key].userMastery = Math.max(0, Math.min(5, Math.round(level)));
     saveStore(store);
   }
 
@@ -138,32 +87,13 @@ function createKrashenVocab({ storage, getProfileId }) {
     saveStore(store);
   }
 
-  function getForPrompt({ knownThreshold = 2, reExposeMaxMastery = 3, reExposeCount = 8 } = {}) {
-    const terms = Object.values(getStore()).filter(t => !t.inactive);
-
-    const knownTerms = terms
-      .filter(t => effectiveMastery(t) >= knownThreshold)
-      .map(t => t.term);
-
-    const reExposeTerms = terms
-      .filter(t => effectiveMastery(t) >= 1 && effectiveMastery(t) <= reExposeMaxMastery)
-      .sort((a, b) => b.lastSeen - a.lastSeen)
-      .slice(0, reExposeCount)
-      .map(t => t.term);
-
-    return { knownTerms, reExposeTerms };
-  }
-
   function clear() {
     const key = vocabKey();
     if (key) storage.removeItem(key);
   }
 
-  return { recordLookup, recordSeen, getStore, getForPrompt, setMastery, deleteTerm, setActive, clear };
+  return { recordLookup, getStore, deleteTerm, setActive, clear };
 }
-
-createKrashenVocab.deriveMastery    = deriveMastery;
-createKrashenVocab.effectiveMastery = effectiveMastery;
 
 // Browser: auto-initialise once profiles.js has set up the global
 if (typeof window !== 'undefined') {

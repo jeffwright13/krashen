@@ -41,29 +41,10 @@ const FIXTURE = `
       <span id="vocab-total"></span>
       <p id="vocab-no-profile" hidden></p>
       <p id="vocab-empty" hidden></p>
-      <p id="vocab-mastery-breakdown" hidden></p>
       <div id="vocab-term-list"></div>
+      <input type="checkbox" id="vocab-autosave">
       <button id="export-anki-btn" hidden></button>
       <button id="clear-vocab-btn" hidden></button>
-      <input type="checkbox" id="vocab-hint-enabled">
-      <input type="checkbox" id="vocab-hint-autosave">
-      <div id="vocab-hint-fields" hidden></div>
-      <select id="vocab-hint-known-threshold">
-        <option value="1">1</option><option value="2" selected>2</option>
-        <option value="3">3</option><option value="4">4</option>
-      </select>
-      <select id="vocab-hint-new-words">
-        <option value="3">3</option><option value="5" selected>5</option>
-        <option value="8">8</option><option value="10">10</option>
-      </select>
-      <select id="vocab-hint-reexpose-count">
-        <option value="5">5</option><option value="8" selected>8</option>
-        <option value="12">12</option>
-      </select>
-      <select id="vocab-hint-reexpose-mastery">
-        <option value="1">1</option><option value="2">2</option>
-        <option value="3" selected>3</option><option value="4">4</option>
-      </select>
     </div>
   </div>
 `;
@@ -81,8 +62,7 @@ beforeAll(async () => {
     importProfileVocab: vi.fn().mockReturnValue(true),
     createFromBundle:   vi.fn().mockReturnValue({ id: 'new', name: 'Imported', settings: {}, formDefaults: {} }),
     DEFAULT_SETTINGS: {
-      autosave: false, vocabHintsEnabled: true, knownThreshold: 2,
-      newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3,
+      autosave: false,
     },
     DEFAULT_FORM_DEFAULTS: {
       provider: 'openai', cefrLevel: 'A2', wordCap: 1000,
@@ -196,75 +176,25 @@ describe('tab order', () => {
   });
 });
 
-// ── Vocab tab — SRS fields ─────────────────────────────────────────────────────
+// ── Vocab tab — autosave ──────────────────────────────────────────────────────
 
-describe('vocab tab — vocab hint fields', () => {
-  it('vocab-hint-enabled reflects active profile vocabHintsEnabled setting', () => {
+describe('vocab tab — autosave', () => {
+  it('autosave checkbox reflects profile autosave setting', () => {
     window.KrashenProfiles.getActive = () => ({
       name: 'Alice', wordsRead: 0,
-      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 2,
-        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+      settings: { autosave: true },
     });
     window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('vocab-hint-enabled').checked).toBe(true);
+    expect(document.getElementById('vocab-autosave').checked).toBe(true);
   });
 
-  it('vocab-hint-fields is hidden when vocabHintsEnabled is false', () => {
+  it('autosave defaults to false when not set', () => {
     window.KrashenProfiles.getActive = () => ({
-      name: 'Alice', wordsRead: 0,
-      settings: { vocabHintsEnabled: false, autosave: false, knownThreshold: 2,
-        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
+      name: 'Alice', wordsRead: 0, settings: {},
     });
     window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('vocab-hint-fields').hidden).toBe(true);
+    expect(document.getElementById('vocab-autosave').checked).toBe(false);
   });
-
-  it('known threshold select reflects profile setting', () => {
-    window.KrashenProfiles.getActive = () => ({
-      name: 'Alice', wordsRead: 0,
-      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 3,
-        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
-    });
-    window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('vocab-hint-known-threshold').value).toBe('3');
-  });
-
-  it('toggling vocab-hint-enabled unchecked hides vocab-hint-fields', () => {
-    // Start with vocabHintsEnabled true (fields visible)
-    window.KrashenProfiles.getActive = () => ({
-      name: 'Alice', wordsRead: 0,
-      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 2,
-        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
-    });
-    window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('vocab-hint-fields').hidden).toBe(false);
-
-    // Uncheck the toggle
-    const chk = document.getElementById('vocab-hint-enabled');
-    chk.checked = false;
-    chk.dispatchEvent(new Event('change'));
-    expect(document.getElementById('vocab-hint-fields').hidden).toBe(true);
-  });
-
-  it('changing a field calls updateSettings with correct values', () => {
-    const mockUpdate = vi.fn();
-    window.KrashenProfiles.getActive = () => ({
-      id: 'p1', name: 'Alice', wordsRead: 0,
-      settings: { vocabHintsEnabled: true, autosave: false, knownThreshold: 2,
-        newWordsPerSession: 5, reExposeCount: 8, reExposeMaxMastery: 3 },
-    });
-    window.KrashenProfiles.updateSettings = mockUpdate;
-
-    window.KrashenUI.activateTab('vocab');
-    const sel = document.getElementById('vocab-hint-known-threshold');
-    sel.value = '4';
-    sel.dispatchEvent(new Event('change'));
-
-    expect(mockUpdate).toHaveBeenCalledOnce();
-    expect(mockUpdate.mock.calls[0][0]).toBe('p1');
-    expect(mockUpdate.mock.calls[0][1].knownThreshold).toBe(4);
-  });
-
 });
 
 // ── Vocab tab ──────────────────────────────────────────────────────────────────
@@ -276,11 +206,10 @@ describe('vocab tab — no profile', () => {
     expect(document.getElementById('vocab-no-profile').hidden).toBe(false);
   });
 
-  it('hides clear button and breakdown when no profile', () => {
+  it('hides clear button when no profile', () => {
     window.KrashenProfiles.getActive = () => null;
     window.KrashenUI.activateTab('vocab');
     expect(document.getElementById('clear-vocab-btn').hidden).toBe(true);
-    expect(document.getElementById('vocab-mastery-breakdown').hidden).toBe(true);
   });
 });
 
@@ -293,12 +222,6 @@ describe('vocab tab — empty store', () => {
     expect(document.getElementById('clear-vocab-btn').hidden).toBe(true);
   });
 
-  it('hides breakdown when store is empty', () => {
-    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
-    window.KrashenVocab = { getStore: () => ({}) };
-    window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('vocab-mastery-breakdown').hidden).toBe(true);
-  });
 });
 
 describe('vocab tab — with entries', () => {
@@ -316,13 +239,6 @@ describe('vocab tab — with entries', () => {
     window.KrashenVocab = { getStore: () => mockStore };
     window.KrashenUI.activateTab('vocab');
     expect(document.getElementById('vocab-total').textContent).toBe('2 words');
-  });
-
-  it('shows mastery breakdown', () => {
-    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
-    window.KrashenVocab = { getStore: () => mockStore };
-    window.KrashenUI.activateTab('vocab');
-    expect(document.getElementById('vocab-mastery-breakdown').hidden).toBe(false);
   });
 
   it('renders term list sorted by lastSeen descending', () => {
@@ -350,33 +266,4 @@ describe('vocab tab — with entries', () => {
     expect(document.getElementById('vocab-empty').hidden).toBe(true);
   });
 
-  it('shows userMastery in mastery badge when set', () => {
-    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
-    window.KrashenVocab = { getStore: () => mockStoreWithUserMastery };
-    window.KrashenUI.activateTab('vocab');
-    const items = document.querySelectorAll('#vocab-term-list .vocab-item');
-    // hola has userMastery:4, should show M4 not M2
-    const holaMastery = items[0].querySelector('.vocab-mastery').textContent;
-    expect(holaMastery).toBe('M4');
-  });
-
-  it('applies vocab-mastery-user class when userMastery is set', () => {
-    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
-    window.KrashenVocab = { getStore: () => mockStoreWithUserMastery };
-    window.KrashenUI.activateTab('vocab');
-    const items = document.querySelectorAll('#vocab-term-list .vocab-item');
-    expect(items[0].querySelector('.vocab-mastery').classList.contains('vocab-mastery-user')).toBe(true);
-    expect(items[1].querySelector('.vocab-mastery').classList.contains('vocab-mastery-user')).toBe(false);
-  });
-
-  it('uses userMastery in breakdown counts when set', () => {
-    window.KrashenProfiles.getActive = () => ({ name: 'Alice', wordsRead: 0, settings: {} });
-    window.KrashenVocab = { getStore: () => mockStoreWithUserMastery };
-    window.KrashenUI.activateTab('vocab');
-    const breakdown = document.getElementById('vocab-mastery-breakdown').textContent;
-    // hola: userMastery=4 (not mastery=2), gato: mastery=1
-    expect(breakdown).toContain('1×M1');
-    expect(breakdown).toContain('1×M4');
-    expect(breakdown).not.toContain('1×M2');
-  });
 });
