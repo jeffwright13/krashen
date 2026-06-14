@@ -5,9 +5,9 @@ A browser-based reading tool built around Stephen Krashen's
 language fastest when input is just slightly beyond your current level — comprehensible,
 but with a handful of new words to stretch you.
 
-Krashen generates graded Spanish reading content via LLM, tuned to your CEFR level,
-vocabulary cap, dialect, and grammar focus. It tracks the words you look up and lets
-you export them for use in Anki or any other SRS tool you already use.
+Krashen generates graded reading content via LLM in any language you configure, tuned
+to your CEFR level, vocabulary cap, dialect, and grammar focus. It tracks the words you
+look up and lets you export them for use in Anki or any other SRS tool you already use.
 
 **What's in the box:**
 
@@ -19,13 +19,11 @@ you export them for use in Anki or any other SRS tool you already use.
 - **Define** — select any word or phrase to get an instant inline translation; the LLM
   returns the base/dictionary form (lemma) automatically; save to vocab in one click
   or enable autosave per profile
-- **Vocab tracking** — entries keyed by lemma with surface forms recorded; mastery levels
-  M0–M5 as an exposure indicator; Skip words to suppress them from the i+1 hint list;
-  off by default (enable in the Vocab tab)
+- **Vocab tracking** — entries keyed by lemma with surface forms recorded; lookup count
+  tracked per entry; Skip words to suppress them from the list; off by default (enable
+  via the vocab toggle in Profile settings)
 - **Anki export** — download your vocab list as a `.tsv` file (term, translation, context
   sentence) importable directly into Anki via File → Import
-- **i+1 vocabulary hints** (optional, off by default) — softly nudges the LLM to
-  reintroduce emerging words and avoid known ones; configurable in the Vocab tab
 - **Profiles** — separate learner configurations with their own vocab store, CEFR level,
   dialect, provider preference, and settings; import/export for backup or transfer
 - **History** — every generated piece saved with metadata, filterable by profile,
@@ -54,8 +52,8 @@ npm run serve
 Then open the URL printed in the terminal (`serve` defaults to port 3000 but
 auto-selects another if 3000 is in use).
 
-On first launch, open the **Settings** tab in the left panel and enter an API key for
-your chosen provider. Then fill in the content form and press **Generate**.
+On first launch, expand the **Provider** section in the Configure panel and enter an API
+key for your chosen provider. Then fill in the content form and press **Generate**.
 
 > Note: the app uses ES modules loaded directly by the browser. You must serve it over
 > HTTP — opening `index.html` via `file://` will fail in most browsers.
@@ -94,8 +92,8 @@ npm run test:watch    # re-run on file changes
 ```
 
 Two runners are used: **Vitest** for browser-environment modules (jsdom), and a minimal
-**Node CJS runner** (`node tests/run.js`) for the pure-logic ES modules that don't
-require a DOM.
+**Node CJS runner** (`node tests/run.js`) for the pure-logic modules that don't require
+a DOM. Both run automatically via `npm test`.
 
 | Test file | Runner | What it covers |
 |---|---|---|
@@ -108,9 +106,9 @@ require a DOM.
 | `security.test.js` | Vitest | API key storage and transmission guarantees |
 | `import.test.js` | Vitest | `parseLibraryJSON`, `parseProfileBundle` |
 | `profileIO.test.js` | Vitest | `exportProfileBundle`, `parseProfileBundle` round-trip |
-| `ui.test.js` | Vitest | Tab switching, profile chip, vocab-enabled toggle, SRS fields, vocab tab |
+| `ui.test.js` | Vitest | Tab switching, profile chip, vocab-enabled toggle, vocab tab |
 | `profiles.test.js` | Node CJS | Profile CRUD, `createFromBundle`, `importProfileVocab` |
-| `vocab.test.js` | Node CJS | `recordLookup` (lemma/forms), `recordSeen`, `getForPrompt`, `deleteTerm`, `setActive` |
+| `vocab.test.js` | Node CJS | `recordLookup` (lemma/forms), `deleteTerm`, `setActive` |
 
 The orchestration layer (`app.js`) is verified by manual in-browser testing.
 

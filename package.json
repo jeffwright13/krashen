@@ -4,7 +4,7 @@
   "description": "Browser-based comprehensible input tool for language learning",
   "type": "module",
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run && node tests/run.js",
     "test:watch": "vitest",
     "serve": "npx serve ."
   },
