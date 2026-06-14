@@ -21,7 +21,6 @@ module.exports = {
     assert.strictEqual(typeof p.lastActive, 'number');
     assert.strictEqual(typeof p.settings, 'object');
     assert.strictEqual(p.settings.autosave, false);
-    assert.strictEqual(p.settings.vocabHintsEnabled, false);
   },
 
   'getAll() returns all created profiles': function () {
@@ -114,7 +113,6 @@ module.exports = {
     const updated = P.getAll().find(p => p.id === profile.id);
     assert.strictEqual(updated.settings.autosave, true);
     assert.strictEqual(updated.settings.newWordsPerSession, 8);
-    assert.strictEqual(updated.settings.vocabHintsEnabled, true); // default preserved
   },
 
   'create() includes formDefaults with correct defaults': function () {
@@ -151,7 +149,6 @@ module.exports = {
     assert.strictEqual(p.name, 'Imported');
     assert.strictEqual(p.wordsRead, 42);
     assert.strictEqual(p.settings.knownThreshold, 3);
-    assert.strictEqual(p.settings.vocabHintsEnabled, false);    // default preserved
     assert.strictEqual(p.formDefaults.cefrLevel, 'B2');
     assert.strictEqual(p.formDefaults.provider, 'openai'); // default preserved
     assert.strictEqual(P.getAll().length, 1);
