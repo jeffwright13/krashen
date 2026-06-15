@@ -261,9 +261,9 @@
 
     <div id="reading-panel">
 
+      <button id="fullscreen-btn" class="fullscreen-overlay-btn" title="Expand reading panel" aria-label="Expand reading panel">⤢</button>
+
       <div id="reading-toolbar">
-        <button id="fullscreen-btn" class="outline secondary" title="Expand reading panel">⤢</button>
-        <span class="toolbar-sep" aria-hidden="true"></span>
         <div class="display-popover-wrap">
           <button id="display-settings-btn" class="outline secondary" title="Display settings">⚙</button>
           <div id="display-popover" hidden>
@@ -308,13 +308,9 @@
           </div>
         </div>
         <span class="toolbar-sep" aria-hidden="true"></span>
-        <button id="export-piece-btn" class="outline secondary" hidden
-          title="Export this piece as Markdown">Export .md</button>
-        <button id="export-html-btn" class="outline secondary" hidden
-          title="Export this piece as a self-contained HTML file">Export .html</button>
+        <button id="file-btn" class="outline secondary"
+          title="Open text or save the current piece">File</button>
         <span class="toolbar-sep" aria-hidden="true"></span>
-        <button id="load-text-btn" class="outline secondary"
-          title="Load your own Spanish text into the reading panel">Load Text</button>
         <button id="history-btn" class="outline secondary"
           title="Browse and manage past generated pieces">History</button>
       </div>
@@ -395,17 +391,19 @@
     <span id="define-lemma" class="define-lemma" hidden></span>
   </div>
 
-  <dialog id="load-text-modal" aria-labelledby="load-text-modal-title">
+  <dialog id="file-modal" aria-labelledby="file-modal-title">
     <article>
       <header>
-        <h2 id="load-text-modal-title">Load your text</h2>
-        <button id="close-load-text" class="outline secondary" aria-label="Close">Close</button>
+        <h2 id="file-modal-title">File</h2>
+        <button id="close-file-modal" class="outline secondary" aria-label="Close">Close</button>
       </header>
+
+      <h3 class="file-section-heading">Open</h3>
       <label for="load-text-title-input">Title</label>
       <input type="text" id="load-text-title-input"
         placeholder="e.g. Chapter 1, Mi novela…" autocomplete="off">
       <label for="load-text-area">Text</label>
-      <textarea id="load-text-area" rows="12"
+      <textarea id="load-text-area" rows="8"
         placeholder="Paste your Spanish text here…"></textarea>
       <div class="load-text-actions">
         <button type="button" id="load-from-file-btn" class="outline secondary">
@@ -413,6 +411,16 @@
         </button>
         <input type="file" id="load-text-file" accept=".txt,.md" hidden>
         <button type="button" id="display-text-btn">Display</button>
+      </div>
+
+      <hr>
+
+      <h3 class="file-section-heading">Save as</h3>
+      <div class="file-save-actions">
+        <button type="button" id="export-piece-btn" class="outline secondary" disabled
+          title="Export this piece as Markdown">Markdown (.md)</button>
+        <button type="button" id="export-html-btn" class="outline secondary" disabled
+          title="Export this piece as a self-contained HTML file">HTML (.html)</button>
       </div>
     </article>
   </dialog>

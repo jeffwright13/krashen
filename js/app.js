@@ -83,8 +83,8 @@ async function handleGenerate(e) {
     });
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
-    document.getElementById('export-piece-btn').hidden = false;
-    document.getElementById('export-html-btn').hidden = false;
+    document.getElementById('export-piece-btn').disabled = false;
+    document.getElementById('export-html-btn').disabled = false;
 
     if (activeProfile) {
       window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);
@@ -508,8 +508,8 @@ function renderHistoryList() {
         topic:     entry.topic ?? '',
         date:      entry.date,
       });
-      document.getElementById('export-piece-btn').hidden = false;
-      document.getElementById('export-html-btn').hidden = false;
+      document.getElementById('export-piece-btn').disabled = false;
+      document.getElementById('export-html-btn').disabled = false;
       document.getElementById('history-modal').close();
     });
 
@@ -590,17 +590,17 @@ document.getElementById('clear-history-btn').addEventListener('click', () => {
   renderHistoryList();
 });
 
-// ── Load user text ────────────────────────────────────────────────────────────
+// ── File modal ────────────────────────────────────────────────────────────────
 
-document.getElementById('load-text-btn').addEventListener('click', () => {
-  document.getElementById('load-text-modal').showModal();
+document.getElementById('file-btn').addEventListener('click', () => {
+  document.getElementById('file-modal').showModal();
 });
 
-document.getElementById('close-load-text').addEventListener('click', () => {
-  document.getElementById('load-text-modal').close();
+document.getElementById('close-file-modal').addEventListener('click', () => {
+  document.getElementById('file-modal').close();
 });
 
-document.getElementById('load-text-modal').addEventListener('click', e => {
+document.getElementById('file-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) e.currentTarget.close();
 });
 
@@ -633,8 +633,8 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
   const date      = new Date().toLocaleDateString();
 
   renderContent(content, { cefrLevel: '', wordCount, topic: title, date });
-  document.getElementById('export-piece-btn').hidden = false;
-  document.getElementById('export-html-btn').hidden = false;
+  document.getElementById('export-piece-btn').disabled = false;
+  document.getElementById('export-html-btn').disabled = false;
 
   const activeProfile = window.KrashenProfiles?.getActive();
   persistCurrentEntry({
@@ -650,7 +650,7 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
     window.KrashenUI?.refreshChip();
   }
 
-  document.getElementById('load-text-modal').close();
+  document.getElementById('file-modal').close();
 });
 
 // ── Export ────────────────────────────────────────────────────────────────────
@@ -780,8 +780,8 @@ initDisplayPopover();
       topic:      saved.topic ?? '',
       date:       saved.date,
     });
-    document.getElementById('export-piece-btn').hidden = false;
-    document.getElementById('export-html-btn').hidden = false;
+    document.getElementById('export-piece-btn').disabled = false;
+    document.getElementById('export-html-btn').disabled = false;
   } catch (_) {}
 })();
 

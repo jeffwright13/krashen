@@ -150,7 +150,11 @@ Every form control (inputs, selects, checkboxes, buttons) carries a `title` attr
 
 ### 4.8 Export / import
 
-**Reading panel:** The toolbar exposes two per-piece export buttons (visible only when a piece is loaded): **Export .md** downloads a Markdown file with YAML frontmatter (topic, CEFR, dialect, word count, date) and the story body; **Export .html** downloads a self-contained HTML file with embedded CSS, a metadata bar, and the story rendered as HTML — suitable for mobile reading, email sharing, or archiving.
+**File modal** (toolbar → File button): two sections separated by a rule.
+- **Open** — title input, paste area, load-from-file button, Display button. Replaces the former standalone Load Text modal.
+- **Save as** — Markdown (.md) and HTML (.html) export buttons, disabled until a piece is loaded. Downloading either closes nothing; the modal stays open.
+
+The fullscreen toggle (⤢) is a semi-transparent overlay button (`position: absolute`) in the top-right corner of the reading panel, visible at 30% opacity and full opacity on hover. Esc also exits fullscreen.
 
 **History modal:** Library export (JSON / Markdown) and import are available. Profile import/export lives in the profile chip panel.
 
