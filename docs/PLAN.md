@@ -575,3 +575,58 @@ docs/
 - Mobile layout (architecture is migration-ready; layout itself deferred)
 
 ---
+
+## Design notes — deferred considerations
+
+### "File" modal and History consolidation (noted v5.2.0)
+
+**Context:** The reading toolbar "Export .md" and "Export .html" buttons, plus "Load Text", are all story-as-text operations. A consolidated **"File" modal** (replacing three toolbar buttons with one) was proposed and will be built. The modal would have two sections: **Open** (the current Load Text form) and **Save as** (.md / .html). Export buttons become disabled (not hidden) when no piece is loaded.
+
+**History inclusion — considered and deferred.** History was proposed as a candidate for the File modal on the grounds that it represents stories accessible to the user. After discussion:
+
+- History is **localStorage**, not disk files. It is more analogous to "Open Recent" in a desktop File menu than to a file operation.
+- The History modal has substantial document-browser UI: text filter, profile filter, bulk select/delete, per-entry load/delete. This weight does not belong in a file-operation modal.
+- The **library export/import buttons** inside the History modal *are* genuine file operations and are the stronger candidate for migration into a File modal (under a "Library" section). This would leave History as a pure document browser with no file I/O.
+
+**Decision deferred.** Build the File modal first (Load Text + Export .md/.html). Revisit moving library export/import out of History modal into the File modal as a follow-on — it is a clean separation but adds scope. History stays as its own toolbar button for now.
+
+---
+
+### Reading toolbar redesign (noted v5.2.0)
+
+**Problem:** The reading toolbar has no organizing principle. Ten controls are crammed into one row covering unrelated concerns — display preferences, text manipulation, file I/O, and navigation. The specific trigger: Ctrl-A in the reading pane selects all browser content, not just the story, so Select All and Copy buttons were added as workarounds.
+
+**Proposed end state:**
+
+The toolbar collapses from ~10 items to 3:
+
+```
+⚙ Display  |  File  |  History
+```
+
+The fullscreen toggle (⤢) moves out of the toolbar entirely and lives as a quietly overlaid button inside the text area (upper-left corner), in the style of a video-player fullscreen control. Visible on hover or always-on at low opacity.
+
+**What goes where:**
+
+| Current item | Destination |
+|---|---|
+| ⤢ Fullscreen toggle | Overlaid inside text area, upper-left |
+| S / M / L font size | ⚙ Display popover |
+| Theme select | ⚙ Display popover (already there) |
+| Limit width toggle + value | ⚙ Display popover (already there) |
+| Define toggle | ⚙ Display popover (contextual mode, not a preference, but infrequent enough to live here) |
+| Select All | Removed — replaced by scoped Ctrl-A keyboard shortcut |
+| Copy | Removed — replaced by scoped Ctrl-C (native, works after Ctrl-A selects the pane) |
+| Export .md | File modal |
+| Export .html | File modal |
+| Load Text | File modal |
+| History | Stays as toolbar button |
+
+**Scoped Ctrl-A implementation:** Add `tabindex="0"` to `#content-display` so it can receive focus. Intercept `keydown` on the reading panel; when Ctrl-A fires and focus is within the panel, call `window.getSelection().selectAllChildren(contentDisplay)` and `preventDefault()`. Works naturally after the user clicks into the reading area. Ctrl-C is native and needs no special handling once the selection is scoped.
+
+**Phasing:** This is three separable changes that can ship independently:
+1. **Scoped Ctrl-A + remove Select All / Copy buttons** — self-contained, low risk
+2. **⚙ Display popover expansion** — add font size and Define toggle; remove S/M/L select from toolbar
+3. **⤢ overlay + File modal** — move fullscreen button into text area; consolidate Load Text and Export into File modal
+
+Each phase leaves the app in a shippable state. Phase 1 is the highest value-to-effort ratio.

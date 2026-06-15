@@ -5,7 +5,7 @@ import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings } fr
 import { getHistory, appendHistory, deleteHistoryEntry, clearHistory, mergeHistory } from './history.js';
 import { exportPieceAsMarkdown, exportPieceAsHTML, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
-import { toggleLoading, renderContent, renderError, showToast, triggerDownload } from './display.js';
+import { toggleLoading, renderContent, renderError, showToast, triggerDownload, selectContentDisplay, applyFontSizeClass } from './display.js';
 
 let currentEntry   = null;
 let lastPrompts    = null;  // { system, user } from most recent generation
@@ -83,8 +83,8 @@ async function handleGenerate(e) {
     });
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
-    document.getElementById('export-piece-btn').hidden = false;
-    document.getElementById('export-html-btn').hidden = false;
+    document.getElementById('export-piece-btn').disabled = false;
+    document.getElementById('export-html-btn').disabled = false;
 
     if (activeProfile) {
       window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);
@@ -131,17 +131,21 @@ function initProviderSection() {
 }
 
 function initDisplayPopover() {
-  const btn      = document.getElementById('display-settings-btn');
-  const popover  = document.getElementById('display-popover');
+  const btn        = document.getElementById('display-settings-btn');
+  const popover    = document.getElementById('display-popover');
   const uiSettings = getSettings().ui;
-  const themeEl  = document.getElementById('modal-theme');
-  const enabledEl = document.getElementById('modal-maxwidth-enabled');
-  const valueEl  = document.getElementById('modal-maxwidth-value');
+  const themeEl    = document.getElementById('modal-theme');
+  const enabledEl  = document.getElementById('modal-maxwidth-enabled');
+  const valueEl    = document.getElementById('modal-maxwidth-value');
+  const fontSizeEl = document.getElementById('popover-font-size');
+  const defineEl   = document.getElementById('popover-define');
 
   themeEl.value      = uiSettings.theme || 'system';
   enabledEl.checked  = uiSettings.maxWidth !== false;
   valueEl.value      = uiSettings.maxWidthValue ?? 70;
   valueEl.disabled   = !enabledEl.checked;
+  fontSizeEl.value   = uiSettings.fontSize || 'medium';
+  defineEl.checked   = false;
 
   btn.addEventListener('click', e => {
     e.stopPropagation();
@@ -165,6 +169,11 @@ function initDisplayPopover() {
   valueEl.addEventListener('change', () => {
     const s = getSettings(); s.ui.maxWidthValue = parseInt(valueEl.value, 10) || 70; setSettings(s);
     applyMaxWidth(enabledEl.checked, s.ui.maxWidthValue);
+  });
+  fontSizeEl.addEventListener('change', () => applyFontSize(fontSizeEl.value));
+  defineEl.addEventListener('change', () => {
+    defineEnabled = defineEl.checked;
+    if (!defineEnabled) hideDefinePopup();
   });
 }
 
@@ -279,27 +288,16 @@ document.querySelectorAll('.key-toggle-btn').forEach(btn => {
   });
 });
 
-// ── Select All / Copy ─────────────────────────────────────────────────────────
+// ── Scoped Ctrl-A keyboard shortcut ──────────────────────────────────────────
+// When #content-display has focus (user clicked into the reading area),
+// Ctrl-A / Cmd-A selects only the story text rather than the whole page.
 
-document.getElementById('select-all-btn').addEventListener('click', () => {
-  const el    = document.getElementById('content-display');
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
-});
-
-document.getElementById('copy-btn').addEventListener('click', async () => {
-  const el   = document.getElementById('content-display');
-  const text = el.innerText.trim();
-  try {
-    await navigator.clipboard.writeText(text);
-    const btn = document.getElementById('copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-  } catch {
-    // clipboard unavailable (non-https or permission denied)
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+    if (document.activeElement === document.getElementById('content-display')) {
+      e.preventDefault();
+      selectContentDisplay();
+    }
   }
 });
 
@@ -307,7 +305,6 @@ document.getElementById('copy-btn').addEventListener('click', async () => {
 
 let defineEnabled = false;
 let defineSeq     = 0;
-const defineBtn   = document.getElementById('define-btn');
 const definePopup = document.getElementById('define-popup');
 const defineWord  = document.getElementById('define-word');
 const defineResult = document.getElementById('define-result');
@@ -326,12 +323,6 @@ function hideDefinePopup() {
   definePopup.hidden = true;
   definePopup.querySelector('.define-save-btn')?.remove();
 }
-
-defineBtn.addEventListener('click', () => {
-  defineEnabled = !defineEnabled;
-  defineBtn.setAttribute('aria-pressed', String(defineEnabled));
-  if (!defineEnabled) hideDefinePopup();
-});
 
 document.addEventListener('mouseup', () => {
   if (!defineEnabled) return;
@@ -421,20 +412,13 @@ document.addEventListener('selectionchange', () => {
 
 // ── Font size ─────────────────────────────────────────────────────────────────
 
-const FONT_SIZES = ['small', 'medium', 'large'];
-
 function applyFontSize(size) {
-  const display = document.getElementById('content-display');
-  FONT_SIZES.forEach(s => display.classList.toggle(`font-${s}`, s === size));
-  document.getElementById('font-size-select').value = size;
+  applyFontSizeClass(size);
+  document.getElementById('popover-font-size').value = size;
   const settings = getSettings();
   settings.ui.fontSize = size;
   setSettings(settings);
 }
-
-document.getElementById('font-size-select').addEventListener('change', e => {
-  applyFontSize(e.target.value);
-});
 
 applyFontSize(getSettings().ui.fontSize || 'medium');
 
@@ -524,8 +508,8 @@ function renderHistoryList() {
         topic:     entry.topic ?? '',
         date:      entry.date,
       });
-      document.getElementById('export-piece-btn').hidden = false;
-      document.getElementById('export-html-btn').hidden = false;
+      document.getElementById('export-piece-btn').disabled = false;
+      document.getElementById('export-html-btn').disabled = false;
       document.getElementById('history-modal').close();
     });
 
@@ -606,17 +590,17 @@ document.getElementById('clear-history-btn').addEventListener('click', () => {
   renderHistoryList();
 });
 
-// ── Load user text ────────────────────────────────────────────────────────────
+// ── File modal ────────────────────────────────────────────────────────────────
 
-document.getElementById('load-text-btn').addEventListener('click', () => {
-  document.getElementById('load-text-modal').showModal();
+document.getElementById('file-btn').addEventListener('click', () => {
+  document.getElementById('file-modal').showModal();
 });
 
-document.getElementById('close-load-text').addEventListener('click', () => {
-  document.getElementById('load-text-modal').close();
+document.getElementById('close-file-modal').addEventListener('click', () => {
+  document.getElementById('file-modal').close();
 });
 
-document.getElementById('load-text-modal').addEventListener('click', e => {
+document.getElementById('file-modal').addEventListener('click', e => {
   if (e.target === e.currentTarget) e.currentTarget.close();
 });
 
@@ -649,8 +633,8 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
   const date      = new Date().toLocaleDateString();
 
   renderContent(content, { cefrLevel: '', wordCount, topic: title, date });
-  document.getElementById('export-piece-btn').hidden = false;
-  document.getElementById('export-html-btn').hidden = false;
+  document.getElementById('export-piece-btn').disabled = false;
+  document.getElementById('export-html-btn').disabled = false;
 
   const activeProfile = window.KrashenProfiles?.getActive();
   persistCurrentEntry({
@@ -666,7 +650,7 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
     window.KrashenUI?.refreshChip();
   }
 
-  document.getElementById('load-text-modal').close();
+  document.getElementById('file-modal').close();
 });
 
 // ── Export ────────────────────────────────────────────────────────────────────
@@ -796,8 +780,8 @@ initDisplayPopover();
       topic:      saved.topic ?? '',
       date:       saved.date,
     });
-    document.getElementById('export-piece-btn').hidden = false;
-    document.getElementById('export-html-btn').hidden = false;
+    document.getElementById('export-piece-btn').disabled = false;
+    document.getElementById('export-html-btn').disabled = false;
   } catch (_) {}
 })();
 

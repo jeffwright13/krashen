@@ -90,7 +90,7 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 
 - Generated content renders in a clean reading view
 - Font, line height, and contrast optimized for comfortable extended reading
-- Content should be selectable (to support future click-to-translate without a rewrite)
+- Content is selectable; `#content-display` carries `tabindex="0"` so clicking into the reading area focuses it. Ctrl-A / Cmd-A while the reading area is focused selects only the story text (not the whole page). Ctrl-C then copies the selection natively.
 - Paragraph structure preserved from LLM output
 - Metadata shown: CEFR level, approximate word count, topic, date generated
 - LLM response opens with a `## Title` line; rendered as a heading above the body
@@ -125,7 +125,7 @@ The Provider accordion section contains: provider selector (`#provider`), API ke
 
 ### 4.4 Global display settings (toolbar ⚙ popover)
 
-Theme and column width live in a small popover triggered by the ⚙ button in the reading toolbar.
+All reading-panel display controls live in a small popover triggered by the ⚙ button in the reading toolbar. The popover has two groups separated by a rule: appearance settings (theme, column width, font size) and reading mode (Define toggle).
 
 | Setting | Storage | Notes |
 |---|---|---|
@@ -133,7 +133,8 @@ Theme and column width live in a small popover triggered by the ⚙ button in th
 | Model overrides | `krashen_settings.models` | Per provider; saved on blur |
 | Theme | `krashen_settings.ui.theme` | Saved on change; applied immediately |
 | Column width | `krashen_settings.ui.maxWidth` / `maxWidthValue` | Saved on change |
-| Font size | `krashen_settings.ui.fontSize` | Controlled from reading toolbar font-size select |
+| Font size | `krashen_settings.ui.fontSize` | Select (Small / Medium / Large) in ⚙ popover; saved on change |
+| Define mode | session only | Checkbox in ⚙ popover; resets to off on page load |
 
 ### 4.5 Vocabulary features toggle
 
@@ -149,7 +150,11 @@ Every form control (inputs, selects, checkboxes, buttons) carries a `title` attr
 
 ### 4.8 Export / import
 
-**Reading panel:** The toolbar exposes two per-piece export buttons (visible only when a piece is loaded): **Export .md** downloads a Markdown file with YAML frontmatter (topic, CEFR, dialect, word count, date) and the story body; **Export .html** downloads a self-contained HTML file with embedded CSS, a metadata bar, and the story rendered as HTML — suitable for mobile reading, email sharing, or archiving.
+**File modal** (toolbar → File button): two sections separated by a rule.
+- **Open** — title input, paste area, load-from-file button, Display button. Replaces the former standalone Load Text modal.
+- **Save as** — Markdown (.md) and HTML (.html) export buttons, disabled until a piece is loaded. Downloading either closes nothing; the modal stays open.
+
+The fullscreen toggle (⤢) is the rightmost button in the reading toolbar, pushed to the far right via `margin-left: auto`. Esc also exits fullscreen.
 
 **History modal:** Library export (JSON / Markdown) and import are available. Profile import/export lives in the profile chip panel.
 
