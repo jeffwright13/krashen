@@ -379,27 +379,13 @@ html, body {
   color: var(--pico-muted-color);
 }
 
-/* Display settings popover */
-.display-popover-wrap {
-  position: relative;
+/* Display settings modal */
+#display-settings-modal {
+  max-width: 22rem;
 }
 
-#display-popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  background: var(--pico-card-background-color);
-  border: 1px solid var(--pico-muted-border-color);
-  border-radius: var(--pico-border-radius);
-  padding: 0.6rem 0.75rem;
-  min-width: 220px;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-#display-popover hr {
-  margin: 0.4rem 0;
-  border-color: var(--pico-muted-border-color);
+#display-settings-modal::backdrop {
+  background: rgba(0, 0, 0, 0.12);
 }
 
 /* vocab-enable-row at top of Vocab tab */
@@ -535,8 +521,7 @@ html, body {
   max-width: var(--content-max-width);
 }
 
-#reading-toolbar > button,
-#display-settings-btn {
+#reading-toolbar > button {
   font-size: 0.78rem;
   padding: 0.22rem 0.6rem;
   margin: 0;

@@ -262,49 +262,7 @@
     <div id="reading-panel">
 
       <div id="reading-toolbar">
-        <div class="display-popover-wrap">
-          <button id="display-settings-btn" class="outline secondary" title="Display settings">Settings</button>
-          <div id="display-popover" hidden>
-            <div class="settings-theme-row">
-              <label for="modal-theme">Theme</label>
-              <select id="modal-theme"
-                title="Color scheme. System follows your OS dark/light mode setting.">
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-            <div class="settings-maxwidth-row">
-              <label class="settings-check-label">
-                <input type="checkbox" id="modal-maxwidth-enabled" checked
-                  title="Cap the reading panel text column at a fixed character width for comfortable line lengths.">
-                Limit width to
-              </label>
-              <input type="number" id="modal-maxwidth-value"
-                min="40" max="200" step="5" value="70"
-                aria-label="Column width in characters"
-                title="Column width in characters (ch units). 60–80 is typically comfortable for reading.">
-              <span class="settings-unit">ch</span>
-            </div>
-            <div class="settings-fontsize-row">
-              <label for="popover-font-size">Font size</label>
-              <select id="popover-font-size"
-                title="Text size in the reading panel.">
-                <option value="small">Small</option>
-                <option value="medium">Medium</option>
-                <option value="large">Large</option>
-              </select>
-            </div>
-            <hr>
-            <div>
-              <label class="settings-check-label">
-                <input type="checkbox" id="popover-define"
-                  title="When on, click or select any word or phrase to see its translation.">
-                Define mode
-              </label>
-            </div>
-          </div>
-        </div>
+        <button id="display-settings-btn" class="outline secondary" title="Display settings">Settings</button>
         <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="file-btn" class="outline secondary"
           title="Open text or save the current piece">File</button>
@@ -390,6 +348,53 @@
     <span id="define-result" class="define-result"></span>
     <span id="define-lemma" class="define-lemma" hidden></span>
   </div>
+
+  <dialog id="display-settings-modal" aria-labelledby="display-settings-title">
+    <article>
+      <header>
+        <h2 id="display-settings-title">Settings</h2>
+        <button id="close-display-settings" class="outline secondary" aria-label="Close">Close</button>
+      </header>
+      <div class="settings-theme-row">
+        <label for="modal-theme">Theme</label>
+        <select id="modal-theme"
+          title="Color scheme. System follows your OS dark/light mode setting.">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+      <div class="settings-maxwidth-row">
+        <label class="settings-check-label">
+          <input type="checkbox" id="modal-maxwidth-enabled" checked
+            title="Cap the reading panel text column at a fixed character width for comfortable line lengths.">
+          Limit width to
+        </label>
+        <input type="number" id="modal-maxwidth-value"
+          min="40" max="200" step="5" value="70"
+          aria-label="Column width in characters"
+          title="Column width in characters (ch units). 60–80 is typically comfortable for reading.">
+        <span class="settings-unit">ch</span>
+      </div>
+      <div class="settings-fontsize-row">
+        <label for="popover-font-size">Font size</label>
+        <select id="popover-font-size"
+          title="Text size in the reading panel.">
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+      <hr>
+      <div>
+        <label class="settings-check-label">
+          <input type="checkbox" id="popover-define"
+            title="When on, click or select any word or phrase to see its translation.">
+          Define highlighted text
+        </label>
+      </div>
+    </article>
+  </dialog>
 
   <dialog id="file-modal" aria-labelledby="file-modal-title">
     <article>
