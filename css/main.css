@@ -384,8 +384,13 @@ html, body {
   max-width: 22rem;
 }
 
+#display-settings-modal {
+  --pico-modal-overlay-backdrop-filter: none;
+}
+
 #display-settings-modal::backdrop {
   background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
