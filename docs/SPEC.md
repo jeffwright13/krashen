@@ -149,7 +149,9 @@ Every form control (inputs, selects, checkboxes, buttons) carries a `title` attr
 
 ### 4.8 Export / import
 
-History export (JSON / Markdown) and import are available from the History modal. Profile import/export lives in the profile chip panel.
+**Reading panel:** The toolbar exposes two per-piece export buttons (visible only when a piece is loaded): **Export .md** downloads a Markdown file with YAML frontmatter (topic, CEFR, dialect, word count, date) and the story body; **Export .html** downloads a self-contained HTML file with embedded CSS, a metadata bar, and the story rendered as HTML — suitable for mobile reading, email sharing, or archiving.
+
+**History modal:** Library export (JSON / Markdown) and import are available. Profile import/export lives in the profile chip panel.
 
 ---
 

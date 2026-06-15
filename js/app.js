@@ -3,7 +3,7 @@ import { buildSystemPrompt, buildUserPrompt, buildDefinePrompt, parseDefineRespo
 import { generateContent, testApiKey } from './llm.js';
 import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings } from './storage.js';
 import { getHistory, appendHistory, deleteHistoryEntry, clearHistory, mergeHistory } from './history.js';
-import { exportPieceAsMarkdown, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
+import { exportPieceAsMarkdown, exportPieceAsHTML, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
 import { toggleLoading, renderContent, renderError, showToast, triggerDownload } from './display.js';
 
@@ -84,6 +84,7 @@ async function handleGenerate(e) {
     renderContent(content, { cefrLevel: config.cefrLevel, wordCount, topic: config.topic, date });
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').hidden = false;
+    document.getElementById('export-html-btn').hidden = false;
 
     if (activeProfile) {
       window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);
@@ -524,6 +525,7 @@ function renderHistoryList() {
         date:      entry.date,
       });
       document.getElementById('export-piece-btn').hidden = false;
+      document.getElementById('export-html-btn').hidden = false;
       document.getElementById('history-modal').close();
     });
 
@@ -648,6 +650,7 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
 
   renderContent(content, { cefrLevel: '', wordCount, topic: title, date });
   document.getElementById('export-piece-btn').hidden = false;
+  document.getElementById('export-html-btn').hidden = false;
 
   const activeProfile = window.KrashenProfiles?.getActive();
   persistCurrentEntry({
@@ -672,6 +675,12 @@ document.getElementById('export-piece-btn').addEventListener('click', () => {
   if (!currentEntry) return;
   const slug = (currentEntry.topic ?? 'piece').replace(/[^a-z0-9]+/gi, '-').slice(0, 40).toLowerCase();
   triggerDownload(`krashen-${slug}.md`, exportPieceAsMarkdown(currentEntry), 'text/markdown');
+});
+
+document.getElementById('export-html-btn').addEventListener('click', () => {
+  if (!currentEntry) return;
+  const slug = (currentEntry.topic ?? 'piece').replace(/[^a-z0-9]+/gi, '-').slice(0, 40).toLowerCase();
+  triggerDownload(`krashen-${slug}.html`, exportPieceAsHTML(currentEntry), 'text/html');
 });
 
 document.getElementById('export-json-btn').addEventListener('click', () => {
@@ -788,6 +797,7 @@ initDisplayPopover();
       date:       saved.date,
     });
     document.getElementById('export-piece-btn').hidden = false;
+    document.getElementById('export-html-btn').hidden = false;
   } catch (_) {}
 })();
 

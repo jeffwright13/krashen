@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   exportPieceAsMarkdown,
+  exportPieceAsHTML,
   exportLibraryAsJSON,
   exportLibraryAsMarkdown,
 } from '../js/export.js';
@@ -65,6 +66,64 @@ describe('exportPieceAsMarkdown', () => {
   it('outputs content as-is when no ## title is present', () => {
     const md = exportPieceAsMarkdown(makeEntry());
     expect(md).toContain('El perro corrió entre los árboles.');
+  });
+});
+
+describe('exportPieceAsHTML', () => {
+  it('returns a complete HTML document', () => {
+    const html = exportPieceAsHTML(makeEntry());
+    expect(html).toMatch(/^<!DOCTYPE html>/);
+    expect(html).toContain('</html>');
+  });
+
+  it('sets charset to UTF-8', () => {
+    expect(exportPieceAsHTML(makeEntry())).toContain('charset="UTF-8"');
+  });
+
+  it('includes story content as a paragraph', () => {
+    const html = exportPieceAsHTML(makeEntry());
+    expect(html).toContain('<p>');
+    expect(html).toContain('El perro corrió entre los árboles.');
+  });
+
+  it('promotes ## title to <h1> and uses it as <title>', () => {
+    const entry = makeEntry({ content: '## El bosque mágico\n\nEl perro corrió.' });
+    const html = exportPieceAsHTML(entry);
+    expect(html).toContain('<h1>El bosque mágico</h1>');
+    expect(html).toContain('<title>El bosque mágico</title>');
+  });
+
+  it('falls back to topic as <title> when no ## heading', () => {
+    const html = exportPieceAsHTML(makeEntry());
+    expect(html).toContain('<title>a dog explores a forest</title>');
+  });
+
+  it('includes CEFR level in metadata', () => {
+    expect(exportPieceAsHTML(makeEntry())).toContain('A2');
+  });
+
+  it('includes word count in metadata', () => {
+    expect(exportPieceAsHTML(makeEntry({ wordCount: 712 }))).toContain('~712 words');
+  });
+
+  it('includes topic in metadata', () => {
+    const html = exportPieceAsHTML(makeEntry({ topic: 'los volcanes' }));
+    expect(html).toContain('los volcanes');
+  });
+
+  it('includes date in metadata', () => {
+    expect(exportPieceAsHTML(makeEntry())).toContain('5/27/2026');
+  });
+
+  it('escapes HTML special characters in metadata', () => {
+    const html = exportPieceAsHTML(makeEntry({ topic: 'cats & dogs <fun>' }));
+    expect(html).toContain('cats &amp; dogs &lt;fun&gt;');
+    expect(html).not.toContain('<fun>');
+  });
+
+  it('renders bold markdown as <strong>', () => {
+    const html = exportPieceAsHTML(makeEntry({ content: 'Una **palabra** importante.' }));
+    expect(html).toContain('<strong>palabra</strong>');
   });
 });
 
