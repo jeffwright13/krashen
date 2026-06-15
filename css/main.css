@@ -385,7 +385,8 @@ html, body {
 }
 
 #display-settings-modal::backdrop {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: none;
 }
 
 /* vocab-enable-row at top of Vocab tab */
