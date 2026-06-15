@@ -382,7 +382,10 @@ html, body {
 /* Display settings modal */
 #display-settings-modal {
   --pico-modal-overlay-backdrop-filter: none;
-  max-width: 22rem;
+}
+
+#display-settings-modal article {
+  max-width: 340px;
 }
 
 #display-settings-modal header {
