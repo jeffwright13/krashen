@@ -90,7 +90,7 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 
 - Generated content renders in a clean reading view
 - Font, line height, and contrast optimized for comfortable extended reading
-- Content should be selectable (to support future click-to-translate without a rewrite)
+- Content is selectable; `#content-display` carries `tabindex="0"` so clicking into the reading area focuses it. Ctrl-A / Cmd-A while the reading area is focused selects only the story text (not the whole page). Ctrl-C then copies the selection natively.
 - Paragraph structure preserved from LLM output
 - Metadata shown: CEFR level, approximate word count, topic, date generated
 - LLM response opens with a `## Title` line; rendered as a heading above the body

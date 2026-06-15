@@ -298,10 +298,6 @@
         <span class="toolbar-sep" aria-hidden="true"></span>
         <button id="define-btn" class="outline secondary" aria-pressed="false"
           title="Select a word or phrase to see its translation">Define</button>
-        <button id="select-all-btn" class="outline secondary"
-          title="Select all content in the reading panel">Select All</button>
-        <button id="copy-btn" class="outline secondary"
-          title="Copy all content to clipboard">Copy</button>
         <button id="export-piece-btn" class="outline secondary" hidden
           title="Export this piece as Markdown">Export .md</button>
         <button id="export-html-btn" class="outline secondary" hidden
@@ -329,7 +325,7 @@
         <p id="error-message"></p>
       </div>
 
-      <div id="content-display" aria-live="polite">
+      <div id="content-display" aria-live="polite" tabindex="0">
         <p class="placeholder-text">Configure your content request and press
           <strong>Generate</strong>.</p>
       </div>

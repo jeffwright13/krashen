@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { toggleLoading, renderError, renderContent, showToast, extractContextSentence } from '../js/display.js';
+import { toggleLoading, renderError, renderContent, showToast, extractContextSentence, selectContentDisplay } from '../js/display.js';
 
 const FIXTURE = `
   <button id="generate-btn"></button>
@@ -398,5 +398,37 @@ describe('extractContextSentence', () => {
     const result = extractContextSentence(para, 'gato');
     expect(result).not.toContain('\t');
     expect(result).not.toContain('\n');
+  });
+});
+
+// ── selectContentDisplay ───────────────────────────────────────────────────────
+
+describe('selectContentDisplay', () => {
+  it('does not throw when content-display is empty', () => {
+    expect(() => selectContentDisplay()).not.toThrow();
+  });
+
+  it('does not throw when content-display has text content', () => {
+    document.getElementById('content-display').innerHTML =
+      '<p>El perro corrió entre los árboles.</p>';
+    expect(() => selectContentDisplay()).not.toThrow();
+  });
+
+  it('creates a selection after call', () => {
+    document.getElementById('content-display').innerHTML =
+      '<p>Una historia de prueba.</p>';
+    selectContentDisplay();
+    const sel = window.getSelection();
+    expect(sel).not.toBeNull();
+    expect(sel.rangeCount).toBeGreaterThan(0);
+  });
+
+  it('selection is anchored to content-display, not document body', () => {
+    const el = document.getElementById('content-display');
+    el.innerHTML = '<p>Texto de prueba.</p>';
+    selectContentDisplay();
+    const sel   = window.getSelection();
+    const range = sel.getRangeAt(0);
+    expect(el.contains(range.commonAncestorContainer)).toBe(true);
   });
 });

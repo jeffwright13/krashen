@@ -1,3 +1,12 @@
+export function selectContentDisplay() {
+  const el    = document.getElementById('content-display');
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 export function triggerDownload(filename, content, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const url  = URL.createObjectURL(blob);

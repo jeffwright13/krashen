@@ -5,7 +5,7 @@ import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings } fr
 import { getHistory, appendHistory, deleteHistoryEntry, clearHistory, mergeHistory } from './history.js';
 import { exportPieceAsMarkdown, exportPieceAsHTML, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
-import { toggleLoading, renderContent, renderError, showToast, triggerDownload } from './display.js';
+import { toggleLoading, renderContent, renderError, showToast, triggerDownload, selectContentDisplay } from './display.js';
 
 let currentEntry   = null;
 let lastPrompts    = null;  // { system, user } from most recent generation
@@ -279,27 +279,16 @@ document.querySelectorAll('.key-toggle-btn').forEach(btn => {
   });
 });
 
-// ── Select All / Copy ─────────────────────────────────────────────────────────
+// ── Scoped Ctrl-A keyboard shortcut ──────────────────────────────────────────
+// When #content-display has focus (user clicked into the reading area),
+// Ctrl-A / Cmd-A selects only the story text rather than the whole page.
 
-document.getElementById('select-all-btn').addEventListener('click', () => {
-  const el    = document.getElementById('content-display');
-  const range = document.createRange();
-  range.selectNodeContents(el);
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(range);
-});
-
-document.getElementById('copy-btn').addEventListener('click', async () => {
-  const el   = document.getElementById('content-display');
-  const text = el.innerText.trim();
-  try {
-    await navigator.clipboard.writeText(text);
-    const btn = document.getElementById('copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
-  } catch {
-    // clipboard unavailable (non-https or permission denied)
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+    if (document.activeElement === document.getElementById('content-display')) {
+      e.preventDefault();
+      selectContentDisplay();
+    }
   }
 });
 
