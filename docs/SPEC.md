@@ -154,7 +154,7 @@ Every form control (inputs, selects, checkboxes, buttons) carries a `title` attr
 - **Open** — title input, paste area, load-from-file button, Display button. Replaces the former standalone Load Text modal.
 - **Save as** — Markdown (.md) and HTML (.html) export buttons, disabled until a piece is loaded. Downloading either closes nothing; the modal stays open.
 
-The fullscreen toggle (⤢) is a semi-transparent overlay button (`position: absolute`) in the top-right corner of the reading panel, visible at 30% opacity and full opacity on hover. Esc also exits fullscreen.
+The fullscreen toggle (⤢) is the rightmost button in the reading toolbar, pushed to the far right via `margin-left: auto`. Esc also exits fullscreen.
 
 **History modal:** Library export (JSON / Markdown) and import are available. Profile import/export lives in the profile chip panel.
 

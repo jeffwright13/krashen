@@ -4,6 +4,12 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 
 ---
 
+## 2026-06-15 — Fullscreen button reverted to toolbar; Settings font-size fix (v5.2.4)
+**Decision:** The `⤢` fullscreen toggle is moved back into `#reading-toolbar`, right-aligned using `margin-left: auto`. The `position: absolute` overlay approach from v5.2.3 is abandoned. The `#display-settings-btn` selector is added explicitly to the `#reading-toolbar > button` font-size rule (the `>` direct-child selector previously excluded it because the button is nested inside `.display-popover-wrap`). `position: relative` is removed from `#reading-panel`.  
+**Rationale:** The overlay at 30% opacity was effectively invisible — user could not locate the button during review. The toolbar placement is unambiguous. The Settings button was rendering at Pico's default font size (too large relative to File and History) due to the CSS selector gap; the explicit addition fixes the visual inconsistency.
+
+---
+
 ## 2026-06-15 — File modal added; toolbar reduced to ⚙ / File / History (v5.2.3)
 **Decision:** Load Text, Export .md, and Export .html are consolidated into a single **File** modal triggered by a `File` toolbar button. The modal has two sections separated by a rule: **Open** (the existing load-text form — title input, textarea, load-from-file, Display button) and **Save as** (Export .md and Export .html, disabled until a piece is loaded, replacing the previous hidden-until-loaded pattern). The `load-text-modal` dialog is removed; all its content moves into `file-modal` with IDs preserved. The fullscreen toggle (⤢) leaves the toolbar entirely and is repositioned as a `position: absolute` overlay in the top-right corner of `#reading-panel` (`position: relative` added), styled at 30% opacity with full opacity on hover — visible but unobtrusive. The reading toolbar is now three items: ⚙ · File · History. Dead CSS (`#define-btn[aria-pressed]`, `#font-size-select`) is removed.  
 **Rationale:** Load Text and Export are two directions of the same file operation — they belong together. Moving the fullscreen button out of the toolbar removes a navigation control from a row meant for content tools, and the overlay pattern keeps it accessible without consuming toolbar space. Export buttons change from `hidden` to `disabled` because they now live inside a modal the user explicitly opens — hiding them there would make the Save as section appear broken.
