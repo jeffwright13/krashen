@@ -381,11 +381,20 @@ html, body {
 
 /* Display settings modal */
 #display-settings-modal {
+  --pico-modal-overlay-backdrop-filter: none;
   max-width: 22rem;
 }
 
-#display-settings-modal {
-  --pico-modal-overlay-backdrop-filter: none;
+#display-settings-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+#display-settings-modal header h2 {
+  margin: 0;
+  font-size: 1.1rem;
 }
 
 #display-settings-modal::backdrop {
