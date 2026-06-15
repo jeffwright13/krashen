@@ -125,7 +125,7 @@ The Provider accordion section contains: provider selector (`#provider`), API ke
 
 ### 4.4 Global display settings (toolbar ⚙ popover)
 
-Theme and column width live in a small popover triggered by the ⚙ button in the reading toolbar.
+All reading-panel display controls live in a small popover triggered by the ⚙ button in the reading toolbar. The popover has two groups separated by a rule: appearance settings (theme, column width, font size) and reading mode (Define toggle).
 
 | Setting | Storage | Notes |
 |---|---|---|
@@ -133,7 +133,8 @@ Theme and column width live in a small popover triggered by the ⚙ button in th
 | Model overrides | `krashen_settings.models` | Per provider; saved on blur |
 | Theme | `krashen_settings.ui.theme` | Saved on change; applied immediately |
 | Column width | `krashen_settings.ui.maxWidth` / `maxWidthValue` | Saved on change |
-| Font size | `krashen_settings.ui.fontSize` | Controlled from reading toolbar font-size select |
+| Font size | `krashen_settings.ui.fontSize` | Select (Small / Medium / Large) in ⚙ popover; saved on change |
+| Define mode | session only | Checkbox in ⚙ popover; resets to off on page load |
 
 ### 4.5 Vocabulary features toggle
 

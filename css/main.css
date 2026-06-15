@@ -393,9 +393,14 @@ html, body {
   border: 1px solid var(--pico-muted-border-color);
   border-radius: var(--pico-border-radius);
   padding: 0.6rem 0.75rem;
-  min-width: 200px;
+  min-width: 220px;
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+#display-popover hr {
+  margin: 0.4rem 0;
+  border-color: var(--pico-muted-border-color);
 }
 
 /* vocab-enable-row at top of Vocab tab */
@@ -656,19 +661,22 @@ html, body {
   white-space: nowrap;
 }
 
-.settings-theme-row {
+.settings-theme-row,
+.settings-fontsize-row {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 0.5rem;
 }
 
-.settings-theme-row label {
+.settings-theme-row label,
+.settings-fontsize-row label {
   margin: 0;
   white-space: nowrap;
 }
 
-.settings-theme-row select {
+.settings-theme-row select,
+.settings-fontsize-row select {
   margin: 0;
   width: auto;
   min-width: 7rem;

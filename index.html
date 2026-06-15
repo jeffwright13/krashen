@@ -264,11 +264,6 @@
       <div id="reading-toolbar">
         <button id="fullscreen-btn" class="outline secondary" title="Expand reading panel">⤢</button>
         <span class="toolbar-sep" aria-hidden="true"></span>
-        <select id="font-size-select" aria-label="Font size" title="Font size">
-          <option value="small">S</option>
-          <option value="medium" selected>M</option>
-          <option value="large">L</option>
-        </select>
         <div class="display-popover-wrap">
           <button id="display-settings-btn" class="outline secondary" title="Display settings">⚙</button>
           <div id="display-popover" hidden>
@@ -293,11 +288,26 @@
                 title="Column width in characters (ch units). 60–80 is typically comfortable for reading.">
               <span class="settings-unit">ch</span>
             </div>
+            <div class="settings-fontsize-row">
+              <label for="popover-font-size">Font size</label>
+              <select id="popover-font-size"
+                title="Text size in the reading panel.">
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+            <hr>
+            <div>
+              <label class="settings-check-label">
+                <input type="checkbox" id="popover-define"
+                  title="When on, click or select any word or phrase to see its translation.">
+                Define mode
+              </label>
+            </div>
           </div>
         </div>
         <span class="toolbar-sep" aria-hidden="true"></span>
-        <button id="define-btn" class="outline secondary" aria-pressed="false"
-          title="Select a word or phrase to see its translation">Define</button>
         <button id="export-piece-btn" class="outline secondary" hidden
           title="Export this piece as Markdown">Export .md</button>
         <button id="export-html-btn" class="outline secondary" hidden

@@ -1,3 +1,8 @@
+export function applyFontSizeClass(size) {
+  const el = document.getElementById('content-display');
+  ['small', 'medium', 'large'].forEach(s => el.classList.toggle(`font-${s}`, s === size));
+}
+
 export function selectContentDisplay() {
   const el    = document.getElementById('content-display');
   const range = document.createRange();

@@ -4,6 +4,10 @@ _Append-only. One entry per meaningful architectural or design choice. Format: d
 
 ---
 
+## 2026-06-15 — Font size and Define moved into ⚙ Display popover (v5.2.2)
+**Decision:** The `S / M / L` font-size select and the **Define** toggle button are removed from the reading toolbar. Font size moves into the ⚙ Display popover as a full-label select (Small / Medium / Large). Define mode moves into the same popover as a checkbox below a `<hr>` separator. The popover now owns all "how I'm reading right now" controls: theme, column width, font size, and define mode. The font-size class logic is extracted into `applyFontSizeClass()` in `display.js` for testability; `applyFontSize()` in `app.js` calls it and handles storage. `FONT_SIZES` constant removed (no longer needed). `.settings-fontsize-row` CSS added, sharing styles with the existing `.settings-theme-row`.  
+**Rationale:** The toolbar had no organizing principle. Font size and Define are display/reading-mode preferences — they belong alongside the other display settings, not inline in the toolbar. Removing them reduces the toolbar from ~8 items to ~5, with Phase 3 planned to reduce it further to 3.
+
 ## 2026-06-15 — Select All / Copy buttons removed; scoped Ctrl-A added (v5.2.1)
 **Decision:** The **Select All** and **Copy** toolbar buttons are removed. `#content-display` gains `tabindex="0"` so it receives focus on click. A document-level `keydown` handler intercepts Ctrl-A / Cmd-A and, when `#content-display` is the active element, calls `selectContentDisplay()` (extracted into `display.js`) instead of the default browser select-all. Ctrl-C works natively once the selection is scoped. The selection logic is exported and unit-tested in `display.test.js`.  
 **Rationale:** The buttons existed solely to work around the browser's default Ctrl-A selecting the entire page rather than just the story. A scoped keyboard shortcut is the correct fix — it removes two buttons from an already-crowded toolbar without losing any capability. The shortcut activates only after the user clicks into the reading area, which is the natural context in which they would want to select story text.

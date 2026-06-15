@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { toggleLoading, renderError, renderContent, showToast, extractContextSentence, selectContentDisplay } from '../js/display.js';
+import { toggleLoading, renderError, renderContent, showToast, extractContextSentence, selectContentDisplay, applyFontSizeClass } from '../js/display.js';
 
 const FIXTURE = `
   <button id="generate-btn"></button>
@@ -398,6 +398,42 @@ describe('extractContextSentence', () => {
     const result = extractContextSentence(para, 'gato');
     expect(result).not.toContain('\t');
     expect(result).not.toContain('\n');
+  });
+});
+
+// ── applyFontSizeClass ────────────────────────────────────────────────────────
+
+describe('applyFontSizeClass', () => {
+  it('adds font-small class for "small"', () => {
+    applyFontSizeClass('small');
+    expect(document.getElementById('content-display').classList.contains('font-small')).toBe(true);
+  });
+
+  it('adds font-medium class for "medium"', () => {
+    applyFontSizeClass('medium');
+    expect(document.getElementById('content-display').classList.contains('font-medium')).toBe(true);
+  });
+
+  it('adds font-large class for "large"', () => {
+    applyFontSizeClass('large');
+    expect(document.getElementById('content-display').classList.contains('font-large')).toBe(true);
+  });
+
+  it('removes the previous size class when size changes', () => {
+    applyFontSizeClass('small');
+    applyFontSizeClass('large');
+    const el = document.getElementById('content-display');
+    expect(el.classList.contains('font-small')).toBe(false);
+    expect(el.classList.contains('font-large')).toBe(true);
+  });
+
+  it('only ever has one font size class at a time', () => {
+    applyFontSizeClass('medium');
+    applyFontSizeClass('large');
+    const el = document.getElementById('content-display');
+    const fontClasses = [...el.classList].filter(c => c.startsWith('font-'));
+    expect(fontClasses).toHaveLength(1);
+    expect(fontClasses[0]).toBe('font-large');
   });
 });
 
