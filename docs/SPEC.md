@@ -123,9 +123,9 @@ Above the tab bar: a small "Profile" label, then the active profile name + cumul
 
 The Provider accordion section contains: provider selector (`#provider`), API key (`#api-key`), model override (`#api-model`), and a Test button. Changing the provider select loads the stored key and model for that provider. Keys and models are stored globally in `krashen_settings` (not per-profile) and saved on blur.
 
-### 4.4 Global display settings (toolbar ⚙ popover)
+### 4.4 Global display settings (Settings modal)
 
-All reading-panel display controls live in a small popover triggered by the ⚙ button in the reading toolbar. The popover has two groups separated by a rule: appearance settings (theme, column width, font size) and reading mode (Define toggle).
+All reading-panel display controls live in a `<dialog>` modal triggered by the Settings button in the reading toolbar — consistent with the File and History buttons, which also open centered modals. The dialog backdrop is a near-transparent 50% black tint with no blur (`#display-settings-modal::backdrop`), so reading panel content stays visible while adjusting settings. The dialog has two groups separated by a rule: appearance settings (theme, column width, font size) and reading mode (Define toggle).
 
 | Setting | Storage | Notes |
 |---|---|---|
@@ -133,8 +133,8 @@ All reading-panel display controls live in a small popover triggered by the ⚙ 
 | Model overrides | `krashen_settings.models` | Per provider; saved on blur |
 | Theme | `krashen_settings.ui.theme` | Saved on change; applied immediately |
 | Column width | `krashen_settings.ui.maxWidth` / `maxWidthValue` | Saved on change |
-| Font size | `krashen_settings.ui.fontSize` | Select (Small / Medium / Large) in ⚙ popover; saved on change |
-| Define mode | session only | Checkbox in ⚙ popover; resets to off on page load |
+| Font size | `krashen_settings.ui.fontSize` | Select (Small / Medium / Large) in Settings modal; saved on change |
+| Define mode | session only | Checkbox in Settings modal; resets to off on page load |
 
 ### 4.5 Vocabulary features toggle
 

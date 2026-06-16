@@ -130,9 +130,9 @@ function initProviderSection() {
   );
 }
 
-function initDisplayPopover() {
+function initDisplaySettingsModal() {
   const btn        = document.getElementById('display-settings-btn');
-  const popover    = document.getElementById('display-popover');
+  const dialog     = document.getElementById('display-settings-modal');
   const uiSettings = getSettings().ui;
   const themeEl    = document.getElementById('modal-theme');
   const enabledEl  = document.getElementById('modal-maxwidth-enabled');
@@ -147,15 +147,8 @@ function initDisplayPopover() {
   fontSizeEl.value   = uiSettings.fontSize || 'medium';
   defineEl.checked   = false;
 
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    popover.hidden = !popover.hidden;
-  });
-  document.addEventListener('click', e => {
-    if (!popover.hidden && !popover.contains(e.target) && e.target !== btn) {
-      popover.hidden = true;
-    }
-  });
+  btn.addEventListener('click', () => dialog.showModal());
+  document.getElementById('close-display-settings').addEventListener('click', () => dialog.close());
 
   themeEl.addEventListener('change', () => {
     const s = getSettings(); s.ui.theme = themeEl.value; setSettings(s);
@@ -765,7 +758,7 @@ function restoreFormDefaults(profile) {
 
 document.getElementById('config-form').addEventListener('submit', handleGenerate);
 initProviderSection();
-initDisplayPopover();
+initDisplaySettingsModal();
 
 // ── Restore last content after page reload ────────────────────────────────────
 

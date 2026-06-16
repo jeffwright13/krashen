@@ -379,27 +379,31 @@ html, body {
   color: var(--pico-muted-color);
 }
 
-/* Display settings popover */
-.display-popover-wrap {
-  position: relative;
+/* Display settings modal */
+#display-settings-modal {
+  --pico-modal-overlay-backdrop-filter: none;
 }
 
-#display-popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  background: var(--pico-card-background-color);
-  border: 1px solid var(--pico-muted-border-color);
-  border-radius: var(--pico-border-radius);
-  padding: 0.6rem 0.75rem;
-  min-width: 220px;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+#display-settings-modal article {
+  max-width: 340px;
 }
 
-#display-popover hr {
-  margin: 0.4rem 0;
-  border-color: var(--pico-muted-border-color);
+#display-settings-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+#display-settings-modal header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+#display-settings-modal::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* vocab-enable-row at top of Vocab tab */
@@ -535,8 +539,7 @@ html, body {
   max-width: var(--content-max-width);
 }
 
-#reading-toolbar > button,
-#display-settings-btn {
+#reading-toolbar > button {
   font-size: 0.78rem;
   padding: 0.22rem 0.6rem;
   margin: 0;
