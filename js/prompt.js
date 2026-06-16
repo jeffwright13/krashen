@@ -138,10 +138,10 @@ export function buildDefinePrompt(selection, context, targetLanguage, nativeLang
       `You are a ${targetLanguage}–${nativeLanguage} dictionary. ` +
       `Reply in exactly this format (two lines, no other text):\n` +
       `LEMMA: <${lemmaNote}>\n` +
-      `TRANSLATION: <the ${nativeLanguage} translation of the quoted text>`,
+      `TRANSLATION: <the ${nativeLanguage} translation of the text inside <selection> tags>`,
     user: hasContext
-      ? `"${selection}" (context: "${context.trim()}")`
-      : `"${selection}"`,
+      ? `<selection>${selection}</selection>\n<context>${context.trim()}</context>`
+      : `<selection>${selection}</selection>`,
   };
 }
 
