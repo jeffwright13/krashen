@@ -580,6 +580,8 @@ docs/
 
 ### "File" modal and History consolidation (noted v5.2.0)
 
+**Status (2026-06-16): partially resolved.** The File modal shipped in v5.2.3 (Load Text + Export .md/.html). The library export/import migration described below remains open — see "Current backlog" at the end of this document.
+
 **Context:** The reading toolbar "Export .md" and "Export .html" buttons, plus "Load Text", are all story-as-text operations. A consolidated **"File" modal** (replacing three toolbar buttons with one) was proposed and will be built. The modal would have two sections: **Open** (the current Load Text form) and **Save as** (.md / .html). Export buttons become disabled (not hidden) when no piece is loaded.
 
 **History inclusion — considered and deferred.** History was proposed as a candidate for the File modal on the grounds that it represents stories accessible to the user. After discussion:
@@ -593,6 +595,8 @@ docs/
 ---
 
 ### Reading toolbar redesign (noted v5.2.0)
+
+**Status (2026-06-16): resolved, with two deviations from the original proposal below.** All three phases shipped (v5.2.1–v5.2.3). The fullscreen toggle did not end up as a text-area overlay — it was tried (v5.2.3) and reverted (v5.2.4) because a low-opacity overlay was undiscoverable in review; it lives in the toolbar instead, right-aligned. The ⚙ Display popover was itself later converted to a modal dialog (v5.2.5) for interaction-pattern consistency with File and History. See DECISIONS.md for both follow-on entries.
 
 **Problem:** The reading toolbar has no organizing principle. Ten controls are crammed into one row covering unrelated concerns — display preferences, text manipulation, file I/O, and navigation. The specific trigger: Ctrl-A in the reading pane selects all browser content, not just the story, so Select All and Copy buttons were added as workarounds.
 
@@ -630,3 +634,18 @@ The fullscreen toggle (⤢) moves out of the toolbar entirely and lives as a qui
 3. **⤢ overlay + File modal** — move fullscreen button into text area; consolidate Load Text and Export into File modal
 
 Each phase leaves the app in a shippable state. Phase 1 is the highest value-to-effort ratio.
+
+---
+
+## Current backlog (as of 2026-06-16)
+
+The "Deferred to later milestones" / "Known issues and deferred work" lists inside the closed v3 and v3.1 sections above are historical snapshots and are mostly stale — nearly everything on them has since shipped (vocab normalization, per-word delete/deactivation, profile import/export, the per-profile/global settings audit, the active-profile indicator, the words-read counter, and the UI re-org itself). Per this doc's own convention those closed sections are not edited in place; this section is the current source of truth instead.
+
+Genuinely open items:
+
+- **Mobile layout.** The v3.1 re-org was built mobile-migration-ready (no vw-based sizing, independent layout components) but the responsive layout itself was never built. No active plan.
+- **Library export/import → File modal.** The History modal's JSON/Markdown library export and import buttons are file operations and were flagged as the stronger candidate for living in the File modal (under a "Library" section), leaving History as a pure document browser. Deferred when the File modal shipped (v5.2.3); still open.
+- **CEFR evals pipeline.** Automated LLM-as-judge tests checking generated content actually matches the requested CEFR level and dialect. Would live in `evals/` (real API calls, not run in CI), separate from `tests/`. Discussed but not started — no `evals/` directory exists yet.
+
+Explicitly decided against (not queued):
+- **Topic-aware re-expose** — won't-build (2026-06-01). Skip/Resume is the permanent manual substitute.
