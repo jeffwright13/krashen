@@ -127,21 +127,29 @@ export function buildUserPrompt(config) {
   return lines.join('\n');
 }
 
+// Swaps embedded double quotes for single quotes so selection/context text can
+// never prematurely close the outer "..." delimiter the prompt wraps it in.
+function escapeForPrompt(str) {
+  return str.replace(/"/g, "'");
+}
+
 export function buildDefinePrompt(selection, context, targetLanguage, nativeLanguage) {
   const isPhrase   = selection.trim().includes(' ');
   const hasContext = context && context.trim() && context.trim() !== selection.trim();
   const lemmaNote  = isPhrase
     ? `the full phrase in canonical form in ${targetLanguage} (keep all words; do not reduce to a single headword)`
     : `the base/dictionary form of the word in ${targetLanguage}`;
+  const safeSelection = escapeForPrompt(selection);
+  const safeContext   = escapeForPrompt(context.trim());
   return {
     system:
       `You are a ${targetLanguage}–${nativeLanguage} dictionary. ` +
       `Reply in exactly this format (two lines, no other text):\n` +
       `LEMMA: <${lemmaNote}>\n` +
-      `TRANSLATION: <the ${nativeLanguage} translation of the text inside <selection> tags>`,
+      `TRANSLATION: <the ${nativeLanguage} translation of the quoted text>`,
     user: hasContext
-      ? `<selection>${selection}</selection>\n<context>${context.trim()}</context>`
-      : `<selection>${selection}</selection>`,
+      ? `"${safeSelection}" (context: "${safeContext}")`
+      : `"${safeSelection}"`,
   };
 }
 

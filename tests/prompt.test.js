@@ -219,17 +219,18 @@ describe('buildDefinePrompt', () => {
     expect(system).toContain('TRANSLATION:');
   });
 
-  it('unambiguously delimits a selection containing an embedded quote', () => {
+  it('escapes embedded double quotes so they cannot close the delimiter early', () => {
     const selection = 'la frase "¿Qué me traes?" era común';
     const context    = 'En su comunidad, la frase "¿Qué me traes?" era común. Se usaba cuando alguien quería saber.';
     const { user } = buildDefinePrompt(selection, context, 'Spanish', 'English');
-    expect(user).toContain(`<selection>${selection}</selection>`);
-    expect(user).toContain(`<context>${context}</context>`);
+    expect(user).toBe(`"la frase '¿Qué me traes?' era común" (context: "En su comunidad, la frase '¿Qué me traes?' era común. Se usaba cuando alguien quería saber.")`);
+    expect(user.match(/"/g)).toHaveLength(4);
   });
 
-  it('does not wrap selection/context in bare double quotes', () => {
-    const { user } = buildDefinePrompt('corrió', 'El perro corrió rápido.', 'Spanish', 'English');
-    expect(user).not.toMatch(/^"/);
+  it('does not introduce markup tags into the prompt', () => {
+    const { user, system } = buildDefinePrompt('corrió', 'El perro corrió rápido.', 'Spanish', 'English');
+    expect(user).not.toContain('<selection>');
+    expect(system).not.toContain('<selection>');
   });
 });
 
