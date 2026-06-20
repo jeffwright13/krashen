@@ -147,7 +147,8 @@ export function buildDefinePrompt(selection, context, targetLanguage, nativeLang
       `When context is given in parentheses, it exists only to disambiguate the sense of the quoted ` +
       `text (e.g. which meaning of an ambiguous word applies) — it is not text to translate. ` +
       `TRANSLATION must translate only the exact quoted text: never add, infer, or borrow words from ` +
-      `the context, even if the quoted text reads as an incomplete fragment on its own. ` +
+      `the context, even if the quoted text reads as an incomplete fragment on its own. Even if the ` +
+      `quoted text spans multiple sentences, write the TRANSLATION as a single line with no line breaks. ` +
       `Reply in exactly this format (two lines, no other text):\n` +
       `LEMMA: <${lemmaNote}>\n` +
       `TRANSLATION: <the ${nativeLanguage} translation of the quoted text>`,
@@ -160,11 +161,15 @@ export function buildDefinePrompt(selection, context, targetLanguage, nativeLang
 export function parseDefineResponse(raw) {
   const text       = raw.trim();
   const lemmaMatch = text.match(/^LEMMA:\s*(.+)$/m);
-  const transMatch = text.match(/^TRANSLATION:\s*(.+)$/m);
+  // [\s\S]+ (not .+) so a TRANSLATION that spans multiple lines — e.g. the model
+  // translating a multi-sentence selection sentence-by-sentence — isn't truncated
+  // at the first line break.
+  const transMatch = text.match(/^TRANSLATION:\s*([\s\S]+)/m);
   if (lemmaMatch && transMatch) {
+    const translation = transMatch[1].trim().replace(/\n?```\s*$/, '').trim();
     return {
-      lemma:       lemmaMatch[1].trim().toLowerCase(),
-      translation: transMatch[1].trim(),
+      lemma: lemmaMatch[1].trim().toLowerCase(),
+      translation,
     };
   }
   return { lemma: null, translation: text };

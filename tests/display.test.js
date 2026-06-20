@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { toggleLoading, renderError, renderContent, showToast, extractContextSentence, selectContentDisplay, applyFontSizeClass } from '../js/display.js';
+import { toggleLoading, renderError, renderContent, showToast, extractContextSentence, selectContentDisplay, applyFontSizeClass, clampPopupTop } from '../js/display.js';
 
 const FIXTURE = `
   <button id="generate-btn"></button>
@@ -466,5 +466,30 @@ describe('selectContentDisplay', () => {
     const sel   = window.getSelection();
     const range = sel.getRangeAt(0);
     expect(el.contains(range.commonAncestorContainer)).toBe(true);
+  });
+});
+
+// ── clampPopupTop ────────────────────────────────────────────────────────────
+
+describe('clampPopupTop', () => {
+  it('leaves top unchanged when the popup already fits within the viewport', () => {
+    expect(clampPopupTop(100, 50, 800)).toBe(100);
+  });
+
+  it('shifts top up so the popup bottom stays within the viewport, minus margin', () => {
+    // top 750 + height 200 = 950, well past an 800px-tall viewport
+    expect(clampPopupTop(750, 200, 800)).toBe(800 - 200 - 8);
+  });
+
+  it('never returns a top below the margin, even when the popup is taller than the viewport', () => {
+    expect(clampPopupTop(50, 900, 300)).toBe(8);
+  });
+
+  it('respects a custom margin', () => {
+    expect(clampPopupTop(750, 200, 800, 20)).toBe(800 - 200 - 20);
+  });
+
+  it('treats a popup that exactly fits as not needing to move', () => {
+    expect(clampPopupTop(100, 100, 208)).toBe(100); // bottom = 200, viewport - margin = 200
   });
 });

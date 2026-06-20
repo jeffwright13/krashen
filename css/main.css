@@ -589,6 +589,8 @@ html, body {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   z-index: 1000;
   max-width: 280px;
+  max-height: min(70vh, 420px);
+  overflow-y: auto;
   pointer-events: auto;
 }
 

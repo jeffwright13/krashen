@@ -12,6 +12,13 @@ export function selectContentDisplay() {
   sel.addRange(range);
 }
 
+// Keeps a fixed-position popup fully on-screen: if its bottom edge would run
+// past the viewport, shifts top up just enough to clear it (never above margin).
+export function clampPopupTop(top, height, viewportHeight, margin = 8) {
+  if (top + height <= viewportHeight - margin) return top;
+  return Math.max(margin, viewportHeight - height - margin);
+}
+
 export function triggerDownload(filename, content, mimeType) {
   const blob = new Blob([content], { type: mimeType });
   const url  = URL.createObjectURL(blob);
