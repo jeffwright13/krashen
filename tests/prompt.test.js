@@ -218,6 +218,20 @@ describe('buildDefinePrompt', () => {
     expect(system).toContain('LEMMA:');
     expect(system).toContain('TRANSLATION:');
   });
+
+  it('escapes embedded double quotes so they cannot close the delimiter early', () => {
+    const selection = 'la frase "¿Qué me traes?" era común';
+    const context    = 'En su comunidad, la frase "¿Qué me traes?" era común. Se usaba cuando alguien quería saber.';
+    const { user } = buildDefinePrompt(selection, context, 'Spanish', 'English');
+    expect(user).toBe(`"la frase '¿Qué me traes?' era común" (context: "En su comunidad, la frase '¿Qué me traes?' era común. Se usaba cuando alguien quería saber.")`);
+    expect(user.match(/"/g)).toHaveLength(4);
+  });
+
+  it('does not introduce markup tags into the prompt', () => {
+    const { user, system } = buildDefinePrompt('corrió', 'El perro corrió rápido.', 'Spanish', 'English');
+    expect(user).not.toContain('<selection>');
+    expect(system).not.toContain('<selection>');
+  });
 });
 
 describe('parseDefineResponse', () => {
