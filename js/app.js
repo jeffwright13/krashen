@@ -5,7 +5,7 @@ import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings } fr
 import { getHistory, appendHistory, deleteHistoryEntry, clearHistory, mergeHistory } from './history.js';
 import { exportPieceAsMarkdown, exportPieceAsHTML, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
-import { toggleLoading, renderContent, renderError, showToast, triggerDownload, selectContentDisplay, applyFontSizeClass } from './display.js';
+import { toggleLoading, renderContent, renderError, showToast, triggerDownload, selectContentDisplay, applyFontSizeClass, clampPopupTop } from './display.js';
 
 let currentEntry   = null;
 let lastPrompts    = null;  // { system, user } from most recent generation
@@ -314,11 +314,20 @@ function showDefinePopup(x, y, word) {
   const popW = 280;
   definePopup.style.left = `${Math.min(x + 8, window.innerWidth - popW - 8)}px`;
   definePopup.style.top  = `${y + 16}px`;
+  repositionDefinePopup();
 }
 
 function hideDefinePopup() {
   definePopup.hidden = true;
   definePopup.querySelector('.define-save-btn')?.remove();
+}
+
+// Re-clamps the popup's top after its content (and thus height) changes — the
+// translation text, the base-form line, and the save button can all grow it
+// well past its initial "…" placeholder height.
+function repositionDefinePopup() {
+  const rect = definePopup.getBoundingClientRect();
+  definePopup.style.top = `${clampPopupTop(rect.top, rect.height, window.innerHeight)}px`;
 }
 
 document.addEventListener('mouseup', () => {
@@ -352,6 +361,7 @@ document.addEventListener('mouseup', () => {
     if (!apiKey) {
       showDefinePopup(rect.right, rect.bottom, text);
       defineResult.textContent = 'No API key set';
+      repositionDefinePopup();
       return;
     }
 
@@ -374,6 +384,7 @@ document.addEventListener('mouseup', () => {
         defineLemmaEl.textContent = showBaseForm ? `base: ${lemma}` : '';
         defineLemmaEl.hidden      = !showBaseForm;
       }
+      repositionDefinePopup();
 
       const activeProfile = window.KrashenProfiles?.getActive();
       if (window.KrashenVocab && activeProfile && isVocabEnabled()) {
@@ -393,11 +404,13 @@ document.addEventListener('mouseup', () => {
             saveBtn.remove();
           });
           definePopup.appendChild(saveBtn);
+          repositionDefinePopup();
         }
       }
     } catch (err) {
       if (mySeq !== defineSeq) return;
       defineResult.textContent = err.message ?? 'Error';
+      repositionDefinePopup();
     }
   }, 50);
 });

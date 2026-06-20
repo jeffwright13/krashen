@@ -298,4 +298,24 @@ describe('parseDefineResponse', () => {
     expect(lemma).toBeNull();
     expect(translation).toBe('TRANSLATION: to speak');
   });
+
+  it('captures a TRANSLATION that spans multiple lines instead of truncating at the first line', () => {
+    const raw =
+      'LEMMA: hacer\n' +
+      'TRANSLATION: Bali is a famous island known for its natural beauty and rich culture.\n' +
+      'It is located in Southeast Asia and is part of the Lesser Sunda Islands archipelago.';
+    const { lemma, translation } = parseDefineResponse(raw);
+    expect(lemma).toBe('hacer');
+    expect(translation).toBe(
+      'Bali is a famous island known for its natural beauty and rich culture.\n' +
+      'It is located in Southeast Asia and is part of the Lesser Sunda Islands archipelago.'
+    );
+  });
+
+  it('strips a trailing markdown code fence from a multi-line TRANSLATION', () => {
+    const raw = '```\nLEMMA: hacer\nTRANSLATION: line one\nline two\n```';
+    const { lemma, translation } = parseDefineResponse(raw);
+    expect(lemma).toBe('hacer');
+    expect(translation).toBe('line one\nline two');
+  });
 });
