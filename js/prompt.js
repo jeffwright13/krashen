@@ -144,6 +144,10 @@ export function buildDefinePrompt(selection, context, targetLanguage, nativeLang
   return {
     system:
       `You are a ${targetLanguage}–${nativeLanguage} dictionary. ` +
+      `When context is given in parentheses, it exists only to disambiguate the sense of the quoted ` +
+      `text (e.g. which meaning of an ambiguous word applies) — it is not text to translate. ` +
+      `TRANSLATION must translate only the exact quoted text: never add, infer, or borrow words from ` +
+      `the context, even if the quoted text reads as an incomplete fragment on its own. ` +
       `Reply in exactly this format (two lines, no other text):\n` +
       `LEMMA: <${lemmaNote}>\n` +
       `TRANSLATION: <the ${nativeLanguage} translation of the quoted text>`,

@@ -2,7 +2,7 @@ const CLAUDE_MODEL = 'claude-opus-4-5';
 const OPENAI_MODEL = 'gpt-4o';
 const GOOGLE_MODEL = 'gemini-2.5-flash';
 
-async function callClaude(prompts, apiKey, model) {
+async function callClaude(prompts, apiKey, model, temperature) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -15,6 +15,7 @@ async function callClaude(prompts, apiKey, model) {
       max_tokens: 2048,
       system: prompts.system,
       messages: [{ role: 'user', content: prompts.user }],
+      ...(temperature !== undefined && { temperature }),
     }),
   });
   if (!response.ok) {
@@ -25,7 +26,7 @@ async function callClaude(prompts, apiKey, model) {
   return data.content[0].text;
 }
 
-async function callOpenAI(prompts, apiKey, model) {
+async function callOpenAI(prompts, apiKey, model, temperature) {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -38,6 +39,7 @@ async function callOpenAI(prompts, apiKey, model) {
         { role: 'system', content: prompts.system },
         { role: 'user',   content: prompts.user },
       ],
+      ...(temperature !== undefined && { temperature }),
     }),
   });
   if (!response.ok) {
@@ -48,7 +50,7 @@ async function callOpenAI(prompts, apiKey, model) {
   return data.choices[0].message.content;
 }
 
-async function callGoogle(prompts, apiKey, model) {
+async function callGoogle(prompts, apiKey, model, temperature) {
   const url =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const response = await fetch(url, {
@@ -57,6 +59,7 @@ async function callGoogle(prompts, apiKey, model) {
     body: JSON.stringify({
       system_instruction: { parts: [{ text: prompts.system }] },
       contents: [{ role: 'user', parts: [{ text: prompts.user }] }],
+      ...(temperature !== undefined && { generationConfig: { temperature } }),
     }),
   });
   if (!response.ok) {
@@ -67,11 +70,11 @@ async function callGoogle(prompts, apiKey, model) {
   return data.candidates[0].content.parts[0].text;
 }
 
-export async function generateContent(prompts, provider, apiKey, model) {
+export async function generateContent(prompts, provider, apiKey, model, temperature) {
   switch (provider) {
-    case 'claude': return callClaude(prompts, apiKey, model ?? CLAUDE_MODEL);
-    case 'openai': return callOpenAI(prompts, apiKey, model ?? OPENAI_MODEL);
-    case 'google': return callGoogle(prompts, apiKey, model ?? GOOGLE_MODEL);
+    case 'claude': return callClaude(prompts, apiKey, model ?? CLAUDE_MODEL, temperature);
+    case 'openai': return callOpenAI(prompts, apiKey, model ?? OPENAI_MODEL, temperature);
+    case 'google': return callGoogle(prompts, apiKey, model ?? GOOGLE_MODEL, temperature);
     default: throw new Error(`Unknown provider: "${provider}"`);
   }
 }
