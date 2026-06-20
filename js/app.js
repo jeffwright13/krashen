@@ -10,6 +10,10 @@ import { toggleLoading, renderContent, renderError, showToast, triggerDownload, 
 let currentEntry   = null;
 let lastPrompts    = null;  // { system, user } from most recent generation
 
+// Near-zero so repeated identical Define lookups return the same answer; story
+// generation keeps the provider's default temperature for sampling variety.
+const DEFINE_TEMPERATURE = 0;
+
 function isVocabEnabled() {
   return window.KrashenProfiles?.getActive()?.settings?.vocabEnabled ?? true;
 }
@@ -355,7 +359,7 @@ document.addEventListener('mouseup', () => {
 
     try {
       const prompts  = buildDefinePrompt(text, context, targetLang, nativeLang);
-      const raw      = await generateContent(prompts, provider, apiKey, model);
+      const raw      = await generateContent(prompts, provider, apiKey, model, DEFINE_TEMPERATURE);
       if (mySeq !== defineSeq) return;
 
       const { lemma, translation } = parseDefineResponse(raw);

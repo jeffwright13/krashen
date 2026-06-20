@@ -232,6 +232,22 @@ describe('buildDefinePrompt', () => {
     expect(user).not.toContain('<selection>');
     expect(system).not.toContain('<selection>');
   });
+
+  it('instructs that context is for sense disambiguation only', () => {
+    const { system } = buildDefinePrompt('pasado algunos', 'habían pasado algunos días sin verse', 'Spanish', 'English');
+    expect(system).toMatch(/context.*disambiguat/i);
+  });
+
+  it('instructs that TRANSLATION must not add, infer, or borrow words from context', () => {
+    const { system } = buildDefinePrompt('pasado algunos', 'habían pasado algunos días sin verse', 'Spanish', 'English');
+    expect(system).toMatch(/never add|do not add|must not add/i);
+    expect(system).toMatch(/exact quoted text/i);
+  });
+
+  it('includes the no-padding instruction even when no context is given', () => {
+    const { system } = buildDefinePrompt('perro', '', 'Spanish', 'English');
+    expect(system).toMatch(/exact quoted text/i);
+  });
 });
 
 describe('parseDefineResponse', () => {

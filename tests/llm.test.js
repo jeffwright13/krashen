@@ -118,3 +118,55 @@ describe('generateContent — provider validation', () => {
     await expect(generateContent(mockPrompts, 'mistral', 'key')).rejects.toThrow(/provider/i);
   });
 });
+
+describe('generateContent — temperature passthrough', () => {
+  beforeEach(() => { vi.unstubAllGlobals(); });
+
+  it('Claude: includes temperature in the request body when provided', async () => {
+    const fetch = mockFetch(200, { content: [{ type: 'text', text: 'test' }] });
+    vi.stubGlobal('fetch', fetch);
+    await generateContent(mockPrompts, 'claude', 'sk-ant-key', undefined, 0);
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.temperature).toBe(0);
+  });
+
+  it('Claude: omits temperature from the request body when not provided', async () => {
+    const fetch = mockFetch(200, { content: [{ type: 'text', text: 'test' }] });
+    vi.stubGlobal('fetch', fetch);
+    await generateContent(mockPrompts, 'claude', 'sk-ant-key');
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body).not.toHaveProperty('temperature');
+  });
+
+  it('OpenAI: includes temperature in the request body when provided', async () => {
+    const fetch = mockFetch(200, { choices: [{ message: { content: 'test' } }] });
+    vi.stubGlobal('fetch', fetch);
+    await generateContent(mockPrompts, 'openai', 'sk-openai-key', undefined, 0);
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.temperature).toBe(0);
+  });
+
+  it('OpenAI: omits temperature from the request body when not provided', async () => {
+    const fetch = mockFetch(200, { choices: [{ message: { content: 'test' } }] });
+    vi.stubGlobal('fetch', fetch);
+    await generateContent(mockPrompts, 'openai', 'sk-openai-key');
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body).not.toHaveProperty('temperature');
+  });
+
+  it('Google: includes temperature in generationConfig when provided', async () => {
+    const fetch = mockFetch(200, { candidates: [{ content: { parts: [{ text: 'test' }] } }] });
+    vi.stubGlobal('fetch', fetch);
+    await generateContent(mockPrompts, 'google', 'google-api-key', undefined, 0);
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body.generationConfig.temperature).toBe(0);
+  });
+
+  it('Google: omits generationConfig when temperature not provided', async () => {
+    const fetch = mockFetch(200, { candidates: [{ content: { parts: [{ text: 'test' }] } }] });
+    vi.stubGlobal('fetch', fetch);
+    await generateContent(mockPrompts, 'google', 'google-api-key');
+    const body = JSON.parse(fetch.mock.calls[0][1].body);
+    expect(body).not.toHaveProperty('generationConfig');
+  });
+});
