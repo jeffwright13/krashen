@@ -234,37 +234,78 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 // ── Resizer ───────────────────────────────────────────────────────────────────
 
 (function initResizer() {
-  const resizer   = document.getElementById('resizer');
-  const MIN_WIDTH = 240;
-  const MAX_WIDTH = 640;
+  const resizer     = document.getElementById('resizer');
+  const app         = document.getElementById('app');
+  // Matches the mobile breakpoint in css/main.css.
+  const mobileQuery = window.matchMedia('(max-width: 768px)');
 
-  const saved = localStorage.getItem('krashen_config_width');
-  if (saved) document.documentElement.style.setProperty('--config-width', saved + 'px');
+  const MIN_WIDTH  = 240;
+  const MAX_WIDTH  = 640;
+  const MIN_HEIGHT = 160;
+
+  function syncOrientation() {
+    resizer.setAttribute('aria-orientation', mobileQuery.matches ? 'horizontal' : 'vertical');
+  }
+  syncOrientation();
+  mobileQuery.addEventListener('change', syncOrientation);
+
+  const savedWidth = localStorage.getItem('krashen_config_width');
+  if (savedWidth) document.documentElement.style.setProperty('--config-width', savedWidth + 'px');
+
+  const savedHeight = localStorage.getItem('krashen_config_height_mobile');
+  if (savedHeight) document.documentElement.style.setProperty('--config-height-mobile', savedHeight + 'px');
 
   let dragging = false;
 
-  resizer.addEventListener('mousedown', (e) => {
+  function pointerPos(e) {
+    const point = e.touches ? e.touches[0] : e;
+    return { x: point.clientX, y: point.clientY };
+  }
+
+  function startDrag(e) {
     dragging = true;
     resizer.classList.add('dragging');
     document.body.style.userSelect = 'none';
     e.preventDefault();
-  });
+  }
 
-  document.addEventListener('mousemove', (e) => {
+  function moveDrag(e) {
     if (!dragging) return;
-    const appRect  = document.getElementById('app').getBoundingClientRect();
-    const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX - appRect.left));
-    document.documentElement.style.setProperty('--config-width', newWidth + 'px');
-  });
+    const appRect = app.getBoundingClientRect();
+    const { x, y } = pointerPos(e);
 
-  document.addEventListener('mouseup', () => {
+    if (mobileQuery.matches) {
+      const maxHeight = window.innerHeight - 120;
+      const newHeight = Math.min(maxHeight, Math.max(MIN_HEIGHT, y - appRect.top));
+      document.documentElement.style.setProperty('--config-height-mobile', newHeight + 'px');
+    } else {
+      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, x - appRect.left));
+      document.documentElement.style.setProperty('--config-width', newWidth + 'px');
+    }
+  }
+
+  function endDrag() {
     if (!dragging) return;
     dragging = false;
     resizer.classList.remove('dragging');
     document.body.style.userSelect = '';
-    const w = getComputedStyle(document.documentElement).getPropertyValue('--config-width').trim();
-    localStorage.setItem('krashen_config_width', parseInt(w));
-  });
+
+    if (mobileQuery.matches) {
+      const h = getComputedStyle(document.documentElement).getPropertyValue('--config-height-mobile').trim();
+      localStorage.setItem('krashen_config_height_mobile', parseInt(h));
+    } else {
+      const w = getComputedStyle(document.documentElement).getPropertyValue('--config-width').trim();
+      localStorage.setItem('krashen_config_width', parseInt(w));
+    }
+  }
+
+  resizer.addEventListener('mousedown', startDrag);
+  document.addEventListener('mousemove', moveDrag);
+  document.addEventListener('mouseup', endDrag);
+
+  resizer.addEventListener('touchstart', startDrag, { passive: false });
+  document.addEventListener('touchmove', moveDrag, { passive: false });
+  document.addEventListener('touchend', endDrag);
 })();
 
 // ── Provider change ───────────────────────────────────────────────────────────

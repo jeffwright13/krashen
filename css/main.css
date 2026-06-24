@@ -571,6 +571,50 @@ html, body {
   visibility: hidden;
 }
 
+/* ── Mobile layout: stack panels, resizer becomes a vertical (height) drag ── */
+
+@media (max-width: 768px) {
+  #app {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #config-panel {
+    flex: 0 0 var(--config-height-mobile, 45vh);
+    max-height: 80vh;
+  }
+
+  #panel-header,
+  #profile-chip,
+  #tab-bar,
+  .form-actions {
+    flex-shrink: 0;
+  }
+
+  #resizer {
+    flex: 0 0 4px;
+    width: 100%;
+    cursor: row-resize;
+  }
+
+  #resizer::after {
+    top: -6px;
+    bottom: -6px;
+    left: 0;
+    right: 0;
+  }
+
+  #reading-panel {
+    flex: 1;
+    min-height: 0;
+  }
+
+  #app.fullscreen #config-panel,
+  #app.fullscreen #resizer {
+    flex: 0 0 0;
+  }
+}
+
 /* Font size classes on content display */
 
 #content-display.font-small { font-size: 0.95rem; }
