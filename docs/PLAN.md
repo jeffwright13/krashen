@@ -645,7 +645,8 @@ Genuinely open items:
 
 - ~~**Define popup returns wrong/inconsistent translations when selection contains embedded quotes.**~~ **Fixed 2026-06-16.** `buildDefinePrompt()` (`js/prompt.js`) used to wrap `selection`/`context` in unescaped `"..."`, so a selection containing a literal `"` (e.g. `la frase "¿Qué me traes?"`) produced an ambiguous prompt and the LLM anchored on the embedded quoted sub-phrase instead of the real selection. Latent since the `5ea5def`/`38791b7` Define-prompt fixes (2026-06-09); never covered by `tests/prompt.test.js`. First attempt delimited with `<selection>`/`<context>` tags, but that introduced a new bug — the LLM sometimes echoed the literal tag tokens back into the TRANSLATION line. Final fix: keep the original quote-wrapped framing but escape embedded `"` in `selection`/`context` to `'` before substitution (`escapeForPrompt()`), so the outer delimiter quotes can never be closed early and no novel markup tokens are introduced. Regression tests added in `tests/prompt.test.js`.
 - ~~**Define translations pad in unselected context words; results vary between identical requests.**~~ **Fixed 2026-06-19.** Option B implemented — see below for full state and rationale.
-- **Mobile layout.** The v3.1 re-org was built mobile-migration-ready (no vw-based sizing, independent layout components) but the responsive layout itself was never built. No active plan.
+- **Mobile: Configure panel layout.** The v3.1 re-org was built mobile-migration-ready (no vw-based sizing, independent layout components) but the responsive layout itself was never built — the Configure panel renders in a cramped sliver on narrow viewports. Scoped below, not started.
+- **Mobile: Define-on-selection.** Touch-based text selection on iOS triggers the OS's native callout menu instead of Krashen's selection handling, so Define is currently unreachable on mobile. Platform constraint, not a bug; options scoped below, not started.
 - **Library export/import → File modal.** The History modal's JSON/Markdown library export and import buttons are file operations and were flagged as the stronger candidate for living in the File modal (under a "Library" section), leaving History as a pure document browser. Deferred when the File modal shipped (v5.2.3); still open.
 - **CEFR evals pipeline.** Automated LLM-as-judge tests checking generated content actually matches the requested CEFR level and dialect. Would live in `evals/` (real API calls, not run in CI), separate from `tests/`. Discussed but not started — no `evals/` directory exists yet.
 
@@ -673,3 +674,46 @@ Genuinely open items:
 The user's preference between (A) and (B) had not been captured before this session paused — ask when resuming.
 
 **Decision (2026-06-19):** Option B chosen. See DECISIONS.md for the rationale entry.
+
+---
+
+### Mobile: Configure panel layout (noted 2026-06-24)
+
+**Status: scoped, not started.** Identified alongside the Define-on-selection issue below during mobile spot-checking on an iPhone (Brave). Of the two, this is the one worth shipping first — see priority note at the end of this entry.
+
+**Symptom:** On a narrow viewport, the Configure tab's content (Provider/Content accordion sections) renders in a cramped sliver between the profile chip/tab bar above and the sticky Generate button below. The two-pane desktop layout (config sidebar + reading panel side-by-side, sized via the existing resizable-divider feature) has no mobile equivalent — this is the gap BRIEF.md and v3.1's own backlog already flagged ("built mobile-migration-ready... but the responsive layout itself was never built").
+
+**Decision:** Rather than building new mobile-specific layout/resize code from scratch, extend the existing desktop resizable-divider feature (draggable config/reading split, already persisted to `localStorage`) to operate vertically below the existing mobile breakpoint, instead of horizontally. Same underlying mechanism — drag a handle, persist the chosen size — different axis.
+
+**Scope:**
+1. Below the existing mobile breakpoint, the Configure panel already stacks above the reading panel; make the divider between them draggable vertically, reusing the existing resize-persistence code path with a value stored under a separate `localStorage` key from the desktop horizontal split (so a user's desktop and mobile preferences don't clobber each other).
+2. Give the Configure panel a sensible default height on first load (e.g. enough to show one open accordion section without scrolling) rather than collapsing to minimum content height.
+3. Confirm the Generate button's sticky positioning doesn't fight the new resize handle — it should stay reachable regardless of how tall the user drags the Configure panel.
+
+**Out of scope:** Mobile Define support (separate entry below), any new mobile-specific navigation pattern, tablet-specific breakpoints.
+
+**Done criteria:**
+- [ ] On a narrow viewport, a drag handle appears between the Configure panel and reading panel; dragging it resizes the Configure panel vertically
+- [ ] Chosen height persists across reloads (separate `localStorage` key from the desktop horizontal split)
+- [ ] Generate button remains visible/reachable at any drag position
+- [ ] Verified on a real device (iPhone), not just devtools responsive mode
+
+**Priority note:** This entry alone would be enough to claim minimal mobile support. Define-on-selection (below) is real but lower-priority and probably deserves its own version given the on-device testing effort involved.
+
+---
+
+### Mobile: Define-on-selection blocked by native OS menu (noted 2026-06-24)
+
+**Status: scoped, not started.** On desktop, selecting text in `#content-display` triggers Krashen's own selection handling and shows the Define popup. On iOS (tested: iPhone 17, Brave), selecting text instead brings up the OS's native callout menu (Copy / Look Up / Translate / Writing Tools) because touch-based text selection is handled by the OS, not the page, and arrives via a different event sequence than desktop's `mouseup`. There is no way to inject a custom item into that native iOS menu — this is a platform constraint, not something fixable with more code on the existing approach.
+
+**Options considered, not mutually exclusive:**
+- **(A) Do nothing.** Accept the platform limit; mobile users keep native Copy/Look Up/Translate, Define stays desktop-only. Zero effort, but mobile users lose Krashen's core interaction.
+- **(B) Add a custom floating "Define" affordance for touch — recommended.** Listen for `touchend`/`selectionchange`; when a selection exists inside `#content-display` on a touch device, show a small floating button near the selection (the pattern Medium/Genius use for mobile highlight actions) that calls the existing Define pipeline. The native OS menu still appears alongside it — this adds a capability rather than fighting the platform for control of the native one.
+- **(C) Suppress the native menu, fully custom mobile selection UI.** `-webkit-touch-callout: none` plus a bespoke touch-selection toolbar. Most work, most control, but removes native Copy entirely unless reimplemented.
+
+**Decision:** (B) is the only option that adds mobile Define support without a UX regression (native Copy/Look Up stay available). Scope as its own version rather than bundling with the Configure panel layout fix above — it touches `js/app.js`'s selection-handling and needs real on-device testing, not just a CSS change.
+
+**Done criteria (if scoped):**
+- [ ] Selecting text in `#content-display` on a touch device shows a custom Define affordance without blocking native Copy/Look Up
+- [ ] Tapping it runs the existing Define pipeline (same popup, same `clampPopupTop` viewport handling already fixed for desktop)
+- [ ] Verified on at least one real iOS device, not just responsive-mode devtools (touch event timing doesn't reliably emulate)
