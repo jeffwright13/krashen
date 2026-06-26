@@ -717,3 +717,44 @@ The user's preference between (A) and (B) had not been captured before this sess
 - [ ] Selecting text in `#content-display` on a touch device shows a custom Define affordance without blocking native Copy/Look Up
 - [ ] Tapping it runs the existing Define pipeline (same popup, same `clampPopupTop` viewport handling already fixed for desktop)
 - [ ] Verified on at least one real iOS device, not just responsive-mode devtools (touch event timing doesn't reliably emulate)
+
+---
+
+### Profile and vocab-list export/import for manual sync (noted 2026-06-26)
+
+**Status: not started.** The History modal already handles library export/import (JSON/Markdown), but there is no equivalent for profile configuration and the vocab store. Users who want to keep data in sync across devices (iCloud Drive, Dropbox, rsync, etc.) would need a way to export and import the full per-profile vocab state (`krashen_{profileId}_vocab`) and profile settings (`krashen_profiles`). See https://claude.ai/chat/9e43e7ca-5d7d-41cd-87de-456954808d3c for the design discussion. Consider pairing this with, or as a prerequisite for, a future cloud/server-side sync story — but the manual-file approach works for the current zero-backend architecture.
+
+---
+
+### SRS revisit — PlusOneLanguage.app model (noted 2026-06-26)
+
+**Status: investigate further.** Krashen has SRS in the sense of vocab tracking and i+1 prompt injection, but [PlusOneLanguage.app](https://plusonelanguage.app) may implement a more structured SRS (e.g. spaced repetition scheduling with explicit review intervals, card-style recall). Investigate what specifically their model does that the current system does not, then decide whether to adopt any of it. See https://claude.ai/chat/9e43e7ca-5d7d-41cd-87de-456954808d3c for the original discussion thread.
+
+---
+
+### Extended story mode — Chapters (noted 2026-06-26)
+
+**Status: not started.** A new Content → Format option: "Extended story (chapters)." Idea: a central recurring character appears across multiple independently-generated chapters rather than each generation being a standalone piece. Open questions: where chapter state/character details live (localStorage, a running summary injected into the prompt?), how chapters are named and ordered, whether the reading panel shows all chapters or one at a time. Scope is undefined — needs a design pass before implementation.
+
+---
+
+### Move "Autosave lookups" to Settings tab (noted 2026-06-26)
+
+**Status: not started.** "Autosave lookups" is currently in the Tuning tab (SRS params for the active profile). Consider whether it fits better in the Settings tab alongside other persistent behavior preferences. Low effort if the decision is made — just HTML/wiring relocation.
+
+---
+
+### Vocab management improvements (noted 2026-06-26)
+
+**Status: not started.** The Vocab tab term list is a scrollable widget inside the left panel — fine for small lists but cramped as vocab grows. Ideas:
+
+- **Dedicated vocab page or expanded modal** — a larger surface showing the full list with more columns visible at once.
+- **Per-entry actions: promote / demote / sleep / dismiss / retire** — more granular control than the current mastery-derivation algorithm. "Sleep" would suppress a term from re-expose lists for N generations; "retire" would mark it acquired and stop tracking it actively; "dismiss" would remove it entirely.
+
+These build on the existing per-word delete/deactivation that already shipped, but add more states. Needs a data-model decision (new fields on vocab entries) before implementation.
+
+---
+
+### Topic-aware vocab inclusion for SRS (noted 2026-06-26)
+
+**Status: not started.** (Extends the existing "topic-aware re-expose list" deferred item from v3.1.) Rather than passing the full re-expose list to the LLM, filter it by topic relevance before injection: if the current story is set in a seaside town during tourist season, suppress re-expose items that only appeared in, say, a doctor's-office story. The LLM already knows the story topic; the challenge is deciding relevance without a second LLM call (expensive) or a naive keyword match (brittle). One option: record the story topic on each vocab entry at the time of lookup/save, then use that field to filter. Design needed.
