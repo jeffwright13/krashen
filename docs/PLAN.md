@@ -755,6 +755,19 @@ These build on the existing per-word delete/deactivation that already shipped, b
 
 ---
 
+### Choose Your Own Story mode (noted 2026-06-26)
+
+**Status: not started.** A new content-generation mode where the story is interactive. After each generation the user is presented with three short choices ("What happens next?") and selects one; that choice seeds the next generation prompt. Rough flow:
+
+1. First generation runs normally (using current Configure settings).
+2. After the passage renders, a "What happens next?" prompt appears with three generated options (e.g. "The merchant offers a deal", "A stranger arrives", "A storm rolls in").
+3. User picks one; it is injected into the next generation as a directive, producing the next passage.
+4. Repeat — the story grows as a chain of player-directed passages.
+
+Open questions: who generates the three options (a second LLM call? the same call via a structured-output mode?), whether the full story chain is displayed as one scrolling narrative or passage-by-passage, how History/library export should represent a multi-turn story, and whether SRS vocab tracking (re-expose list) spans the whole chain or resets per passage. Needs a design pass before implementation.
+
+---
+
 ### Topic-aware vocab inclusion for SRS (noted 2026-06-26)
 
 **Status: not started.** (Extends the existing "topic-aware re-expose list" deferred item from v3.1.) Rather than passing the full re-expose list to the LLM, filter it by topic relevance before injection: if the current story is set in a seaside town during tourist season, suppress re-expose items that only appeared in, say, a doctor's-office story. The LLM already knows the story topic; the challenge is deciding relevance without a second LLM call (expensive) or a naive keyword match (brittle). One option: record the story topic on each vocab entry at the time of lookup/save, then use that field to filter. Design needed.

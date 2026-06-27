@@ -28,7 +28,7 @@ no server.
 3. Tool assembles an LLM prompt from the configured parameters
 4. LLM returns graded content
 5. User reads the content; can look up words inline via Define
-6. Lookups are saved to the vocab store (term, translation, context, lookup count)
+6. Lookups can be saved to the vocab store (term, translation, context, lookup count)
 7. Vocabulary can be exported to Anki for spaced repetition outside the app
 
 ## Constraints (Hard)
