@@ -771,3 +771,24 @@ Open questions: who generates the three options (a second LLM call? the same cal
 ### Topic-aware vocab inclusion for SRS (noted 2026-06-26)
 
 **Status: not started.** (Extends the existing "topic-aware re-expose list" deferred item from v3.1.) Rather than passing the full re-expose list to the LLM, filter it by topic relevance before injection: if the current story is set in a seaside town during tourist season, suppress re-expose items that only appeared in, say, a doctor's-office story. The LLM already knows the story topic; the challenge is deciding relevance without a second LLM call (expensive) or a naive keyword match (brittle). One option: record the story topic on each vocab entry at the time of lookup/save, then use that field to filter. Design needed.
+
+---
+
+### Phrase-boundary highlighting for Define (noted 2026-06-30)
+
+**Status: not started.** Inspired by [PlusOneLanguage.app](https://plusonelanguage.app), which visually distinguishes single-word vs. multi-word lookups: hovering a word or collocation (e.g. "apretón de manos") underlines the full span being treated as one unit, and clicking offers a choice between the word alone and the containing phrase.
+
+**Why this doesn't fit today's Define as-is:** Krashen's Define is drag-to-select (`js/app.js`, the `mouseup` handler around line 374) — the user manually selects arbitrary text and that literal selection is sent for translation. There is no concept of pre-known phrase boundaries to highlight on hover; PlusOne's effect depends on the text already being segmented into word/phrase spans (note their separate "Chunk" button in the screenshot) before any interaction happens.
+
+**Proposed approach:**
+1. **Segmentation step, on-demand rather than baked into generation.** Add a toolbar action (mirroring PlusOne's "Chunk" button) that makes one LLM call over the already-displayed piece and returns structured JSON — an array of span objects (`text`, `type: "word" | "phrase"`, optionally a `gloss`) in reading order — rather than inline markers in the prose. The renderer needs that structure anyway to build the `<span>` elements and to cache on the history entry, so asking the LLM for it directly avoids a separate parsing step and the fragility of re-locating marker characters inside translated/accented text. Cache the result on the history entry so it doesn't re-run on reload and works retroactively on existing History pieces. Baking markers into the main generation prompt instead was considered and rejected for now — it taxes every generation call (cost/latency) even when the user never uses Define, and doesn't help text already in History.
+2. **Rendering.** Once spans are known, wrap content in `<span>`s carrying phrase-membership data attributes (driven directly off the JSON array's order), replacing (or augmenting) the current plain-text rendering in `js/display.js`.
+3. **Hover.** CSS underline on hover reveals the full phrase boundary for multi-word spans, single underline for standalone words — matching the PlusOne reference image.
+4. **Click behavior.** Plain click translates the hovered span as a unit (the phrase, if part of one). Alt/Option+click forces single-word translation, bypassing phrase membership. This replaces the popup-with-choice pattern PlusOne uses (word vs. phrase) with a modifier-key shortcut for the common case — lower friction, no extra popup decision on every lookup.
+5. **Fallback.** Keep existing drag-to-select Define for arbitrary spans the segmenter didn't anticipate (e.g. cross-phrase selections, or pieces that haven't been Chunk'd yet).
+
+**Open questions, need a design pass before implementation:**
+- Whether the JSON span array (ordered list of `{text, type, gloss?}`) is sufficient on its own for rendering, or whether `<span>` placement also needs explicit offsets/token indices to stay robust against minor whitespace/punctuation mismatches between the array and the original text; either way, rendering should key off the array order rather than re-parsing markers out of the prose. Also needs to survive re-renders (font size change, column width toggle, etc.) without drifting out of sync with the text.
+- Whether Chunk results should auto-invalidate if a piece's text could ever change (currently pieces are immutable once generated, so likely fine).
+- Interaction on mobile, where Alt+click has no equivalent and Define-on-selection is already blocked by the native OS menu (see "Mobile: Define-on-selection" above) — this entry likely depends on that one being resolved first, or needs its own mobile fallback (e.g. tap = phrase, long-press = word).
+- Cost/UX of the Chunk call itself: does it run automatically on first Define use, or require an explicit user action per piece?
