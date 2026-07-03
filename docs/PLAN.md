@@ -824,3 +824,21 @@ Open questions: who generates the three options (a second LLM call? the same cal
 - Leave as-is if the enum was deliberately kept small to match well-tested, natural CEFR breakpoints — needs to be checked against `docs/DECISIONS.md` 2026-05-26/2026-06-01 entries, which record the CEFR/word-cap pairing decision but not why these exact six numbers were chosen over intermediate ones.
 
 **Done criteria (once scoped):** a decision recorded in `docs/DECISIONS.md` on whether the cap becomes free-entry or stays a closed enum, and if free-entry, an enforced min/max backed by at least manual verification that the LLM behaves sensibly at the new extremes.
+
+---
+
+### Define lookup caching — avoid re-fetching the same word/phrase within a piece (shipped v5.4.0, 2026-07-03)
+
+**Status: shipped.** Previously, every highlight fired a fresh LLM call even for a word/phrase already looked up moments earlier in the same passage — wasted cost and latency, especially annoying when re-checking a word you'd just defined.
+
+**Scoping decisions (both taken as the recommended/simpler option):**
+- **Lifetime:** in-memory only, scoped to the current session — no persistence across reloads, no eviction logic needed. A page reload or navigating away from a piece naturally loses the cache.
+- **Key:** `(text, context)` only — not target/native language. Define's own inputs already are `(text, context, targetLang, nativeLang)`, but language dropdowns are rarely changed mid-session without also regenerating content, so this was judged not worth the extra key complexity.
+
+**Implementation:** New pure module `js/defineCache.js` — `createDefineCache()` returns `{ get, set, clear }` backed by a `Map<pieceId, Map<normalizedKey, result>>`. Keys normalize `text`/`context` (trim + lowercase) and join with a NUL separator (not a printable delimiter, which real text could theoretically contain). Scoping by `pieceId` (`currentEntry.id`, already set for every displayed piece — fresh generations, History reopens, and imported/"Load your own text" pieces all persist an entry with an `id` before Define can fire) means the same word appearing with different senses in different pieces never collides, and switching pieces can't serve a stale cross-piece answer.
+
+`js/app.js`'s `mouseup` handler now checks `defineCache.get(pieceId, text, context)` before calling `generateContent()`; on a hit it renders the popup immediately from the cached `{lemma, translation}` (no API call, no visible "…" loading flash since the render happens synchronously in the same tick as the "…" placeholder). On a miss, it calls the LLM as before and stores the parsed result before rendering. The render + vocab-autosave/"Save to vocab" logic was extracted into a new `applyDefineResult()` helper shared by both paths, so caching has zero effect on vocab-tracking behavior — a cache hit still autosaves or shows the save button exactly as a fresh lookup would.
+
+**Verified:** `tests/defineCache.test.js` (7 cases: basic hit/miss, case/whitespace normalization, polysemy — same text/different context misses, per-piece scoping, phrase/sentence keys, `clear()`). Also manually verified end-to-end in a browser with `fetch` stubbed: highlighting the same word twice made one network call total; a different word made a second call; loading a new piece and re-highlighting the same word made a third call (confirming per-piece scoping isn't leaking cross-piece).
+
+**Deliberately not done (open follow-ups if ever needed):** persistence across reloads/History revisits, and keying on target/native language — both noted above as the simpler side of the scoping decision, not full designs.

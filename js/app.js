@@ -6,6 +6,7 @@ import { getHistory, appendHistory, deleteHistoryEntry, clearHistory, mergeHisto
 import { exportPieceAsMarkdown, exportPieceAsHTML, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
 import { parseLibraryJSON } from './import.js';
 import { toggleLoading, renderContent, renderError, showToast, triggerDownload, selectContentDisplay, applyFontSizeClass, clampPopupTop } from './display.js';
+import createDefineCache from './defineCache.js';
 
 let currentEntry   = null;
 let lastPrompts    = null;  // { system, user } from most recent generation
@@ -13,6 +14,11 @@ let lastPrompts    = null;  // { system, user } from most recent generation
 // Near-zero so repeated identical Define lookups return the same answer; story
 // generation keeps the provider's default temperature for sampling variety.
 const DEFINE_TEMPERATURE = 0;
+
+// Avoids re-calling the LLM when the same word/phrase is highlighted again within
+// the same displayed piece. Scoped per piece id (see currentEntry.id below), and
+// memory-only — it does not survive a reload, by design (see docs/PLAN.md).
+const defineCache = createDefineCache();
 
 function isVocabEnabled() {
   return window.KrashenProfiles?.getActive()?.settings?.vocabEnabled ?? true;
@@ -373,6 +379,45 @@ function repositionDefinePopup() {
   definePopup.style.top = `${clampPopupTop(rect.top, rect.height, window.innerHeight)}px`;
 }
 
+// Renders a parsed Define result ({ lemma, translation }) into the popup and
+// runs the vocab-save flow. Shared by both the cache-hit path and the fresh-
+// LLM-call path so caching doesn't change vocab/autosave behavior at all.
+function applyDefineResult({ lemma, translation }, text, context) {
+  defineResult.textContent = translation;
+
+  const defineLemmaEl  = document.getElementById('define-lemma');
+  const surfaceForm    = text.toLowerCase();
+  const effectiveLemma = lemma ?? surfaceForm;
+  if (defineLemmaEl) {
+    const showBaseForm = lemma && lemma !== surfaceForm;
+    defineLemmaEl.textContent = showBaseForm ? `base: ${lemma}` : '';
+    defineLemmaEl.hidden      = !showBaseForm;
+  }
+  repositionDefinePopup();
+
+  const activeProfile = window.KrashenProfiles?.getActive();
+  if (window.KrashenVocab && activeProfile && isVocabEnabled()) {
+    if (activeProfile.settings?.autosave) {
+      window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
+      showToast('Saved to vocab');
+      window.KrashenUI?.refreshVocab();
+    } else {
+      definePopup.querySelector('.define-save-btn')?.remove();
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Save to vocab';
+      saveBtn.className   = 'define-save-btn';
+      saveBtn.addEventListener('click', () => {
+        window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
+        showToast('Saved to vocab');
+        window.KrashenUI?.refreshVocab();
+        saveBtn.remove();
+      });
+      definePopup.appendChild(saveBtn);
+      repositionDefinePopup();
+    }
+  }
+}
+
 document.addEventListener('mouseup', () => {
   if (!defineEnabled) return;
   const mySeq = ++defineSeq;
@@ -408,6 +453,15 @@ document.addEventListener('mouseup', () => {
       return;
     }
 
+    const pieceId = currentEntry?.id ?? null;
+    const cached  = pieceId != null ? defineCache.get(pieceId, text, context) : undefined;
+
+    if (cached) {
+      showDefinePopup(rect.right, rect.bottom, text);
+      applyDefineResult(cached, text, context);
+      return;
+    }
+
     showDefinePopup(rect.right, rect.bottom, text);
 
     try {
@@ -415,41 +469,10 @@ document.addEventListener('mouseup', () => {
       const raw      = await generateContent(prompts, provider, apiKey, model, DEFINE_TEMPERATURE);
       if (mySeq !== defineSeq) return;
 
-      const { lemma, translation } = parseDefineResponse(raw);
+      const parsed = parseDefineResponse(raw);
+      if (pieceId != null) defineCache.set(pieceId, text, context, parsed);
 
-      defineResult.textContent = translation;
-
-      const defineLemmaEl = document.getElementById('define-lemma');
-      const surfaceForm   = text.toLowerCase();
-      const effectiveLemma = lemma ?? surfaceForm;
-      if (defineLemmaEl) {
-        const showBaseForm = lemma && lemma !== surfaceForm;
-        defineLemmaEl.textContent = showBaseForm ? `base: ${lemma}` : '';
-        defineLemmaEl.hidden      = !showBaseForm;
-      }
-      repositionDefinePopup();
-
-      const activeProfile = window.KrashenProfiles?.getActive();
-      if (window.KrashenVocab && activeProfile && isVocabEnabled()) {
-        if (activeProfile.settings?.autosave) {
-          window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
-          showToast('Saved to vocab');
-          window.KrashenUI?.refreshVocab();
-        } else {
-          definePopup.querySelector('.define-save-btn')?.remove();
-          const saveBtn = document.createElement('button');
-          saveBtn.textContent = 'Save to vocab';
-          saveBtn.className   = 'define-save-btn';
-          saveBtn.addEventListener('click', () => {
-            window.KrashenVocab.recordLookup(effectiveLemma, surfaceForm, translation, context);
-            showToast('Saved to vocab');
-            window.KrashenUI?.refreshVocab();
-            saveBtn.remove();
-          });
-          definePopup.appendChild(saveBtn);
-          repositionDefinePopup();
-        }
-      }
+      applyDefineResult(parsed, text, context);
     } catch (err) {
       if (mySeq !== defineSeq) return;
       defineResult.textContent = err.message ?? 'Error';
