@@ -792,3 +792,36 @@ Open questions: who generates the three options (a second LLM call? the same cal
 - Whether Chunk results should auto-invalidate if a piece's text could ever change (currently pieces are immutable once generated, so likely fine).
 - Interaction on mobile, where Alt+click has no equivalent and Define-on-selection is already blocked by the native OS menu (see "Mobile: Define-on-selection" above) — this entry likely depends on that one being resolved first, or needs its own mobile fallback (e.g. tap = phrase, long-press = word).
 - Cost/UX of the Chunk call itself: does it run automatically on first Define use, or require an explicit user action per piece?
+
+---
+
+### Bug: requested output length is not honored (e.g. 2500-word Article generated ~456 words) (noted 2026-07-03)
+
+**Status: not started.** User requested Format: Article, Length: 2500 words, and got back roughly 456 words — a large undershoot, not just imprecision.
+
+**Two separate contributing issues, both real:**
+
+1. **Hardcoded `max_tokens: 2048` on the Claude request path.** `callClaude()` in `js/llm.js` (line 15) sends a fixed `max_tokens: 2048` regardless of `config.outputLength`. Spanish prose runs roughly 1.3–1.5 tokens/word, so 2048 tokens is a hard ceiling around 1400–1600 words — meaning any request above that (2500 falls in this range, and the UI's own tooltip advertises a practical range up to 3000) is structurally unreachable even if the model fully complied. `callOpenAI()` and `callGoogle()` don't set an explicit output-token limit at all, so they fall back to provider defaults — output length behavior is inconsistent across the three providers today, independent of this bug.
+2. **No post-generation check.** `js/app.js` (line 78) computes `wordCount` from the returned text right after generation but never compares it against `config.outputLength`, so a large miss (like 456 vs. 2500) is silently accepted and displayed with no warning. LLMs are known to be unreliable at hitting a single large word-count target from one plain "approximate length: N words" instruction — the gap here is bigger than the token cap alone explains, so the model itself under-delivered relative to the prompt, and nothing catches that.
+
+**Options, not mutually exclusive, need a decision before implementation:**
+- Scale `max_tokens` (and the OpenAI/Google equivalents) to `config.outputLength` with headroom, so the ceiling is never the limiter for in-range requests.
+- Add a post-generation check in `js/app.js`: if actual word count falls short of the target by more than some threshold, either surface a visible warning ("requested 2500 words, got 456") or automatically retry/continue the generation to close the gap.
+- For large requests specifically, consider generating in sections (e.g. ask for an outline, then generate per-section) rather than one shot — more invasive, but the most reliable way to actually hit large targets.
+
+**Done criteria (once scoped):** requests within the UI's advertised practical range (50–3000 words) are not blocked by the token ceiling, and a large miss between requested and actual length is either prevented or surfaced to the user rather than silently accepted.
+
+---
+
+### Feature: Vocabulary cap dropdown is a fixed 6-value enum — allow custom/intermediate values? (noted 2026-07-03)
+
+**Status: not started, needs a decision.** The "Vocabulary cap" dropdown (`index.html` line 150; `WORD_CAPS` in `js/config.js` line 2) only offers `550, 1000, 2000, 3000, 5000, 7500`. This isn't just a UI limitation — `validateConfig()` (`js/config.js` line 36) hard-rejects any `wordCap` value not in that exact list, so today there is no way to request something in between (e.g. 1500) or outside the range, even by editing the request.
+
+**Open question for the user:** is a closed enum tied to CEFR pairing (`CEFR_WORD_CAP` in `js/app.js` line 766: A0/A1→550, A2→1000, B1→2000, B2→3000, C1→5000, C2→unrestricted) intentional and worth keeping simple, or should it become a free-entry number (like the "Length (words)" field already is) with the six CEFR-paired values kept as presets/quick-picks? A free-entry field would need a sensible enforced range — current frequency-list-based generation hasn't been tested below 550 or above 7500, so raising or lowering the bound isn't free; it would need verification that the LLM can meaningfully honor a cap that low (e.g. 200) or that high (e.g. 10000) before exposing it.
+
+**Options, not mutually exclusive:**
+- Keep the six presets, but also allow a free-text/number input (mirroring the existing "Length (words)" pattern) with `validateConfig()` relaxed to a numeric range check instead of a fixed-set check.
+- Add a few more preset rungs (e.g. 1500, 4000) without going fully free-form, if testing shows the existing six were chosen somewhat arbitrarily rather than for a specific reason.
+- Leave as-is if the enum was deliberately kept small to match well-tested, natural CEFR breakpoints — needs to be checked against `docs/DECISIONS.md` 2026-05-26/2026-06-01 entries, which record the CEFR/word-cap pairing decision but not why these exact six numbers were chosen over intermediate ones.
+
+**Done criteria (once scoped):** a decision recorded in `docs/DECISIONS.md` on whether the cap becomes free-entry or stays a closed enum, and if free-entry, an enforced min/max backed by at least manual verification that the LLM behaves sensibly at the new extremes.
