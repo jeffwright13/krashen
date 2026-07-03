@@ -103,7 +103,7 @@ export function buildUserPrompt(config) {
   const lines = [
     `Topic: ${config.topic}`,
     `Format: ${config.outputFormat}`,
-    `Approximate length: ${wordCount} words`,
+    `Approximate length: ${wordCount} words — treat this as a firm target: write the full length requested, do not stop early to wrap up quickly.`,
   ];
 
   if (config.outputFormat !== 'Article') {

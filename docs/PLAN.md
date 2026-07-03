@@ -797,19 +797,18 @@ Open questions: who generates the three options (a second LLM call? the same cal
 
 ### Bug: requested output length is not honored (e.g. 2500-word Article generated ~456 words) (noted 2026-07-03)
 
-**Status: not started.** User requested Format: Article, Length: 2500 words, and got back roughly 456 words — a large undershoot, not just imprecision.
+**Status: fixed in v5.3.1 (2026-07-03).** User requested Format: Article, Length: 2500 words, and got back roughly 456 words — a large undershoot, not just imprecision.
 
 **Two separate contributing issues, both real:**
 
-1. **Hardcoded `max_tokens: 2048` on the Claude request path.** `callClaude()` in `js/llm.js` (line 15) sends a fixed `max_tokens: 2048` regardless of `config.outputLength`. Spanish prose runs roughly 1.3–1.5 tokens/word, so 2048 tokens is a hard ceiling around 1400–1600 words — meaning any request above that (2500 falls in this range, and the UI's own tooltip advertises a practical range up to 3000) is structurally unreachable even if the model fully complied. `callOpenAI()` and `callGoogle()` don't set an explicit output-token limit at all, so they fall back to provider defaults — output length behavior is inconsistent across the three providers today, independent of this bug.
-2. **No post-generation check.** `js/app.js` (line 78) computes `wordCount` from the returned text right after generation but never compares it against `config.outputLength`, so a large miss (like 456 vs. 2500) is silently accepted and displayed with no warning. LLMs are known to be unreliable at hitting a single large word-count target from one plain "approximate length: N words" instruction — the gap here is bigger than the token cap alone explains, so the model itself under-delivered relative to the prompt, and nothing catches that.
+1. **Hardcoded `max_tokens: 2048` on the Claude request path.** `callClaude()` in `js/llm.js` sent a fixed `max_tokens: 2048` regardless of `config.outputLength`. Spanish prose runs roughly 1.3–1.5 tokens/word, so 2048 tokens was a hard ceiling around 1400–1600 words — meaning any request above that (2500 falls in this range, and the UI's own tooltip advertises a practical range up to 3000) was structurally unreachable even if the model fully complied. `callOpenAI()` and `callGoogle()` didn't set an explicit output-token limit at all, so they fell back to provider defaults — output length behavior was inconsistent across the three providers.
+2. **Weak length wording.** The user prompt stated "Approximate length: N words" with no instruction discouraging the model from stopping early. Part of the 456-vs-2500 gap was the model under-delivering relative to the prompt, not just the token ceiling (456 words is itself well under the old 2048-token/~1500-word ceiling).
 
-**Options, not mutually exclusive, need a decision before implementation:**
-- Scale `max_tokens` (and the OpenAI/Google equivalents) to `config.outputLength` with headroom, so the ceiling is never the limiter for in-range requests.
-- Add a post-generation check in `js/app.js`: if actual word count falls short of the target by more than some threshold, either surface a visible warning ("requested 2500 words, got 456") or automatically retry/continue the generation to close the gap.
-- For large requests specifically, consider generating in sections (e.g. ask for an outline, then generate per-section) rather than one shot — more invasive, but the most reliable way to actually hit large targets.
+**Fix shipped:** `js/llm.js` gained `estimateMaxTokens(targetWordCount)` — converts the requested word count into a token budget (`words × 2.2 + 300` overhead, clamped between the previous 2048 default and an 8192 ceiling) and applies it to all three providers (`max_tokens` for Claude/OpenAI, `generationConfig.maxOutputTokens` for Google). `generateContent()` gained a trailing `targetWordCount` parameter; `js/app.js`'s `handleGenerate()` now passes `config.outputLength` through. `js/prompt.js`'s length line was strengthened to "...treat this as a firm target: write the full length requested, do not stop early to wrap up quickly." Regression tests added in `tests/llm.test.js` (token-budget scaling per provider, floor/ceiling behavior) and `tests/prompt.test.js` (firm-target wording).
 
-**Done criteria (once scoped):** requests within the UI's advertised practical range (50–3000 words) are not blocked by the token ceiling, and a large miss between requested and actual length is either prevented or surfaced to the user rather than silently accepted.
+**Deliberately not done (still open, not a regression from this fix):** no post-generation check comparing actual vs. requested word count, and no retry/continuation or sectioned-generation strategy for very large requests. The two options below from the original write-up remain open if the strengthened prompt + wider token budget don't prove sufficient in practice:
+- A post-generation check in `js/app.js` that warns or retries when actual word count falls far short of the target.
+- Sectioned generation (outline, then per-section) for large requests — more invasive, most reliable for hitting large targets.
 
 ---
 
