@@ -141,6 +141,14 @@ describe('buildUserPrompt', () => {
     expect(buildUserPrompt(base())).toMatch(/700|medium/i);
   });
 
+  it('states the length as a firm target rather than a loose approximation', () => {
+    // Regression guard: the LLM has undershot large requests (e.g. asked for 2500
+    // words, returned ~456) — the instruction needs to discourage stopping early,
+    // not just state a number.
+    const config = { ...base(), outputLength: 2500 };
+    expect(buildUserPrompt(config)).toMatch(/2500 words.*(firm|do not stop|full length)/is);
+  });
+
   it('includes narrative person', () => {
     expect(buildUserPrompt(base())).toMatch(/third.person|3rd/i);
   });

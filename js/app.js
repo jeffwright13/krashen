@@ -74,7 +74,9 @@ async function handleGenerate(e) {
     updatePromptDebug();
 
     const model    = getModel(config.provider);
-    const content  = await generateContent(prompts, config.provider, apiKey, model || undefined);
+    const content  = await generateContent(
+      prompts, config.provider, apiKey, model || undefined, undefined, config.outputLength
+    );
     const wordCount = content.trim().split(/\s+/).length;
     const date      = new Date().toLocaleDateString();
 
