@@ -46,4 +46,13 @@ describe('defineCache', () => {
     cache.clear();
     expect(cache.get('piece-1', 'perro', 'El perro corre.')).toBeUndefined();
   });
+
+  it('set() overwrites a previously cached result for the same key', () => {
+    // Regression guard for the "Re-check" bypass button: a forced fresh lookup
+    // must replace the stale cached answer, not be ignored or duplicated.
+    const cache = createDefineCache();
+    cache.set('piece-1', 'perro', 'El perro corre.', { translation: 'dog' });
+    cache.set('piece-1', 'perro', 'El perro corre.', { translation: 'dog (corrected)' });
+    expect(cache.get('piece-1', 'perro', 'El perro corre.')).toEqual({ translation: 'dog (corrected)' });
+  });
 });

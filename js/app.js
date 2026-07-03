@@ -351,12 +351,19 @@ document.addEventListener('keydown', e => {
 
 let defineEnabled = false;
 let defineSeq     = 0;
-const definePopup = document.getElementById('define-popup');
-const defineWord  = document.getElementById('define-word');
-const defineResult = document.getElementById('define-result');
+const definePopup   = document.getElementById('define-popup');
+const defineWord    = document.getElementById('define-word');
+const defineResult  = document.getElementById('define-result');
+const defineRecheckBtn = document.getElementById('define-recheck-btn');
+
+// The (text, context, rect) of the most recently shown lookup, so the
+// Re-check button — which lives outside the mouseup handler's closure — knows
+// what to redo.
+let lastDefineLookup = null;
 
 function showDefinePopup(x, y, word) {
   definePopup.querySelector('.define-save-btn')?.remove();
+  defineRecheckBtn.hidden  = true;
   defineWord.textContent   = word;
   defineResult.textContent = '…';
   definePopup.hidden = false;
@@ -393,6 +400,7 @@ function applyDefineResult({ lemma, translation }, text, context) {
     defineLemmaEl.textContent = showBaseForm ? `base: ${lemma}` : '';
     defineLemmaEl.hidden      = !showBaseForm;
   }
+  defineRecheckBtn.hidden = false;
   repositionDefinePopup();
 
   const activeProfile = window.KrashenProfiles?.getActive();
@@ -418,6 +426,54 @@ function applyDefineResult({ lemma, translation }, text, context) {
   }
 }
 
+// Calls the LLM for a Define lookup, bypassing the cache entirely — used both
+// for a fresh (never-cached) lookup and for an explicit Re-check. Throws (with
+// a "No API key set" message) rather than special-casing that check at each
+// call site.
+async function fetchDefineResult(text, context) {
+  const provider   = document.getElementById('provider').value;
+  const apiKey     = getApiKey(provider);
+  const model      = getModel(provider) || undefined;
+  const targetLang = document.getElementById('target-language').value.trim();
+  const nativeLang = document.getElementById('native-language').value.trim();
+
+  if (!apiKey) throw new Error(`No API key set for ${provider}.`);
+
+  const prompts = buildDefinePrompt(text, context, targetLang, nativeLang);
+  const raw     = await generateContent(prompts, provider, apiKey, model, DEFINE_TEMPERATURE);
+  return parseDefineResponse(raw);
+}
+
+// Runs a fresh lookup, stores it in the cache (overwriting any prior entry for
+// this exact key), and renders it — guarded by the same defineSeq check the
+// mouseup handler uses so a stale response from an earlier lookup or Re-check
+// can never clobber a newer one.
+async function fetchAndApplyDefine(text, context, pieceId, mySeq) {
+  try {
+    const parsed = await fetchDefineResult(text, context);
+    if (mySeq !== defineSeq) return;
+    if (pieceId != null) defineCache.set(pieceId, text, context, parsed);
+    applyDefineResult(parsed, text, context);
+  } catch (err) {
+    if (mySeq !== defineSeq) return;
+    defineResult.textContent = err.message ?? 'Error';
+    repositionDefinePopup();
+  }
+}
+
+defineRecheckBtn.addEventListener('click', () => {
+  if (!lastDefineLookup) return;
+  const { text, context } = lastDefineLookup;
+  const mySeq   = ++defineSeq;
+  const pieceId = currentEntry?.id ?? null;
+
+  defineRecheckBtn.hidden   = true;
+  defineResult.textContent  = '…';
+  repositionDefinePopup();
+
+  fetchAndApplyDefine(text, context, pieceId, mySeq);
+});
+
 document.addEventListener('mouseup', () => {
   if (!defineEnabled) return;
   const mySeq = ++defineSeq;
@@ -440,44 +496,18 @@ document.addEventListener('mouseup', () => {
     const context    = (anchorEl?.closest('p, h1, h2, h3') ?? anchorEl)?.textContent ?? '';
     const rect       = range.getBoundingClientRect();
 
-    const provider   = document.getElementById('provider').value;
-    const apiKey     = getApiKey(provider);
-    const model      = getModel(provider) || undefined;
-    const targetLang = document.getElementById('target-language').value.trim();
-    const nativeLang = document.getElementById('native-language').value.trim();
-
-    if (!apiKey) {
-      showDefinePopup(rect.right, rect.bottom, text);
-      defineResult.textContent = 'No API key set';
-      repositionDefinePopup();
-      return;
-    }
+    lastDefineLookup = { text, context };
+    showDefinePopup(rect.right, rect.bottom, text);
 
     const pieceId = currentEntry?.id ?? null;
     const cached  = pieceId != null ? defineCache.get(pieceId, text, context) : undefined;
 
     if (cached) {
-      showDefinePopup(rect.right, rect.bottom, text);
       applyDefineResult(cached, text, context);
       return;
     }
 
-    showDefinePopup(rect.right, rect.bottom, text);
-
-    try {
-      const prompts  = buildDefinePrompt(text, context, targetLang, nativeLang);
-      const raw      = await generateContent(prompts, provider, apiKey, model, DEFINE_TEMPERATURE);
-      if (mySeq !== defineSeq) return;
-
-      const parsed = parseDefineResponse(raw);
-      if (pieceId != null) defineCache.set(pieceId, text, context, parsed);
-
-      applyDefineResult(parsed, text, context);
-    } catch (err) {
-      if (mySeq !== defineSeq) return;
-      defineResult.textContent = err.message ?? 'Error';
-      repositionDefinePopup();
-    }
+    await fetchAndApplyDefine(text, context, pieceId, mySeq);
   }, 50);
 });
 

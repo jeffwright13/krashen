@@ -646,6 +646,17 @@ html, body {
   width: 100%;
 }
 
+.define-recheck-btn {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  width: 100%;
+  background: transparent;
+  color: var(--pico-muted-color);
+  border-color: var(--pico-muted-border-color);
+}
+
 .define-word   { font-style: italic; color: var(--pico-muted-color); }
 .define-sep    { color: var(--pico-muted-color); }
 .define-result { font-weight: 600; }
