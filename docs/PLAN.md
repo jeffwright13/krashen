@@ -933,3 +933,19 @@ Open questions: who generates the three options (a second LLM call? the same cal
 - **(B) Ship the override, add the cross-check as a follow-on.** Do (A) first, then decide separately whether the extra LLM call and warning UX are worth it — mirrors how `userMastery` and its review-modal UI (2026-06-04) shipped as one decision but could have been split.
 
 **Recommendation for the next conversation, not a decision:** (A) looks straightforward and low-risk to scope into a real implementation plan next; (B)'s cross-check half needs its own design pass (UX for the warning, when the extra LLM call fires) before it's ready to build.
+
+---
+
+### apg-web export (shipped, 2026-08-03)
+
+**Status: shipped.** Follow-through on the deferred idea in SPEC.md §5.1 (see the 2026-07-31 and 2026-08-02 DECISIONS.md entries) — an export of the currently displayed piece into apg-web's phrase-file format, for reading-while-listening reinforcement in that separate tool.
+
+**Scope:** `js/apgWebExport.js` (new, pure, no DOM) exports `buildApgWebExport(entry, cefrLevel)`, which strips `entry.content`'s markdown down to plain sentences and reformats them as `phrase; duration_in_seconds` lines (`*` for a silence-only line), per `apg-web/README.md`'s "Phrase File Format." A new `#export-apgweb-btn` in the File modal's Save-as row (`index.html`), labeled "Export for apg-web (.txt)," enabled/disabled alongside `#export-piece-btn`/`#export-html-btn` at all 4 existing call sites in `js/app.js`, downloading `krashen-{slug}-apgweb.txt` via the existing `triggerDownload()`. Pause durations scale with CEFR level via `PAUSE_TIMING_BY_LEVEL` (A0–C2), seeded from the SPEC.md §5.1 candidate numbers and explicitly not re-tuned before shipping.
+
+**TDD sequence:** wrote `tests/apgWebExport.test.js` first (13 cases: lead-in placement, title-as-phrase, paragraph-pause insertion with none trailing after the last block, sentence splitting, bold/italic stripping, bullet/numbered list handling, body-heading handling, horizontal-rule dropping, per-level pause scaling, unknown-level fallback, title-only content) against a not-yet-existing module, confirmed red, then implemented `buildApgWebExport()` to turn them green. The title-only case caught a real bug during that first green run: `body` computation used `normalized.slice(firstNewline + 1)` unconditionally, which for content with no newline after the title line (`firstNewline === -1`) evaluated to `normalized.slice(0)` — the whole string again, duplicating the title into the body. Fixed by special-casing `firstNewline === -1` to an empty body.
+
+**Naming:** every identifier — module, function, button id/label, downloaded filename — says "apg-web" explicitly rather than "audio," per user feedback during scoping, so nothing implies krashen itself generates or processes audio.
+
+**Verified:** the 13 unit tests above, plus a manual in-browser pass: pasted a piece with bold text, a bullet list, and multiple paragraphs via the File modal's "Display" path (`config: null`, exercising the CEFR fallback), clicked the export button, and inspected the generated content by stubbing `URL.createObjectURL` to capture the `Blob` before `triggerDownload()`'s `URL.revokeObjectURL()` call invalidated it — no file was written to disk during this check. Output matched expectations exactly, including the A2 fallback pause values.
+
+**Not done / deliberately deferred:** the pause-timing table is unturned by design (see DECISIONS.md 2026-08-02 and 2026-08-03); a clipboard-copy affordance alongside the file download was considered but skipped for v1 to match the existing Markdown/HTML export pattern (download only).
