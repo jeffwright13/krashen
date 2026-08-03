@@ -474,8 +474,16 @@ defineRecheckBtn.addEventListener('click', () => {
   fetchAndApplyDefine(text, context, pieceId, mySeq);
 });
 
-document.addEventListener('mouseup', () => {
+document.addEventListener('mouseup', (e) => {
   if (!defineEnabled) return;
+
+  // Selecting text inside a form control (e.g. the Native language input)
+  // never updates window.getSelection() — it stays whatever it was last set
+  // to in content-display. Without this check, a stale selection there gets
+  // re-shown whenever the mouse is released anywhere else on the page.
+  const contentEl = document.getElementById('content-display');
+  if (!(e.target instanceof Node) || !contentEl.contains(e.target)) return;
+
   const mySeq = ++defineSeq;
 
   // Defer 50ms so the browser finishes updating the selection (triple-click
@@ -489,7 +497,6 @@ document.addEventListener('mouseup', () => {
 
     const range      = sel.getRangeAt(0);
     const anchorNode = range.commonAncestorContainer;
-    const contentEl  = document.getElementById('content-display');
     if (!contentEl.contains(anchorNode)) return;
     const anchorEl   = anchorNode.nodeType === Node.TEXT_NODE
       ? anchorNode.parentElement : anchorNode;
