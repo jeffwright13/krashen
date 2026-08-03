@@ -166,6 +166,45 @@ TTS was scaffolded in v1 and planned for v2 but has been dropped from the roadma
 See DECISIONS.md for rationale. The `tts.js` stub remains in the codebase but is
 inactive and not wired to any UI.
 
+### 5.1 Audio narration export _(proposed, not committed — see DECISIONS.md 2026-07-31, 2026-08-02)_
+
+Distinct from the removed in-app TTS scope above. That decision was about TTS as
+*primary* content delivery, competing with curated native-speaker CI audio (Dreaming
+Spanish, Pimsleur). This idea is about *re-exposure*: converting content the user has
+already generated and read — already calibrated to their i+1 vocabulary and chosen
+topic — into a spoken form for reading-while-listening reinforcement. No native-speaker
+audio source can substitute for this, since the content itself is personalized.
+
+**Manual trial (2026-08-02):** confirmed working end-to-end — a generated A1 article
+was hand-converted to `apg-web`'s `phrase;duration` format and narrated successfully.
+Needs more listening sessions before committing to build, but the core premise holds.
+
+Candidate mechanism, if pursued:
+
+- A "Export for audio" action on the currently displayed content, reformatting it into
+  a target TTS tool's input format (e.g. sentence-split text with a pause marker
+  between sentences) and offering it via clipboard copy or file download.
+- Krashen itself would not gain any TTS/audio code, API key management, or provider
+  dependency — it only produces formatted text. The generation and playback of audio
+  happens entirely in a separate tool (candidate: `apg-web`, a sibling project that
+  already does text → mixed/exported audio via OpenAI/Google Cloud/gTTS/Web Speech
+  engines, with IndexedDB caching).
+- This keeps the "browser-only, no TTS" architectural boundary intact (see BRIEF.md
+  Constraints) while enabling the workflow manually.
+- **Pause timing should scale with the active profile's CEFR level**, not be a single
+  fixed set of values. Lower levels need more real processing time per sentence and
+  paragraph, not just simpler vocabulary — this is the same i+1 idea already applied
+  to sentence length and vocab cap, extended to the audio dimension. Candidate
+  direction (lead-in / inter-sentence / inter-paragraph, seconds): A1 ~1.5/0.8/1.5,
+  taper down toward C1/C2 ~0.5–0.6/0.15–0.25/0.5–0.7. These are starting points, not
+  tuned values — pick actual numbers by ear against real samples, not a formula.
+  Caution: shorter sentences are already more frequent at low CEFR levels, so
+  per-sentence pause and sentence count compound; naive values risk making low-level
+  audio feel padded/tedious rather than helpful.
+
+Not scheduled. Would need more trial listening (and, if pursued, per-CEFR pause
+tuning) before building an export button — no code written yet.
+
 ---
 
 ## 6. Vocabulary Tracking
