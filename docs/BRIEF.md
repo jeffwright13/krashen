@@ -48,7 +48,10 @@ no server.
   framework (Alpine.js, Preact) if complexity demands it.
 - LLM: Claude API primary, OpenAI and Google Gemini as user-selectable alternatives.
   All three abstracted behind a single `generateContent()` interface.
-- TTS: Removed from roadmap. See DECISIONS.md.
+- TTS: Removed from roadmap as an in-app feature. See DECISIONS.md. A narrower,
+  unbuilt idea — exporting generated content as text for an external TTS tool to
+  narrate, purely for reading-while-listening reinforcement of content the user
+  already generated — is tracked separately; see "Deferred" below and SPEC.md §5.1.
 - Storage: localStorage only. Structured for future export/import.
 
 ## Permanently Out of Scope
@@ -66,3 +69,5 @@ no server.
 - PWA / installable app
 - Vocab normalization (lemmatization, conjugation merging)
 - Topic-aware vocabulary filtering
+- Audio narration export (format generated content for an external TTS tool, e.g.
+  `apg-web`) — see SPEC.md §5.1; proposed, not committed
