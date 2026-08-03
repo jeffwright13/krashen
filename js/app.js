@@ -4,6 +4,7 @@ import { generateContent, testApiKey } from './llm.js';
 import { getApiKey, setApiKey, getModel, setModel, getSettings, setSettings } from './storage.js';
 import { getHistory, appendHistory, deleteHistoryEntry, clearHistory, mergeHistory } from './history.js';
 import { exportPieceAsMarkdown, exportPieceAsHTML, exportLibraryAsJSON, exportLibraryAsMarkdown } from './export.js';
+import { buildApgWebExport } from './apgWebExport.js';
 import { parseLibraryJSON } from './import.js';
 import { toggleLoading, renderContent, renderError, showToast, triggerDownload, selectContentDisplay, applyFontSizeClass, clampPopupTop } from './display.js';
 import createDefineCache from './defineCache.js';
@@ -97,6 +98,7 @@ async function handleGenerate(e) {
     appendHistory(currentEntry);
     document.getElementById('export-piece-btn').disabled = false;
     document.getElementById('export-html-btn').disabled = false;
+    document.getElementById('export-apgweb-btn').disabled = false;
 
     if (activeProfile) {
       window.KrashenProfiles.incrementWordsRead(activeProfile.id, wordCount);
@@ -623,6 +625,7 @@ function renderHistoryList() {
       });
       document.getElementById('export-piece-btn').disabled = false;
       document.getElementById('export-html-btn').disabled = false;
+      document.getElementById('export-apgweb-btn').disabled = false;
       document.getElementById('history-modal').close();
     });
 
@@ -748,6 +751,7 @@ document.getElementById('display-text-btn').addEventListener('click', () => {
   renderContent(content, { cefrLevel: '', wordCount, topic: title, date });
   document.getElementById('export-piece-btn').disabled = false;
   document.getElementById('export-html-btn').disabled = false;
+  document.getElementById('export-apgweb-btn').disabled = false;
 
   const activeProfile = window.KrashenProfiles?.getActive();
   persistCurrentEntry({
@@ -778,6 +782,13 @@ document.getElementById('export-html-btn').addEventListener('click', () => {
   if (!currentEntry) return;
   const slug = (currentEntry.topic ?? 'piece').replace(/[^a-z0-9]+/gi, '-').slice(0, 40).toLowerCase();
   triggerDownload(`krashen-${slug}.html`, exportPieceAsHTML(currentEntry), 'text/html');
+});
+
+document.getElementById('export-apgweb-btn').addEventListener('click', () => {
+  if (!currentEntry) return;
+  const slug = (currentEntry.topic ?? 'piece').replace(/[^a-z0-9]+/gi, '-').slice(0, 40).toLowerCase();
+  const cefrLevel = currentEntry.config?.cefrLevel;
+  triggerDownload(`krashen-${slug}-apgweb.txt`, buildApgWebExport(currentEntry, cefrLevel), 'text/plain');
 });
 
 document.getElementById('export-json-btn').addEventListener('click', () => {
@@ -895,6 +906,7 @@ initDisplaySettingsModal();
     });
     document.getElementById('export-piece-btn').disabled = false;
     document.getElementById('export-html-btn').disabled = false;
+    document.getElementById('export-apgweb-btn').disabled = false;
   } catch (_) {}
 })();
 

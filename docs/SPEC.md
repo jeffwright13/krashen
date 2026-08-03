@@ -94,6 +94,7 @@ The app assembles configured parameters into a structured LLM prompt. This is th
 - Paragraph structure preserved from LLM output
 - Metadata shown: CEFR level, approximate word count, topic, date generated
 - LLM response opens with a `## Title` line; rendered as a heading above the body
+- **Content is stored and rendered as lightweight markdown, not plain text.** Beyond the mandated `## Title` line, nothing stops the LLM from producing `**bold**`, `*italic*`, headings, or bullet/numbered lists in the body, and `renderBlock()` (duplicated in `js/display.js` and `js/export.js`) parses those constructs rather than treating them as literal characters. Any code that needs *plain* narratable text from `entry.content` — e.g. `js/apgWebExport.js` — must strip this markdown back out first; it cannot assume the stored string is already plain prose.
 - Font size control: Small / Medium / Large applied to the reading panel
 - Fullscreen mode: collapses the config panel to give full viewport to reading; Esc to restore
 - Column width: user-configurable max-width (default 70 ch); can be disabled for full-width layout
@@ -166,44 +167,53 @@ TTS was scaffolded in v1 and planned for v2 but has been dropped from the roadma
 See DECISIONS.md for rationale. The `tts.js` stub remains in the codebase but is
 inactive and not wired to any UI.
 
-### 5.1 Audio narration export _(proposed, not committed — see DECISIONS.md 2026-07-31, 2026-08-02)_
+### 5.1 apg-web export _(shipped — see DECISIONS.md 2026-07-31, 2026-08-02, 2026-08-03)_
 
 Distinct from the removed in-app TTS scope above. That decision was about TTS as
 *primary* content delivery, competing with curated native-speaker CI audio (Dreaming
-Spanish, Pimsleur). This idea is about *re-exposure*: converting content the user has
+Spanish, Pimsleur). This is about *re-exposure*: converting content the user has
 already generated and read — already calibrated to their i+1 vocabulary and chosen
 topic — into a spoken form for reading-while-listening reinforcement. No native-speaker
 audio source can substitute for this, since the content itself is personalized.
 
 **Manual trial (2026-08-02):** confirmed working end-to-end — a generated A1 article
 was hand-converted to `apg-web`'s `phrase;duration` format and narrated successfully.
-Needs more listening sessions before committing to build, but the core premise holds.
 
-Candidate mechanism, if pursued:
+**Implementation (2026-08-03):** an "Export for apg-web (.txt)" button in the File
+modal's Save-as row (`#export-apgweb-btn`, alongside Markdown/HTML), enabled under the
+same conditions as those two. `js/apgWebExport.js` exports a pure function,
+`buildApgWebExport(entry, cefrLevel)`, that strips `entry.content`'s lightweight
+markdown (see §3 above) back to plain narratable sentences and reformats it into
+apg-web's `phrase; duration_in_seconds` file format (`apg-web/README.md` "Phrase File
+Format" — `*` for a silence-only line, one entry per line). Krashen itself gains no
+TTS/audio code, API key management, or provider dependency — it only produces a text
+file; narration happens entirely in the separate `apg-web` project. Naming
+throughout (module, function, button id/label, downloaded filename
+`krashen-{slug}-apgweb.txt`) explicitly says "apg-web" rather than "audio," so nothing
+implies krashen itself processes or generates audio.
 
-- A "Export for audio" action on the currently displayed content, reformatting it into
-  a target TTS tool's input format (e.g. sentence-split text with a pause marker
-  between sentences) and offering it via clipboard copy or file download.
-- Krashen itself would not gain any TTS/audio code, API key management, or provider
-  dependency — it only produces formatted text. The generation and playback of audio
-  happens entirely in a separate tool (candidate: `apg-web`, a sibling project that
-  already does text → mixed/exported audio via OpenAI/Google Cloud/gTTS/Web Speech
-  engines, with IndexedDB caching).
-- This keeps the "browser-only, no TTS" architectural boundary intact (see BRIEF.md
-  Constraints) while enabling the workflow manually.
-- **Pause timing should scale with the active profile's CEFR level**, not be a single
-  fixed set of values. Lower levels need more real processing time per sentence and
-  paragraph, not just simpler vocabulary — this is the same i+1 idea already applied
-  to sentence length and vocab cap, extended to the audio dimension. Candidate
-  direction (lead-in / inter-sentence / inter-paragraph, seconds): A1 ~1.5/0.8/1.5,
-  taper down toward C1/C2 ~0.5–0.6/0.15–0.25/0.5–0.7. These are starting points, not
-  tuned values — pick actual numbers by ear against real samples, not a formula.
-  Caution: shorter sentences are already more frequent at low CEFR levels, so
-  per-sentence pause and sentence count compound; naive values risk making low-level
-  audio feel padded/tedious rather than helpful.
+- Sentences are split on `[.!?]` followed by whitespace — doesn't special-case
+  abbreviations or decimal numbers, acceptable for generated CI prose but not a
+  general-purpose tokenizer.
+- A silence-only pause line (`*; <duration>`) is inserted between paragraphs (and
+  between the title and the first paragraph), not appended as extra duration onto the
+  last sentence of a paragraph — keeps every sentence line's own duration uniform and
+  the file easy to hand-edit.
+- **Pause timing scales with the CEFR level the piece was generated at** (`PAUSE_TIMING_BY_LEVEL`
+  in `js/apgWebExport.js`, covering A0–C2). These values are the candidate numbers from
+  the 2026-08-02 decision — **explicitly unturned placeholders**, not derived from a
+  formula; retune by ear against real samples, in that one table. A0 mirrors A1,
+  matching the existing A0/A1 word-cap pairing (DECISIONS.md 2026-06-01). A piece with
+  no CEFR level on record (e.g. pasted/imported text) falls back to the A2 values.
 
-Not scheduled. Would need more trial listening (and, if pursued, per-CEFR pause
-tuning) before building an export button — no code written yet.
+**Verified:** 13 unit tests in `tests/apgWebExport.test.js` (lead-in/title/paragraph
+pause placement, sentence splitting, bold/italic stripping, bullet and numbered list
+handling, heading and horizontal-rule handling, per-level pause scaling, unrecognized-
+level fallback, title-only content). Manually verified in-browser: pasted a piece with
+bold text, a bullet list, and multiple paragraphs; clicked the export button; captured
+the generated blob (via a stubbed `URL.createObjectURL`, so no file actually hit disk
+during verification) and confirmed the `phrase; duration` output matched expectations,
+including the A2 fallback for a pasted piece with no `config.cefrLevel`.
 
 ---
 
