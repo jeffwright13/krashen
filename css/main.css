@@ -1,5 +1,7 @@
 :root {
   --content-max-width: 70ch;
+  --resizer-grip-length: 36px;
+  --resizer-grip-thickness: 6px;
 }
 
 /* ── Provider option: proxy-only (best-effort — ignored by some native pickers) */
@@ -44,6 +46,22 @@ html, body {
 #resizer:hover,
 #resizer.dragging {
   background: var(--pico-primary);
+}
+
+/* Grab-handle pill: the 4px bar alone is near-invisible in dark mode
+   (muted-border-color is barely lighter than the background), so give it a
+   centered, higher-contrast grip like an iOS sheet grabber. */
+#resizer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--resizer-grip-thickness);
+  height: var(--resizer-grip-length);
+  transform: translate(-50%, -50%);
+  border-radius: var(--resizer-grip-thickness);
+  background: var(--pico-muted-color);
+  pointer-events: none;
 }
 
 /* Widen hit area without changing visual width */
@@ -597,9 +615,14 @@ html, body {
     cursor: row-resize;
   }
 
+  #resizer::before {
+    width: var(--resizer-grip-length);
+    height: var(--resizer-grip-thickness);
+  }
+
   #resizer::after {
-    top: -6px;
-    bottom: -6px;
+    top: -10px;
+    bottom: -10px;
     left: 0;
     right: 0;
   }
