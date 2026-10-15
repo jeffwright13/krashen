@@ -202,12 +202,15 @@ describe('generateContent — max output tokens scale with requested length', ()
     expect(body.max_tokens).toBe(2048);
   });
 
-  it('OpenAI: sends a max_tokens field that scales with the requested word count', async () => {
+  // Reasoning models such as gpt-6-luna reject max_tokens outright ("Use
+  // 'max_completion_tokens' instead"); older OpenAI models accept either.
+  it('OpenAI: sends a max_completion_tokens field that scales with the requested word count', async () => {
     const fetch = mockFetch(200, { choices: [{ message: { content: 'test' } }] });
     vi.stubGlobal('fetch', fetch);
     await generateContent(mockPrompts, 'openai', 'sk-openai-key', undefined, undefined, 2500);
     const body = JSON.parse(fetch.mock.calls[0][1].body);
-    expect(body.max_tokens).toBeGreaterThan(2048);
+    expect(body.max_completion_tokens).toBeGreaterThan(2048);
+    expect(body).not.toHaveProperty('max_tokens');
   });
 
   it('Google: sends a maxOutputTokens field that scales with the requested word count', async () => {

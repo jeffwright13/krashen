@@ -55,7 +55,7 @@ async function callOpenAI(prompts, apiKey, model, temperature, targetWordCount) 
     },
     body: JSON.stringify({
       model,
-      max_tokens: estimateMaxTokens(targetWordCount),
+      max_completion_tokens: estimateMaxTokens(targetWordCount),
       messages: [
         { role: 'system', content: prompts.system },
         { role: 'user',   content: prompts.user },
