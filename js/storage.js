@@ -5,7 +5,7 @@ const KEYS = {
 
 const DEFAULT_SETTINGS = {
   apiKeys: { claude: '', openai: '', google: '' },
-  models:  { claude: 'claude-opus-4-8', openai: 'gpt-4o', google: 'gemini-2.5-flash' },
+  models:  { claude: 'claude-opus-4-8', openai: 'gpt-6-luna', google: 'gemini-2.5-flash' },
   ui: { fontSize: 'medium', theme: 'system', maxWidth: true, maxWidthValue: 70 },
 };
 
@@ -37,9 +37,25 @@ function deepMerge(defaults, stored) {
   return result;
 }
 
+// OpenAI removes these models from the API on 2027-01-14: GPT-4o, GPT-4o mini, GPT-4.1
+// and GPT-4.1 mini, each with or without a dated snapshot suffix. Fine-tunes (ft:...) are
+// deliberately excluded: they're user-specific, and silently swapping one for a base model
+// would hide that it needs retraining.
+const RETIRED_OPENAI_MODEL = /^gpt-4(o|\.1)(-mini)?(-\d{4}-\d{2}-\d{2})?$/;
+
+// setSettings() persists the whole merged object, so a user who saved anything has the
+// old default frozen in localStorage. Rewrite it on read; the next write persists the fix.
+function migrateRetiredModels(settings) {
+  const stored = settings.models.openai;
+  if (typeof stored === 'string' && RETIRED_OPENAI_MODEL.test(stored.trim().toLowerCase())) {
+    settings.models.openai = DEFAULT_SETTINGS.models.openai;
+  }
+  return settings;
+}
+
 export function getSettings() {
   const stored = read(KEYS.settings, {});
-  return deepMerge(DEFAULT_SETTINGS, stored);
+  return migrateRetiredModels(deepMerge(DEFAULT_SETTINGS, stored));
 }
 
 export function setSettings(settings) {

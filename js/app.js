@@ -113,7 +113,7 @@ const KEY_PLACEHOLDERS = {
   claude: 'sk-ant-…', openai: 'sk-…', google: 'AIza…',
 };
 const MODEL_PLACEHOLDERS = {
-  claude: 'claude-opus-4-8', openai: 'gpt-4o', google: 'gemini-2.5-flash',
+  claude: 'claude-opus-4-8', openai: 'gpt-6-luna', google: 'gemini-2.5-flash',
 };
 
 function initProviderSection() {

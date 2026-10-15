@@ -1,5 +1,5 @@
 const CLAUDE_MODEL = 'claude-opus-4-5';
-const OPENAI_MODEL = 'gpt-4o';
+const OPENAI_MODEL = 'gpt-6-luna';
 const GOOGLE_MODEL = 'gemini-2.5-flash';
 
 // Previously max_tokens was hardcoded to 2048 on the Claude path (and left

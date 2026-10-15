@@ -95,7 +95,7 @@ describe('models', () => {
   });
 
   it('returns default model for openai', () => {
-    expect(getModel('openai')).toBe('gpt-4o');
+    expect(getModel('openai')).toBe('gpt-6-luna');
   });
 
   it('returns default model for google', () => {
@@ -103,8 +103,8 @@ describe('models', () => {
   });
 
   it('stores and retrieves a custom model', () => {
-    setModel('openai', 'gpt-4o-mini');
-    expect(getModel('openai')).toBe('gpt-4o-mini');
+    setModel('openai', 'custom-openai-model');
+    expect(getModel('openai')).toBe('custom-openai-model');
   });
 
   it('stores models per provider independently', () => {
@@ -112,7 +112,41 @@ describe('models', () => {
     setModel('google', 'gemini-2.5-pro');
     expect(getModel('claude')).toBe('claude-haiku-4-5');
     expect(getModel('google')).toBe('gemini-2.5-pro');
-    expect(getModel('openai')).toBe('gpt-4o');
+    expect(getModel('openai')).toBe('gpt-6-luna');
+  });
+});
+
+// OpenAI shuts these models down on 2027-01-14. Because setSettings() persists the
+// fully merged settings object, any user who ever saved a key has the old default
+// frozen in localStorage — changing DEFAULT_SETTINGS alone would not reach them.
+describe('retired OpenAI model migration', () => {
+  const storeOpenAIModel = model =>
+    localStorage.setItem('krashen_settings', JSON.stringify({ models: { openai: model } }));
+
+  it.each([
+    'gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini',
+    'gpt-4o-2024-08-06', 'gpt-4o-mini-2024-07-18', 'gpt-4.1-2025-04-14',
+    '  GPT-4o  ',
+  ])('replaces stored retired model %j with the current default', model => {
+    storeOpenAIModel(model);
+    expect(getModel('openai')).toBe('gpt-6-luna');
+  });
+
+  it.each(['gpt-6-luna', 'custom-openai-model', 'gpt-4o-audio-preview', 'ft:gpt-4o:org::abc'])(
+    'leaves non-retired stored model %j untouched', model => {
+      storeOpenAIModel(model);
+      expect(getModel('openai')).toBe(model);
+    });
+
+  it('does not rewrite a retired-looking ID stored for another provider', () => {
+    localStorage.setItem('krashen_settings', JSON.stringify({ models: { google: 'gpt-4o' } }));
+    expect(getModel('google')).toBe('gpt-4o');
+  });
+
+  it('persists the replacement on the next settings write', () => {
+    storeOpenAIModel('gpt-4o');
+    setApiKey('openai', 'sk-test');
+    expect(JSON.parse(localStorage.getItem('krashen_settings')).models.openai).toBe('gpt-6-luna');
   });
 });
 
