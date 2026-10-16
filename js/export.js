@@ -81,6 +81,9 @@ export function exportLibraryAsMarkdown(entries) {
   return header + '\n\n' + entries.map(pieceToMarkdown).join('\n\n');
 }
 
+// The exported file is opened outside the app, maybe long after export, so it follows
+// the reader's OS light/dark appearance at open time rather than the app's theme setting
+// at export time. The dark palette mirrors Pico v2's dark theme so exports match the app.
 export function exportPieceAsHTML(entry) {
   const cefr    = entry.config?.cefrLevel ?? '';
   const dialect = entry.config?.targetDialect ?? '';
@@ -109,11 +112,16 @@ export function exportPieceAsHTML(entry) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${docTitle}</title>
   <style>
-    body { font-family: Georgia, serif; max-width: 70ch; margin: 2rem auto; padding: 0 1rem; line-height: 1.7; color: #222; }
+    :root { color-scheme: light dark; }
+    body { font-family: Georgia, serif; max-width: 70ch; margin: 2rem auto; padding: 0 1rem; line-height: 1.7; color: #222; background: #fff; }
     h1 { margin-top: 0; }
     .meta { font-size: 0.85em; color: #666; margin-bottom: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.75rem; }
     .meta span + span::before { content: " · "; }
     p { margin-top: 0; }
+    @media (prefers-color-scheme: dark) {
+      body { color: #c2c7d0; background: #13171f; }
+      .meta { color: #7b8495; border-bottom-color: #202632; }
+    }
   </style>
 </head>
 <body>

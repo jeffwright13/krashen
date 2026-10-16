@@ -125,6 +125,35 @@ describe('exportPieceAsHTML', () => {
     const html = exportPieceAsHTML(makeEntry({ content: 'Una **palabra** importante.' }));
     expect(html).toContain('<strong>palabra</strong>');
   });
+
+  // The exported file is opened outside the app, possibly long after export, so
+  // it follows the reader's OS appearance at open time via CSS alone.
+  describe('light/dark appearance', () => {
+    const style = () => exportPieceAsHTML(makeEntry()).match(/<style>([\s\S]*?)<\/style>/)[1];
+    const darkBlock = () => style().match(/@media \(prefers-color-scheme: dark\)\s*\{([\s\S]*)\}\s*$/)[1];
+
+    it('declares support for both color schemes', () => {
+      expect(style()).toMatch(/color-scheme:\s*light dark/);
+    });
+
+    it('sets an explicit light background so it does not depend on browser defaults', () => {
+      expect(style()).toMatch(/body\s*\{[^}]*background:\s*#fff/);
+    });
+
+    it('overrides background, text, muted and border colors for dark mode', () => {
+      const dark = darkBlock();
+      expect(dark).toMatch(/body\s*\{[^}]*background:\s*#13171f/);
+      expect(dark).toMatch(/body\s*\{[^}]*color:\s*#c2c7d0/);
+      expect(dark).toMatch(/\.meta\s*\{[^}]*color:\s*#7b8495/);
+      expect(dark).toMatch(/\.meta\s*\{[^}]*border-bottom-color:\s*#202632/);
+    });
+
+    it('does not bake in the app theme or need JavaScript', () => {
+      const html = exportPieceAsHTML(makeEntry());
+      expect(html).not.toContain('<script');
+      expect(html).not.toContain('data-theme');
+    });
+  });
 });
 
 describe('exportLibraryAsJSON', () => {

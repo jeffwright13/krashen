@@ -153,7 +153,7 @@ Every form control (inputs, selects, checkboxes, buttons) carries a `title` attr
 
 **File modal** (toolbar → File button): two sections separated by a rule.
 - **Open** — title input, paste area, load-from-file button, Display button. Replaces the former standalone Load Text modal.
-- **Save as** — Markdown (.md) and HTML (.html) export buttons, disabled until a piece is loaded. Downloading either closes nothing; the modal stays open.
+- **Save as** — Markdown (.md) and HTML (.html) export buttons, disabled until a piece is loaded. Downloading either closes nothing; the modal stays open. The HTML export is a self-contained file with inline CSS and no JavaScript. It follows the reader's OS light/dark appearance when opened (`prefers-color-scheme`), not the app's Theme setting at export time, using Pico's dark palette so it matches the app.
 
 The fullscreen toggle (⤢) is the rightmost button in the reading toolbar, pushed to the far right via `margin-left: auto`. Esc also exits fullscreen.
 
