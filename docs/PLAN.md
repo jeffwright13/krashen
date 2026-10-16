@@ -645,7 +645,8 @@ Genuinely open items:
 
 - **CEFR half-levels between A1 and A2 (and possibly other adjacent pairs).** Scoped 2026-07-17 — see dedicated section below.
 - **Freeform "Misc instructions" field alongside grammar/vocab include-exclude.** Scoped 2026-07-17 — see dedicated section below.
-- **Regenerate existing content at a different difficulty level.** Scoped 2026-07-17, no decision yet on whether to build — see dedicated section below.
+- **Regenerate existing content at a different difficulty level.** Scoped 2026-07-17; revisited 2026-10-15 with the user now wanting the *same* story re-leveled, which points to option (C) — see dedicated section below.
+- **Retell the same story in 1st / 2nd / 3rd person.** Noted 2026-10-15. Shares the "retell from source text" path with re-leveling and is the simpler of the two, so the natural first use of it — see dedicated section below.
 - **Custom user-overridden Define definitions.** Scoped 2026-07-17 — see dedicated section below.
 - ~~**Define popup returns wrong/inconsistent translations when selection contains embedded quotes.**~~ **Fixed 2026-06-16.** `buildDefinePrompt()` (`js/prompt.js`) used to wrap `selection`/`context` in unescaped `"..."`, so a selection containing a literal `"` (e.g. `la frase "¿Qué me traes?"`) produced an ambiguous prompt and the LLM anchored on the embedded quoted sub-phrase instead of the real selection. Latent since the `5ea5def`/`38791b7` Define-prompt fixes (2026-06-09); never covered by `tests/prompt.test.js`. First attempt delimited with `<selection>`/`<context>` tags, but that introduced a new bug — the LLM sometimes echoed the literal tag tokens back into the TRANSLATION line. Final fix: keep the original quote-wrapped framing but escape embedded `"` in `selection`/`context` to `'` before substitution (`escapeForPrompt()`), so the outer delimiter quotes can never be closed early and no novel markup tokens are introduced. Regression tests added in `tests/prompt.test.js`.
 - ~~**Define translations pad in unselected context words; results vary between identical requests.**~~ **Fixed 2026-06-19.** Option B implemented — see below for full state and rationale.
@@ -911,7 +912,35 @@ Open questions: who generates the three options (a second LLM call? the same cal
 - **(B) Lightweight convenience only.** A "Regenerate at a different level" action on a History entry that just pre-fills the Configure tab from that entry's stored `config` (topic, format, dialect, etc.) with the CEFR/word-cap fields left for the user to change, then a normal Generate call — no retelling, no tracking of a family relationship. Small, mechanical, low-risk.
 - **(C) True "retell at a different level."** Pass the original piece's text into the prompt with an explicit retelling instruction, and track a lineage link between entries (new field on history entries, e.g. `regeneratedFrom: id`). Bigger lift; touches `js/prompt.js`, `js/history.js`/`storage.js` schema, and possibly the History UI (showing variants of the same source piece grouped together).
 
+**Revisited 2026-10-15:** The user raised this again on their own, and this time stated the goal precisely: the *same* story at different levels, e.g. an A1 version limited to simple vocabulary and tenses, and a B2 version with much richer vocabulary and phrasing. That rules out (A) and (B): both run a fresh Generate from the stored `config`, which produces a different plot and wording, not a re-leveled version of the same text. Only (C) delivers what was asked for. The user also expects it to need more thought than person-swapping (see the next section), and that's right. Re-leveling is a real rewrite, not a mechanical transformation, so what "the same story" means has to be pinned down:
+- **Leveling down** (e.g. B2 → A1) has to drop content, not just simplify words: subplots, nuance, and ideas that can't be expressed within A1 grammar. "Same story" can only mean same characters, same plot beats, same ending.
+- **Leveling up** (e.g. A1 → B2) has the opposite problem: a B2 version of a 300-word A1 story is either padded or adds detail. Should the word count stay the same, or scale with the level?
+- **Which version is the source?** Retelling from the original each time is more stable than chaining (A1 → A2 → B1 …), which compounds drift.
+- **Verifying the level** is the same unsolved problem as the CEFR evals pipeline (see backlog). Without it, "this is A1" rests on the prompt alone.
+
+These are product questions to settle before any code. The prompt-assembly and lineage pieces of (C) are shared with person-swapping, so whichever ships first builds them.
+
 **Recommendation for the next conversation, not a decision:** start by confirming whether (A) already satisfies the itch before building (B) or (C) — this is the kind of feature (like the already-declined topic-aware vocab re-expose idea, `docs/DECISIONS.md` 2026-06-01 "Topic-aware re-expose: won't build automated version") that may be better left as a manual workflow than a tracked, tooled feature. No action taken; revisit only if (A) proves insufficient in practice.
+
+---
+
+### Retell the same story in 1st / 2nd / 3rd person (noted 2026-10-15)
+
+**Status: idea only, not scoped for build.** The user wants an existing story retold, as close to word-for-word as Spanish allows, in each of the three narrative persons, for direct exposure to the same verbs conjugated differently. This is different from the existing "Narrative person" Configure setting (SPEC.md §2). That setting picks the person *before* generation, so generating three times gives three different stories.
+
+**Why it's simpler than re-leveling:** it's a constrained transformation with no change to vocabulary or difficulty, and the results are checkable: the variants should line up roughly sentence for sentence, which a test or the user can compare. It still needs the original text passed into a new "retell" prompt, though, so it uses the same unbuilt path as option (C) in the re-leveling section above, and whichever ships first builds the shared parts: a retell prompt in `js/prompt.js` and a lineage field on history entries (e.g. `regeneratedFrom: id`).
+
+**Why "word-for-word" is approximate:** changing person in Spanish touches much more than verb endings:
+- Subject, object, possessive and reflexive pronouns all change (*me levanté* → *te levantaste* → *se levantó*; *mi casa* → *tu casa* → *su casa*), and *su* becomes ambiguous in 3rd person in a way *mi*/*tu* aren't.
+- **2nd person needs a register choice:** *tú*, *usted*, or *vos*. *Vos* is dialect-dependent (e.g. Rioplatense) and should probably follow the entry's stored `targetDialect`.
+- **Point of view leaks into content:** a 1st-person narrator can't naturally report another character's private thoughts, so a strictly mechanical swap can produce odd sentences. The prompt should allow minimal rewording for coherence while keeping the plot and vocabulary.
+- **Formats:** Article ignores narrative person (SPEC.md §2), and Dialogue and Crosstalk are already in 1st/2nd person by nature, so this probably applies to Single story only.
+
+**Open questions:**
+- **Display:** one at a time as linked history entries, or side by side for direct comparison? Side by side fits the conjugation-exposure goal best, but the reading pane has no multi-column layout today.
+- **Scope:** all three variants in one action, or one at a time? Three calls cost three times as much, and combined with re-leveling the grid grows quickly: 3 persons × 7 CEFR levels = 21 variants of one story.
+
+**Recommendation for the next conversation, not a decision:** scope this first, since it's the smaller of the two and exercises the shared retell/lineage path. Start with Single story, one variant per action, shown as a linked history entry, and leave side-by-side display as a follow-on.
 
 ---
 
