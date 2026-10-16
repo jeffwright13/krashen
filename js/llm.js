@@ -46,8 +46,19 @@ async function callClaude(prompts, apiKey, model, temperature, targetWordCount) 
   return data.content[0].text;
 }
 
-async function callOpenAI(prompts, apiKey, model, temperature, targetWordCount) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+// Reasoning models such as gpt-6-luna reject any temperature other than the default
+// (1). Rather than guessing which models those are from their names, send the
+// requested temperature, and if OpenAI rejects it, retry once without it and remember
+// the model for the rest of the page session so later calls skip the failed request.
+const openAIModelsRejectingTemperature = new Set();
+
+function isTemperatureRejection(err) {
+  const { param, message = '' } = err?.error ?? {};
+  return param === 'temperature' || message.includes("'temperature'");
+}
+
+async function postOpenAIChat(prompts, apiKey, model, temperature, targetWordCount) {
+  return fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -63,8 +74,19 @@ async function callOpenAI(prompts, apiKey, model, temperature, targetWordCount) 
       ...(temperature !== undefined && { temperature }),
     }),
   });
+}
+
+async function callOpenAI(prompts, apiKey, model, temperature, targetWordCount) {
+  const effectiveTemperature = openAIModelsRejectingTemperature.has(model) ? undefined : temperature;
+  let response = await postOpenAIChat(prompts, apiKey, model, effectiveTemperature, targetWordCount);
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
+    let err = await response.json().catch(() => ({}));
+    if (effectiveTemperature !== undefined && isTemperatureRejection(err)) {
+      openAIModelsRejectingTemperature.add(model);
+      response = await postOpenAIChat(prompts, apiKey, model, undefined, targetWordCount);
+      if (response.ok) return (await response.json()).choices[0].message.content;
+      err = await response.json().catch(() => ({}));
+    }
     throw new Error(err?.error?.message ?? `OpenAI API error ${response.status}`);
   }
   const data = await response.json();
