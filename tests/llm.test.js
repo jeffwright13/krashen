@@ -154,6 +154,84 @@ describe('generateContent — temperature passthrough', () => {
     expect(body).not.toHaveProperty('temperature');
   });
 
+  // Reasoning models such as gpt-6-luna reject any non-default temperature. Each test
+  // uses its own model name because the "unsupported" memory is module-level state.
+  describe('OpenAI: retry without temperature when the model rejects it', () => {
+    const TEMPERATURE_REJECTED = {
+      error: {
+        message: "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported.",
+        param: 'temperature',
+        code: 'unsupported_value',
+      },
+    };
+    const OK = { choices: [{ message: { content: 'buscar comida → look for food' } }] };
+
+    function sequencedFetch(...responses) {
+      const fn = vi.fn();
+      for (const [status, body] of responses) {
+        fn.mockResolvedValueOnce({ ok: status >= 200 && status < 300, status, json: async () => body });
+      }
+      return fn;
+    }
+    const sentBody = (fetch, i) => JSON.parse(fetch.mock.calls[i][1].body);
+
+    it('retries once without temperature and returns the result', async () => {
+      const fetch = sequencedFetch([400, TEMPERATURE_REJECTED], [200, OK]);
+      vi.stubGlobal('fetch', fetch);
+      const result = await generateContent(mockPrompts, 'openai', 'sk', 'reasoning-model-a', 0);
+      expect(result).toBe('buscar comida → look for food');
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(sentBody(fetch, 0).temperature).toBe(0);
+      expect(sentBody(fetch, 1)).not.toHaveProperty('temperature');
+    });
+
+    it('skips temperature on later calls to the same model without a failed request', async () => {
+      const fetch = sequencedFetch([400, TEMPERATURE_REJECTED], [200, OK], [200, OK]);
+      vi.stubGlobal('fetch', fetch);
+      await generateContent(mockPrompts, 'openai', 'sk', 'reasoning-model-b', 0);
+      await generateContent(mockPrompts, 'openai', 'sk', 'reasoning-model-b', 0);
+      expect(fetch).toHaveBeenCalledTimes(3);
+      expect(sentBody(fetch, 2)).not.toHaveProperty('temperature');
+    });
+
+    it('still sends temperature to a different model', async () => {
+      const fetch = sequencedFetch([400, TEMPERATURE_REJECTED], [200, OK], [200, OK]);
+      vi.stubGlobal('fetch', fetch);
+      await generateContent(mockPrompts, 'openai', 'sk', 'reasoning-model-c', 0);
+      await generateContent(mockPrompts, 'openai', 'sk', 'non-reasoning-model-c', 0);
+      expect(sentBody(fetch, 2).temperature).toBe(0);
+    });
+
+    it('detects the rejection from the message when param is absent', async () => {
+      const fetch = sequencedFetch(
+        [400, { error: { message: TEMPERATURE_REJECTED.error.message } }],
+        [200, OK],
+      );
+      vi.stubGlobal('fetch', fetch);
+      await generateContent(mockPrompts, 'openai', 'sk', 'reasoning-model-d', 0);
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not retry on unrelated errors', async () => {
+      const fetch = sequencedFetch([401, { error: { message: 'Incorrect API key provided' } }]);
+      vi.stubGlobal('fetch', fetch);
+      await expect(generateContent(mockPrompts, 'openai', 'sk', 'reasoning-model-e', 0))
+        .rejects.toThrow('Incorrect API key provided');
+      expect(fetch).toHaveBeenCalledOnce();
+    });
+
+    it('surfaces the error if the retry also fails', async () => {
+      const fetch = sequencedFetch(
+        [400, TEMPERATURE_REJECTED],
+        [500, { error: { message: 'The server had an error' } }],
+      );
+      vi.stubGlobal('fetch', fetch);
+      await expect(generateContent(mockPrompts, 'openai', 'sk', 'reasoning-model-f', 0))
+        .rejects.toThrow('The server had an error');
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('Google: includes temperature in generationConfig when provided', async () => {
     const fetch = mockFetch(200, { candidates: [{ content: { parts: [{ text: 'test' }] } }] });
     vi.stubGlobal('fetch', fetch);
@@ -202,12 +280,15 @@ describe('generateContent — max output tokens scale with requested length', ()
     expect(body.max_tokens).toBe(2048);
   });
 
-  it('OpenAI: sends a max_tokens field that scales with the requested word count', async () => {
+  // Reasoning models such as gpt-6-luna reject max_tokens outright ("Use
+  // 'max_completion_tokens' instead"); older OpenAI models accept either.
+  it('OpenAI: sends a max_completion_tokens field that scales with the requested word count', async () => {
     const fetch = mockFetch(200, { choices: [{ message: { content: 'test' } }] });
     vi.stubGlobal('fetch', fetch);
     await generateContent(mockPrompts, 'openai', 'sk-openai-key', undefined, undefined, 2500);
     const body = JSON.parse(fetch.mock.calls[0][1].body);
-    expect(body.max_tokens).toBeGreaterThan(2048);
+    expect(body.max_completion_tokens).toBeGreaterThan(2048);
+    expect(body).not.toHaveProperty('max_tokens');
   });
 
   it('Google: sends a maxOutputTokens field that scales with the requested word count', async () => {
